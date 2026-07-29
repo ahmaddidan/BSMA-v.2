@@ -1,0 +1,53 @@
+2026-07-29 23:57:53 | INFO     | root | exceptions.py:124 | ========================================
+2026-07-29 23:57:53 | INFO     | root | exceptions.py:124 | ========================================
+2026-07-29 23:57:53 | INFO     | root | exceptions.py:125 |  BSMA Logging Initialized
+2026-07-29 23:57:53 | INFO     | root | exceptions.py:125 |  BSMA Logging Initialized
+2026-07-29 23:57:53 | INFO     | root | exceptions.py:126 |  Log File : logs\bsma.log
+2026-07-29 23:57:53 | INFO     | root | exceptions.py:126 |  Log File : logs\bsma.log
+2026-07-29 23:57:53 | INFO     | root | exceptions.py:126 |  Log File : logs\bsma.log
+2026-07-29 23:57:53 | INFO     | root | exceptions.py:127 | ========================================
+2026-07-29 23:57:53 | INFO     | root | exceptions.py:127 | ========================================
+2026-07-29 23:57:53 | INFO     | __main__ | exceptions.py:166 | Application started
+2026-07-29 23:57:53 | INFO     | __main__ | exceptions.py:166 | Application started
+2026-07-29 23:57:53 | INFO     | __main__ | exceptions.py:166 | Application started
+2026-07-29 23:57:53 | WARNING  | __main__ | exceptions.py:168 | This is a warning
+2026-07-29 23:57:53 | WARNING  | __main__ | exceptions.py:168 | This is a warning
+2026-07-29 23:57:53 | ERROR    | __main__ | exceptions.py:170 | This is an error
+==================
+2026-07-29 23:57:53 | WARNING  | __main__ | exceptions.py:168 | This is a warning
+2026-07-29 23:57:53 | ERROR    | __main__ | exceptions.py:170 | This is an error
+2026-07-29 23:57:53 | INFO     | root | exceptions.py:125 |  BSMA Logging Initialized
+2026-07-29 23:57:53 | CRITICAL | __main__ | exceptions.py:172 | Critical failure example
+2026-07-29 23:57:53 | CRITICAL | __main__ | exceptions.py:172 | Critical failure example
+2026-07-29 23:57:53 | ERROR    | __main__ | exceptions.py:170 | This is an error
+2026-07-29 23:57:53 | INFO     | root | exceptions.py:126 |  Log File : logs\bsma.log
+2026-07-29 23:57:53 | INFO     | root | exceptions.py:127 | ========================================
+2026-07-29 23:57:53 | CRITICAL | __main__ | exceptions.py:172 | Critical failure example
+2026-07-29 23:57:53 | INFO     | __main__ | exceptions.py:166 | Application started
+2026-07-29 23:57:53 | WARNING  | __main__ | exceptions.py:168 | This is a warning
+2026-07-29 23:57:53 | ERROR    | __main__ | exceptions.py:170 | This is an error
+2026-07-29 23:57:53 | CRITICAL | __main__ | exceptions.py:172 | Critical failure example
+2026-07-29 23:58:12 | INFO     | root | exceptions.py:122 | ========================================
+2026-07-29 23:58:12 | INFO     | root | exceptions.py:123 |  BSMA Logging Initialized
+2026-07-29 23:58:12 | INFO     | root | exceptions.py:124 |  Log File : logs\bsma.log
+2026-07-29 23:58:12 | INFO     | root | exceptions.py:125 | ========================================
+2026-07-29 23:58:12 | INFO     | __main__ | exceptions.py:164 | Application started
+2026-07-29 23:58:12 | WARNING  | __main__ | exceptions.py:166 | This is a warning
+2026-07-29 23:58:12 | ERROR    | __main__ | exceptions.py:168 | This is an error
+2026-07-29 23:58:12 | CRITICAL | __main__ | exceptions.py:170 | Critical failure example
+2026-07-30 00:12:40 | INFO     | root | logger.py:158 | ========================================
+2026-07-30 00:12:40 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-07-30 00:12:40 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-07-30 00:12:40 | INFO     | root | logger.py:161 | ========================================
+2026-07-30 00:12:40 | INFO     | __main__ | logger.py:200 | Application started
+2026-07-30 00:12:40 | WARNING  | __main__ | logger.py:202 | This is a warning
+2026-07-30 00:12:40 | ERROR    | __main__ | logger.py:204 | This is an error
+2026-07-30 00:12:40 | CRITICAL | __main__ | logger.py:206 | Critical failure example
+2026-07-30 00:20:16 | INFO     | root | logger.py:158 | ========================================
+2026-07-30 00:20:16 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-07-30 00:20:16 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-07-30 00:20:16 | INFO     | root | logger.py:161 | ========================================
+2026-07-30 00:20:16 | INFO     | __main__ | logger.py:200 | Application started
+2026-07-30 00:20:16 | WARNING  | __main__ | logger.py:202 | This is a warning
+2026-07-30 00:20:16 | ERROR    | __main__ | logger.py:204 | This is an error
+2026-07-30 00:20:16 | CRITICAL | __main__ | logger.py:206 | Critical failure example
