@@ -51,3 +51,616 @@
 2026-07-30 00:20:16 | WARNING  | __main__ | logger.py:202 | This is a warning
 2026-07-30 00:20:16 | ERROR    | __main__ | logger.py:204 | This is an error
 2026-07-30 00:20:16 | CRITICAL | __main__ | logger.py:206 | Critical failure example
+2026-08-02 15:46:58 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 15:46:58 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 15:46:58 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 15:46:58 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 15:46:58 | INFO     | bsma_test | run_pipeline.py:25 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 15:46:58 | INFO     | bsma_test | run_pipeline.py:36 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 15:48:25 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 15:48:25 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 15:48:25 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 15:48:25 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 15:48:25 | INFO     | bsma_test | run_pipeline.py:25 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 15:48:25 | INFO     | bsma_test | run_pipeline.py:36 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 15:52:42 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 15:52:42 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 15:52:42 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 15:52:42 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 15:52:42 | INFO     | bsma_test | run_pipeline.py:25 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 15:52:42 | INFO     | bsma_test | run_pipeline.py:36 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 15:54:28 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 15:54:28 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 15:54:28 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 15:54:28 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 15:54:28 | INFO     | bsma_test | run_pipeline.py:25 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 15:54:28 | INFO     | bsma_test | run_pipeline.py:36 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 15:56:24 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 15:56:24 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 15:56:24 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 15:56:24 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 15:56:24 | INFO     | bsma_test | run_pipeline.py:25 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 15:56:24 | INFO     | bsma_test | run_pipeline.py:36 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 15:57:39 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 15:57:39 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 15:57:39 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 15:57:39 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 15:57:39 | INFO     | bsma_test | run_pipeline.py:25 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 15:57:39 | INFO     | bsma_test | run_pipeline.py:36 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 15:57:39 | INFO     | bsma_test | run_pipeline.py:74 | Mengeksekusi Pipeline dengan 6 plugin...
+2026-08-02 15:59:03 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 15:59:03 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 15:59:03 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 15:59:03 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 15:59:03 | INFO     | bsma_test | run_pipeline.py:26 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 15:59:03 | INFO     | bsma_test | run_pipeline.py:37 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 15:59:03 | INFO     | bsma_test | run_pipeline.py:75 | Mengeksekusi Pipeline dengan 6 plugin...
+2026-08-02 16:01:19 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 16:01:19 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 16:01:19 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 16:01:19 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 16:01:19 | INFO     | bsma_test | run_pipeline.py:26 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 16:01:19 | INFO     | bsma_test | run_pipeline.py:37 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 16:01:19 | INFO     | bsma_test | run_pipeline.py:75 | Mengeksekusi Pipeline dengan 6 plugin...
+2026-08-02 16:01:19 | ERROR    | bsma_test | pipeline.py:111 | Pipeline execution failed at BaselineCorrection.
+Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\pipeline.py", line 103, in run
+    new_context = plugin.process(current)
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\preprocessing\baseline.py", line 54, in process
+    self.validate_input(context)
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\interfaces\preprocessor.py", line 105, in validate_input
+    if context.waveform is None:
+AttributeError: 'ProcessingContext' object has no attribute 'waveform'
+2026-08-02 16:02:44 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 16:02:44 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 16:02:44 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 16:02:44 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 16:02:44 | INFO     | bsma_test | run_pipeline.py:26 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 16:02:44 | INFO     | bsma_test | run_pipeline.py:37 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 16:02:44 | INFO     | bsma_test | run_pipeline.py:75 | Mengeksekusi Pipeline dengan 6 plugin...
+2026-08-02 16:02:44 | ERROR    | bsma_test | pipeline.py:111 | Pipeline execution failed at BaselineCorrection.
+Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\pipeline.py", line 103, in run
+    new_context = plugin.process(current)
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\preprocessing\baseline.py", line 54, in process
+    self.validate_input(context)
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\interfaces\preprocessor.py", line 112, in validate_input
+    if context.waveform.size == 0:
+AttributeError: 'ProcessingContext' object has no attribute 'waveform'
+2026-08-02 16:04:20 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 16:04:20 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 16:04:20 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 16:04:20 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 16:04:20 | INFO     | bsma_test | run_pipeline.py:26 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 16:04:20 | INFO     | bsma_test | run_pipeline.py:37 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 16:04:20 | INFO     | bsma_test | run_pipeline.py:75 | Mengeksekusi Pipeline dengan 6 plugin...
+2026-08-02 16:04:20 | ERROR    | bsma_test | pipeline.py:111 | Pipeline execution failed at BaselineCorrection.
+Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\pipeline.py", line 103, in run
+    new_context = plugin.process(current)
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\preprocessing\baseline.py", line 54, in process
+    self.validate_input(context)
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\interfaces\preprocessor.py", line 124, in validate_input
+    if context.waveform.size == 0:
+AttributeError: 'ProcessingContext' object has no attribute 'waveform'
+2026-08-02 16:05:43 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 16:05:43 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 16:05:43 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 16:05:43 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 16:05:43 | INFO     | bsma_test | run_pipeline.py:26 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 16:05:43 | INFO     | bsma_test | run_pipeline.py:37 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 16:05:43 | INFO     | bsma_test | run_pipeline.py:75 | Mengeksekusi Pipeline dengan 6 plugin...
+2026-08-02 16:05:43 | ERROR    | bsma_test | pipeline.py:111 | Pipeline execution failed at BaselineCorrection.
+Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\pipeline.py", line 103, in run
+    new_context = plugin.process(current)
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\preprocessing\baseline.py", line 55, in process
+    waveform = context.waveform
+AttributeError: 'ProcessingContext' object has no attribute 'waveform'
+2026-08-02 16:07:48 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 16:07:48 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 16:07:48 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 16:07:48 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 16:07:48 | INFO     | bsma_test | run_pipeline.py:26 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 16:07:48 | INFO     | bsma_test | run_pipeline.py:37 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 16:07:48 | INFO     | bsma_test | run_pipeline.py:75 | Mengeksekusi Pipeline dengan 6 plugin...
+2026-08-02 16:07:48 | ERROR    | bsma_test | pipeline.py:111 | Pipeline execution failed at BaselineCorrection.
+Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\pipeline.py", line 103, in run
+    new_context = plugin.process(current)
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\preprocessing\baseline.py", line 112, in process
+    state = replace(
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\dataclasses.py", line 1447, in replace
+    return obj.__class__(**changes)
+TypeError: ProcessingState.__init__() got an unexpected keyword argument 'is_baseline_corrected'
+2026-08-02 16:08:37 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 16:08:37 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 16:08:37 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 16:08:37 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 16:08:37 | INFO     | bsma_test | run_pipeline.py:26 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 16:08:37 | INFO     | bsma_test | run_pipeline.py:37 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 16:08:37 | INFO     | bsma_test | run_pipeline.py:75 | Mengeksekusi Pipeline dengan 6 plugin...
+2026-08-02 16:08:37 | ERROR    | bsma_test | pipeline.py:111 | Pipeline execution failed at BaselineCorrection.
+Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\pipeline.py", line 103, in run
+    new_context = plugin.process(current)
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\preprocessing\baseline.py", line 129, in process
+    return context.copy(**update_kwargs).add_history(history_msg)
+AttributeError: 'ProcessingContext' object has no attribute 'copy'
+2026-08-02 16:10:18 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 16:10:18 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 16:10:18 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 16:10:18 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 16:10:18 | INFO     | bsma_test | run_pipeline.py:26 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 16:10:18 | INFO     | bsma_test | run_pipeline.py:37 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 16:10:18 | INFO     | bsma_test | run_pipeline.py:75 | Mengeksekusi Pipeline dengan 6 plugin...
+2026-08-02 16:10:18 | ERROR    | bsma_test | pipeline.py:111 | Pipeline execution failed at Taper.
+Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\pipeline.py", line 103, in run
+    new_context = plugin.process(current)
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\preprocessing\taper.py", line 82, in process
+    waveform = context.waveform
+AttributeError: 'ProcessingContext' object has no attribute 'waveform'
+2026-08-02 16:11:04 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 16:11:04 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 16:11:04 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 16:11:04 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 16:11:04 | INFO     | bsma_test | run_pipeline.py:26 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 16:11:04 | INFO     | bsma_test | run_pipeline.py:37 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 16:11:04 | INFO     | bsma_test | run_pipeline.py:75 | Mengeksekusi Pipeline dengan 6 plugin...
+2026-08-02 16:11:04 | ERROR    | bsma_test | pipeline.py:111 | Pipeline execution failed at ButterworthFilter.
+Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\pipeline.py", line 103, in run
+    new_context = plugin.process(current)
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\preprocessing\filter.py", line 85, in process
+    waveform = context.waveform
+AttributeError: 'ProcessingContext' object has no attribute 'waveform'
+2026-08-02 16:12:15 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 16:12:15 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 16:12:15 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 16:12:15 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 16:12:15 | INFO     | bsma_test | run_pipeline.py:26 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 16:12:15 | INFO     | bsma_test | run_pipeline.py:37 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 16:12:15 | INFO     | bsma_test | run_pipeline.py:75 | Mengeksekusi Pipeline dengan 6 plugin...
+2026-08-02 16:12:15 | ERROR    | bsma_test | pipeline.py:111 | Pipeline execution failed at Parameter_Extraction.
+Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\pipeline.py", line 103, in run
+    new_context = plugin.process(current)
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\processing\parameters.py", line 150, in process
+    state = replace(context.processing_state, parameters=StageStatus.SUCCESS)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\dataclasses.py", line 1447, in replace
+    return obj.__class__(**changes)
+TypeError: ProcessingState.__init__() got an unexpected keyword argument 'parameters'
+2026-08-02 16:13:14 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 16:13:14 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 16:13:14 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 16:13:14 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 16:13:14 | INFO     | bsma_test | run_pipeline.py:26 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 16:13:14 | INFO     | bsma_test | run_pipeline.py:37 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 16:13:14 | INFO     | bsma_test | run_pipeline.py:75 | Mengeksekusi Pipeline dengan 6 plugin...
+2026-08-02 16:13:14 | ERROR    | bsma_test | pipeline.py:111 | Pipeline execution failed at Parameter_Extraction.
+Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\pipeline.py", line 103, in run
+    new_context = plugin.process(current)
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\processing\parameters.py", line 151, in process
+    state = replace(context.processing_state, parameter_extraction=StageStatus.SUCCESS)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\dataclasses.py", line 1447, in replace
+    return obj.__class__(**changes)
+TypeError: ProcessingState.__init__() got an unexpected keyword argument 'parameter_extraction'
+2026-08-02 16:14:33 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 16:14:33 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 16:14:33 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 16:14:33 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 16:14:33 | INFO     | bsma_test | run_pipeline.py:26 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 16:14:33 | INFO     | bsma_test | run_pipeline.py:37 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 16:14:33 | INFO     | bsma_test | run_pipeline.py:75 | Mengeksekusi Pipeline dengan 6 plugin...
+2026-08-02 16:14:34 | ERROR    | bsma_test | pipeline.py:111 | Pipeline execution failed at Response_Spectrum_Nigam_jennings.
+Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\pipeline.py", line 103, in run
+    new_context = plugin.process(current)
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\processing\response_spectrum.py", line 139, in process
+    state = replace(context.processing_state, response_spectrum=StageStatus.SUCCESS)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\dataclasses.py", line 1447, in replace
+    return obj.__class__(**changes)
+TypeError: ProcessingState.__init__() got an unexpected keyword argument 'response_spectrum'
+2026-08-02 20:53:21 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 20:53:21 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 20:53:21 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 20:53:21 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 20:53:21 | INFO     | bsma_test | run_pipeline.py:26 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 20:53:21 | INFO     | bsma_test | run_pipeline.py:37 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 20:53:21 | INFO     | bsma_test | run_pipeline.py:75 | Mengeksekusi Pipeline dengan 6 plugin...
+2026-08-02 20:53:23 | ERROR    | bsma_test | pipeline.py:111 | Pipeline execution failed at Response_Spectrum_Nigam_jennings.
+Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\pipeline.py", line 103, in run
+    new_context = plugin.process(current)
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\core\processing\response_spectrum.py", line 139, in process
+    state = replace(context.processing_state, response_spectrum=StageStatus.SUCCESS)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\dataclasses.py", line 1447, in replace
+    return obj.__class__(**changes)
+TypeError: ProcessingState.__init__() got an unexpected keyword argument 'response_spectrum'
+2026-08-02 20:54:40 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 20:54:40 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 20:54:40 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 20:54:40 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 20:54:40 | INFO     | bsma_test | run_pipeline.py:26 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 20:54:40 | INFO     | bsma_test | run_pipeline.py:37 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 20:54:40 | INFO     | bsma_test | run_pipeline.py:75 | Mengeksekusi Pipeline dengan 6 plugin...
+2026-08-02 20:54:42 | INFO     | bsma_test | run_pipeline.py:79 | 
+============================================================
+2026-08-02 20:54:42 | INFO     | bsma_test | run_pipeline.py:80 | HASIL EKSTRAKSI PARAMETER STRONG MOTION
+2026-08-02 20:54:42 | INFO     | bsma_test | run_pipeline.py:81 | ============================================================
+2026-08-02 20:54:42 | INFO     | bsma_test | run_pipeline.py:84 | PGA (Peak Ground Accel) : 0.006634 m/s^2
+2026-08-02 20:54:42 | INFO     | bsma_test | run_pipeline.py:85 | PGV (Peak Ground Vel)   : 0.000222 m/s
+2026-08-02 20:54:42 | INFO     | bsma_test | run_pipeline.py:86 | PGD (Peak Ground Disp)  : 0.000031 m
+2026-08-02 20:54:42 | INFO     | bsma_test | run_pipeline.py:87 | Arias Intensity         : 0.000007 m/s
+2026-08-02 20:54:42 | INFO     | bsma_test | run_pipeline.py:88 | CAV                     : 0.053864 m/s
+2026-08-02 20:54:42 | INFO     | bsma_test | run_pipeline.py:89 | Duration (D5-95)        : 125.080 s
+2026-08-02 20:54:42 | INFO     | bsma_test | run_pipeline.py:94 | Max PSA (5% Damping)    : 0.027702 m/s^2
+2026-08-02 20:54:42 | INFO     | bsma_test | run_pipeline.py:96 | ============================================================
+2026-08-02 20:54:42 | INFO     | bsma_test | run_pipeline.py:97 | Riwayat Pemrosesan (Audit Trail):
+2026-08-02 20:54:42 | INFO     | bsma_test | run_pipeline.py:101 |  -> BaselineCorrection : SUCCESS
+2026-08-02 20:54:42 | INFO     | bsma_test | run_pipeline.py:101 |  -> Taper : SUCCESS
+2026-08-02 20:54:42 | INFO     | bsma_test | run_pipeline.py:101 |  -> ButterworthFilter : SUCCESS
+2026-08-02 20:54:42 | INFO     | bsma_test | run_pipeline.py:101 |  -> Kinematic_Integration : SUCCESS
+2026-08-02 20:54:42 | INFO     | bsma_test | run_pipeline.py:101 |  -> Parameter_Extraction : SUCCESS
+2026-08-02 20:54:42 | INFO     | bsma_test | run_pipeline.py:101 |  -> Response_Spectrum_Nigam_jennings : SUCCESS
+2026-08-02 21:23:25 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 21:23:25 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 21:23:25 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 21:23:25 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 21:23:25 | INFO     | bsma_test | run_pipeline.py:27 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 21:23:25 | INFO     | bsma_test | run_pipeline.py:38 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 21:23:25 | INFO     | bsma_test | run_pipeline.py:76 | Mengeksekusi Pipeline dengan 6 plugin...
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:80 | 
+============================================================
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:81 | HASIL EKSTRAKSI PARAMETER STRONG MOTION
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:82 | ============================================================
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:85 | PGA (Peak Ground Accel) : 0.006634 m/s^2
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:86 | PGV (Peak Ground Vel)   : 0.000222 m/s
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:87 | PGD (Peak Ground Disp)  : 0.000031 m
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:88 | Arias Intensity         : 0.000007 m/s
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:89 | CAV                     : 0.053864 m/s
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:90 | Duration (D5-95)        : 125.080 s
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:95 | Max PSA (5% Damping)    : 0.027702 m/s^2
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:97 | ============================================================
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:98 | Riwayat Pemrosesan (Audit Trail):
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:102 |  -> BaselineCorrection : SUCCESS
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:102 |  -> Taper : SUCCESS
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:102 |  -> ButterworthFilter : SUCCESS
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:102 |  -> Kinematic_Integration : SUCCESS
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:102 |  -> Parameter_Extraction : SUCCESS
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:102 |  -> Response_Spectrum_Nigam_jennings : SUCCESS
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:107 | 
+Menyimpan laporan ke direktori outputs/reports...
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:113 | Laporan JSON berhasil disimpan: outputs\reports\IA_BBJM_00_HNN_20260802_212327.json
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:114 | Summary CSV berhasil diupdate : outputs\reports\bsma_summary.csv
+2026-08-02 21:23:27 | INFO     | bsma_test | run_pipeline.py:115 | Pipeline Selesai dengan Sukses!
+
+2026-08-02 21:31:55 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 21:31:55 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 21:31:55 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 21:31:55 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 21:31:55 | INFO     | bsma_test | run_pipeline.py:28 | Memulai Uji Coba Pipeline BSMA...
+2026-08-02 21:31:55 | INFO     | bsma_test | run_pipeline.py:39 | Trace dimuat: IA.BBJM.00.HNN | Npts: 42000 | SR: 100.0 Hz
+2026-08-02 21:31:55 | INFO     | bsma_test | run_pipeline.py:77 | Mengeksekusi Pipeline dengan 6 plugin...
+2026-08-02 21:31:57 | INFO     | bsma_test | run_pipeline.py:81 | 
+============================================================
+2026-08-02 21:31:57 | INFO     | bsma_test | run_pipeline.py:82 | HASIL EKSTRAKSI PARAMETER STRONG MOTION
+2026-08-02 21:31:57 | INFO     | bsma_test | run_pipeline.py:83 | ============================================================
+2026-08-02 21:31:57 | INFO     | bsma_test | run_pipeline.py:86 | PGA (Peak Ground Accel) : 0.006634 m/s^2
+2026-08-02 21:31:57 | INFO     | bsma_test | run_pipeline.py:87 | PGV (Peak Ground Vel)   : 0.000222 m/s
+2026-08-02 21:31:57 | INFO     | bsma_test | run_pipeline.py:88 | PGD (Peak Ground Disp)  : 0.000031 m
+2026-08-02 21:31:57 | INFO     | bsma_test | run_pipeline.py:89 | Arias Intensity         : 0.000007 m/s
+2026-08-02 21:31:57 | INFO     | bsma_test | run_pipeline.py:90 | CAV                     : 0.053864 m/s
+2026-08-02 21:31:57 | INFO     | bsma_test | run_pipeline.py:91 | Duration (D5-95)        : 125.080 s
+2026-08-02 21:31:57 | INFO     | bsma_test | run_pipeline.py:96 | Max PSA (5% Damping)    : 0.027702 m/s^2
+2026-08-02 21:31:57 | INFO     | bsma_test | run_pipeline.py:98 | ============================================================
+2026-08-02 21:31:57 | INFO     | bsma_test | run_pipeline.py:99 | Riwayat Pemrosesan (Audit Trail):
+2026-08-02 21:31:57 | INFO     | bsma_test | run_pipeline.py:103 |  -> BaselineCorrection : SUCCESS
+2026-08-02 21:31:57 | INFO     | bsma_test | run_pipeline.py:103 |  -> Taper : SUCCESS
+2026-08-02 21:31:57 | INFO     | bsma_test | run_pipeline.py:103 |  -> ButterworthFilter : SUCCESS
+2026-08-02 21:31:57 | INFO     | bsma_test | run_pipeline.py:103 |  -> Kinematic_Integration : SUCCESS
+2026-08-02 21:31:57 | INFO     | bsma_test | run_pipeline.py:103 |  -> Parameter_Extraction : SUCCESS
+2026-08-02 21:31:57 | INFO     | bsma_test | run_pipeline.py:103 |  -> Response_Spectrum_Nigam_jennings : SUCCESS
+2026-08-02 21:31:57 | INFO     | bsma_test | run_pipeline.py:108 | 
+Menyimpan laporan ke direktori outputs/reports...
+2026-08-02 21:32:01 | INFO     | bsma_test | run_pipeline.py:117 | Laporan JSON berhasil disimpan: outputs\reports\IA_BBJM_00_HNN_20260802_213157.json
+2026-08-02 21:32:01 | INFO     | bsma_test | run_pipeline.py:118 | Summary CSV berhasil diupdate : outputs\reports\bsma_summary.csv
+2026-08-02 21:32:01 | INFO     | bsma_test | run_pipeline.py:119 | Laporan PDF berhasil dibuat   : outputs\reports\IA_BBJM_00_HNN_20260802_213157_Report.pdf
+2026-08-02 21:32:01 | INFO     | bsma_test | run_pipeline.py:120 | Pipeline Selesai dengan Sukses!
+
+2026-08-02 22:24:33 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 22:24:33 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 22:24:33 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 22:24:33 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 22:24:33 | INFO     | bsma_batch_processor | run_pipeline.py:117 | Memulai BSMA Batch Processor...
+2026-08-02 22:24:33 | INFO     | bsma_batch_processor | run_pipeline.py:132 | Ditemukan 15 fail data untuk diproses secara batch.
+2026-08-02 22:24:33 | INFO     | bsma_batch_processor | run_pipeline.py:58 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BBJM_00HNE_BP4_0.1_40.mseed
+============================================================
+2026-08-02 22:24:33 | INFO     | bsma_batch_processor | run_pipeline.py:67 | Stream dimuat untuk stasiun BBJM. Ditemukan 1 komponen trace.
+2026-08-02 22:24:33 | INFO     | bsma_batch_processor | run_pipeline.py:75 | -> Analisis komponen: HNE (Npts: 42000 | SR: 100.0 Hz)
+2026-08-02 22:24:35 | INFO     | bsma_batch_processor | run_pipeline.py:99 |    [+] HNE Selesai | PGA: 0.006101 m/s²
+2026-08-02 22:24:35 | INFO     | bsma_batch_processor | run_pipeline.py:102 | -> Membuat Laporan PDF Gabungan untuk stasiun BBJM...
+2026-08-02 22:24:39 | INFO     | bsma_batch_processor | run_pipeline.py:108 |    [+] Laporan PDF berhasil disimpan: outputs\reports\SM_Report_Gabungan_BBJM_20260802_222435.pdf
+2026-08-02 22:24:39 | INFO     | bsma_batch_processor | run_pipeline.py:58 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BBJM_00HNN_BP4_0.1_40.mseed
+============================================================
+2026-08-02 22:24:39 | INFO     | bsma_batch_processor | run_pipeline.py:67 | Stream dimuat untuk stasiun BBJM. Ditemukan 1 komponen trace.
+2026-08-02 22:24:39 | INFO     | bsma_batch_processor | run_pipeline.py:75 | -> Analisis komponen: HNN (Npts: 42000 | SR: 100.0 Hz)
+2026-08-02 22:24:41 | INFO     | bsma_batch_processor | run_pipeline.py:99 |    [+] HNN Selesai | PGA: 0.006634 m/s²
+2026-08-02 22:24:41 | INFO     | bsma_batch_processor | run_pipeline.py:102 | -> Membuat Laporan PDF Gabungan untuk stasiun BBJM...
+2026-08-02 22:24:44 | INFO     | bsma_batch_processor | run_pipeline.py:108 |    [+] Laporan PDF berhasil disimpan: outputs\reports\SM_Report_Gabungan_BBJM_20260802_222441.pdf
+2026-08-02 22:24:44 | INFO     | bsma_batch_processor | run_pipeline.py:58 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BBJM_00HNZ_BP4_0.1_40.mseed
+============================================================
+2026-08-02 22:24:44 | INFO     | bsma_batch_processor | run_pipeline.py:67 | Stream dimuat untuk stasiun BBJM. Ditemukan 1 komponen trace.
+2026-08-02 22:24:44 | INFO     | bsma_batch_processor | run_pipeline.py:75 | -> Analisis komponen: HNZ (Npts: 42000 | SR: 100.0 Hz)
+2026-08-02 22:24:47 | INFO     | bsma_batch_processor | run_pipeline.py:99 |    [+] HNZ Selesai | PGA: 0.002614 m/s²
+2026-08-02 22:24:47 | INFO     | bsma_batch_processor | run_pipeline.py:102 | -> Membuat Laporan PDF Gabungan untuk stasiun BBJM...
+2026-08-02 22:24:51 | INFO     | bsma_batch_processor | run_pipeline.py:108 |    [+] Laporan PDF berhasil disimpan: outputs\reports\SM_Report_Gabungan_BBJM_20260802_222447.pdf
+2026-08-02 22:24:51 | INFO     | bsma_batch_processor | run_pipeline.py:58 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BBJR_00HNE_BP4_0.1_40.mseed
+============================================================
+2026-08-02 22:24:51 | INFO     | bsma_batch_processor | run_pipeline.py:67 | Stream dimuat untuk stasiun BBJR. Ditemukan 1 komponen trace.
+2026-08-02 22:24:51 | INFO     | bsma_batch_processor | run_pipeline.py:75 | -> Analisis komponen: HNE (Npts: 42000 | SR: 100.0 Hz)
+2026-08-02 22:24:53 | INFO     | bsma_batch_processor | run_pipeline.py:99 |    [+] HNE Selesai | PGA: 0.005325 m/s²
+2026-08-02 22:24:53 | INFO     | bsma_batch_processor | run_pipeline.py:102 | -> Membuat Laporan PDF Gabungan untuk stasiun BBJR...
+2026-08-02 22:24:57 | INFO     | bsma_batch_processor | run_pipeline.py:108 |    [+] Laporan PDF berhasil disimpan: outputs\reports\SM_Report_Gabungan_BBJR_20260802_222453.pdf
+2026-08-02 22:24:57 | INFO     | bsma_batch_processor | run_pipeline.py:58 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BBJR_00HNN_BP4_0.1_40.mseed
+============================================================
+2026-08-02 22:24:58 | INFO     | bsma_batch_processor | run_pipeline.py:67 | Stream dimuat untuk stasiun BBJR. Ditemukan 1 komponen trace.
+2026-08-02 22:24:58 | INFO     | bsma_batch_processor | run_pipeline.py:75 | -> Analisis komponen: HNN (Npts: 42000 | SR: 100.0 Hz)
+2026-08-02 22:25:00 | INFO     | bsma_batch_processor | run_pipeline.py:99 |    [+] HNN Selesai | PGA: 0.007195 m/s²
+2026-08-02 22:25:00 | INFO     | bsma_batch_processor | run_pipeline.py:102 | -> Membuat Laporan PDF Gabungan untuk stasiun BBJR...
+2026-08-02 22:25:03 | INFO     | bsma_batch_processor | run_pipeline.py:108 |    [+] Laporan PDF berhasil disimpan: outputs\reports\SM_Report_Gabungan_BBJR_20260802_222500.pdf
+2026-08-02 22:25:03 | INFO     | bsma_batch_processor | run_pipeline.py:58 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BBJR_00HNZ_BP4_0.1_40.mseed
+============================================================
+2026-08-02 22:25:03 | INFO     | bsma_batch_processor | run_pipeline.py:67 | Stream dimuat untuk stasiun BBJR. Ditemukan 1 komponen trace.
+2026-08-02 22:25:03 | INFO     | bsma_batch_processor | run_pipeline.py:75 | -> Analisis komponen: HNZ (Npts: 42000 | SR: 100.0 Hz)
+2026-08-02 22:25:06 | INFO     | bsma_batch_processor | run_pipeline.py:99 |    [+] HNZ Selesai | PGA: 0.003553 m/s²
+2026-08-02 22:25:06 | INFO     | bsma_batch_processor | run_pipeline.py:102 | -> Membuat Laporan PDF Gabungan untuk stasiun BBJR...
+2026-08-02 22:25:09 | INFO     | bsma_batch_processor | run_pipeline.py:108 |    [+] Laporan PDF berhasil disimpan: outputs\reports\SM_Report_Gabungan_BBJR_20260802_222506.pdf
+2026-08-02 22:25:09 | INFO     | bsma_batch_processor | run_pipeline.py:58 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BMBNG_HNE_BP4_0.1_40.mseed
+============================================================
+2026-08-02 22:25:09 | INFO     | bsma_batch_processor | run_pipeline.py:67 | Stream dimuat untuk stasiun BMBNG. Ditemukan 1 komponen trace.
+2026-08-02 22:25:09 | INFO     | bsma_batch_processor | run_pipeline.py:75 | -> Analisis komponen: HNE (Npts: 42000 | SR: 100.0 Hz)
+2026-08-02 22:25:11 | INFO     | bsma_batch_processor | run_pipeline.py:99 |    [+] HNE Selesai | PGA: 0.002367 m/s²
+2026-08-02 22:25:11 | INFO     | bsma_batch_processor | run_pipeline.py:102 | -> Membuat Laporan PDF Gabungan untuk stasiun BMBNG...
+2026-08-02 22:25:15 | INFO     | bsma_batch_processor | run_pipeline.py:108 |    [+] Laporan PDF berhasil disimpan: outputs\reports\SM_Report_Gabungan_BMBNG_20260802_222511.pdf
+2026-08-02 22:25:15 | INFO     | bsma_batch_processor | run_pipeline.py:58 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BMBNG_HNN_BP4_0.1_40.mseed
+============================================================
+2026-08-02 22:25:15 | INFO     | bsma_batch_processor | run_pipeline.py:67 | Stream dimuat untuk stasiun BMBNG. Ditemukan 1 komponen trace.
+2026-08-02 22:25:15 | INFO     | bsma_batch_processor | run_pipeline.py:75 | -> Analisis komponen: HNN (Npts: 42000 | SR: 100.0 Hz)
+2026-08-02 22:25:18 | INFO     | bsma_batch_processor | run_pipeline.py:99 |    [+] HNN Selesai | PGA: 0.002748 m/s²
+2026-08-02 22:25:18 | INFO     | bsma_batch_processor | run_pipeline.py:102 | -> Membuat Laporan PDF Gabungan untuk stasiun BMBNG...
+2026-08-02 22:25:22 | INFO     | bsma_batch_processor | run_pipeline.py:108 |    [+] Laporan PDF berhasil disimpan: outputs\reports\SM_Report_Gabungan_BMBNG_20260802_222518.pdf
+2026-08-02 22:25:22 | INFO     | bsma_batch_processor | run_pipeline.py:58 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BMBNG_HNZ_BP4_0.1_40.mseed
+============================================================
+2026-08-02 22:25:22 | INFO     | bsma_batch_processor | run_pipeline.py:67 | Stream dimuat untuk stasiun BMBNG. Ditemukan 1 komponen trace.
+2026-08-02 22:25:22 | INFO     | bsma_batch_processor | run_pipeline.py:75 | -> Analisis komponen: HNZ (Npts: 42000 | SR: 100.0 Hz)
+2026-08-02 22:25:24 | INFO     | bsma_batch_processor | run_pipeline.py:99 |    [+] HNZ Selesai | PGA: 0.001136 m/s²
+2026-08-02 22:25:24 | INFO     | bsma_batch_processor | run_pipeline.py:102 | -> Membuat Laporan PDF Gabungan untuk stasiun BMBNG...
+2026-08-02 22:25:29 | INFO     | bsma_batch_processor | run_pipeline.py:108 |    [+] Laporan PDF berhasil disimpan: outputs\reports\SM_Report_Gabungan_BMBNG_20260802_222524.pdf
+2026-08-02 22:25:29 | INFO     | bsma_batch_processor | run_pipeline.py:58 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BOJI_HNE_BP4_0.1_40.mseed
+============================================================
+2026-08-02 22:25:29 | INFO     | bsma_batch_processor | run_pipeline.py:67 | Stream dimuat untuk stasiun BOJI. Ditemukan 1 komponen trace.
+2026-08-02 22:25:29 | INFO     | bsma_batch_processor | run_pipeline.py:75 | -> Analisis komponen: HNE (Npts: 42000 | SR: 100.0 Hz)
+2026-08-02 22:25:31 | INFO     | bsma_batch_processor | run_pipeline.py:99 |    [+] HNE Selesai | PGA: 0.063697 m/s²
+2026-08-02 22:25:31 | INFO     | bsma_batch_processor | run_pipeline.py:102 | -> Membuat Laporan PDF Gabungan untuk stasiun BOJI...
+2026-08-02 22:25:36 | INFO     | bsma_batch_processor | run_pipeline.py:108 |    [+] Laporan PDF berhasil disimpan: outputs\reports\SM_Report_Gabungan_BOJI_20260802_222531.pdf
+2026-08-02 22:25:36 | INFO     | bsma_batch_processor | run_pipeline.py:58 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BOJI_HNN_BP4_0.1_40.mseed
+============================================================
+2026-08-02 22:25:36 | INFO     | bsma_batch_processor | run_pipeline.py:67 | Stream dimuat untuk stasiun BOJI. Ditemukan 1 komponen trace.
+2026-08-02 22:25:36 | INFO     | bsma_batch_processor | run_pipeline.py:75 | -> Analisis komponen: HNN (Npts: 42000 | SR: 100.0 Hz)
+2026-08-02 22:25:38 | INFO     | bsma_batch_processor | run_pipeline.py:99 |    [+] HNN Selesai | PGA: 0.076860 m/s²
+2026-08-02 22:25:38 | INFO     | bsma_batch_processor | run_pipeline.py:102 | -> Membuat Laporan PDF Gabungan untuk stasiun BOJI...
+2026-08-02 22:25:42 | INFO     | bsma_batch_processor | run_pipeline.py:108 |    [+] Laporan PDF berhasil disimpan: outputs\reports\SM_Report_Gabungan_BOJI_20260802_222538.pdf
+2026-08-02 22:25:42 | INFO     | bsma_batch_processor | run_pipeline.py:58 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BOJI_HNZ_BP4_0.1_40.mseed
+============================================================
+2026-08-02 22:25:42 | INFO     | bsma_batch_processor | run_pipeline.py:67 | Stream dimuat untuk stasiun BOJI. Ditemukan 1 komponen trace.
+2026-08-02 22:25:42 | INFO     | bsma_batch_processor | run_pipeline.py:75 | -> Analisis komponen: HNZ (Npts: 42000 | SR: 100.0 Hz)
+2026-08-02 22:25:44 | INFO     | bsma_batch_processor | run_pipeline.py:99 |    [+] HNZ Selesai | PGA: 0.025836 m/s²
+2026-08-02 22:25:44 | INFO     | bsma_batch_processor | run_pipeline.py:102 | -> Membuat Laporan PDF Gabungan untuk stasiun BOJI...
+2026-08-02 22:25:48 | INFO     | bsma_batch_processor | run_pipeline.py:108 |    [+] Laporan PDF berhasil disimpan: outputs\reports\SM_Report_Gabungan_BOJI_20260802_222544.pdf
+2026-08-02 22:25:48 | INFO     | bsma_batch_processor | run_pipeline.py:58 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_WGJR_00HNE_BP4_0.1_40.mseed
+============================================================
+2026-08-02 22:25:48 | INFO     | bsma_batch_processor | run_pipeline.py:67 | Stream dimuat untuk stasiun WGJR. Ditemukan 1 komponen trace.
+2026-08-02 22:25:48 | INFO     | bsma_batch_processor | run_pipeline.py:75 | -> Analisis komponen: HNE (Npts: 42000 | SR: 100.0 Hz)
+2026-08-02 22:25:51 | INFO     | bsma_batch_processor | run_pipeline.py:99 |    [+] HNE Selesai | PGA: 0.325117 m/s²
+2026-08-02 22:25:51 | INFO     | bsma_batch_processor | run_pipeline.py:102 | -> Membuat Laporan PDF Gabungan untuk stasiun WGJR...
+2026-08-02 22:25:54 | INFO     | bsma_batch_processor | run_pipeline.py:108 |    [+] Laporan PDF berhasil disimpan: outputs\reports\SM_Report_Gabungan_WGJR_20260802_222551.pdf
+2026-08-02 22:25:54 | INFO     | bsma_batch_processor | run_pipeline.py:58 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_WGJR_00HNN_BP4_0.1_40.mseed
+============================================================
+2026-08-02 22:25:54 | INFO     | bsma_batch_processor | run_pipeline.py:67 | Stream dimuat untuk stasiun WGJR. Ditemukan 1 komponen trace.
+2026-08-02 22:25:54 | INFO     | bsma_batch_processor | run_pipeline.py:75 | -> Analisis komponen: HNN (Npts: 42000 | SR: 100.0 Hz)
+2026-08-02 22:25:56 | INFO     | bsma_batch_processor | run_pipeline.py:99 |    [+] HNN Selesai | PGA: 0.291675 m/s²
+2026-08-02 22:25:56 | INFO     | bsma_batch_processor | run_pipeline.py:102 | -> Membuat Laporan PDF Gabungan untuk stasiun WGJR...
+2026-08-02 22:25:59 | INFO     | bsma_batch_processor | run_pipeline.py:108 |    [+] Laporan PDF berhasil disimpan: outputs\reports\SM_Report_Gabungan_WGJR_20260802_222556.pdf
+2026-08-02 22:25:59 | INFO     | bsma_batch_processor | run_pipeline.py:58 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_WGJR_00HNZ_BP4_0.1_40.mseed
+============================================================
+2026-08-02 22:25:59 | INFO     | bsma_batch_processor | run_pipeline.py:67 | Stream dimuat untuk stasiun WGJR. Ditemukan 1 komponen trace.
+2026-08-02 22:25:59 | INFO     | bsma_batch_processor | run_pipeline.py:75 | -> Analisis komponen: HNZ (Npts: 42000 | SR: 100.0 Hz)
+2026-08-02 22:26:01 | INFO     | bsma_batch_processor | run_pipeline.py:99 |    [+] HNZ Selesai | PGA: 0.097268 m/s²
+2026-08-02 22:26:01 | INFO     | bsma_batch_processor | run_pipeline.py:102 | -> Membuat Laporan PDF Gabungan untuk stasiun WGJR...
+2026-08-02 22:26:04 | INFO     | bsma_batch_processor | run_pipeline.py:108 |    [+] Laporan PDF berhasil disimpan: outputs\reports\SM_Report_Gabungan_WGJR_20260802_222601.pdf
+2026-08-02 22:26:04 | INFO     | bsma_batch_processor | run_pipeline.py:140 | 
+============================================================
+BATCH PROCESSING SELESAI.
+Seluruh data berhasil dianalisis.
+============================================================
+2026-08-02 22:59:47 | INFO     | root | logger.py:158 | ========================================
+2026-08-02 22:59:47 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-02 22:59:47 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-02 22:59:47 | INFO     | root | logger.py:161 | ========================================
+2026-08-02 22:59:47 | INFO     | bsma_backend | run_pipeline.py:134 | Memulai BSMA Batch Processor...
+2026-08-02 22:59:47 | INFO     | bsma_backend | run_pipeline.py:54 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BBJM_00HNE_BP4_0.1_40.mseed
+============================================================
+2026-08-02 22:59:47 | INFO     | bsma_backend | run_pipeline.py:63 | Stream dimuat untuk stasiun BBJM (1 channel).
+2026-08-02 22:59:47 | INFO     | bsma_backend | run_pipeline.py:76 | -> Analisis komponen: HNE (SR: 100.0 Hz)
+2026-08-02 22:59:48 | INFO     | bsma_backend | run_pipeline.py:116 |    [+] Selesai | PGA: 0.61 Gal
+2026-08-02 22:59:48 | INFO     | bsma_backend | run_pipeline.py:119 | -> Membuat Laporan PDF Gabungan...
+2026-08-02 22:59:53 | INFO     | bsma_backend | run_pipeline.py:125 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_BBJM_20260802_225948.pdf
+2026-08-02 22:59:53 | INFO     | bsma_backend | run_pipeline.py:54 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BBJM_00HNN_BP4_0.1_40.mseed
+============================================================
+2026-08-02 22:59:53 | INFO     | bsma_backend | run_pipeline.py:63 | Stream dimuat untuk stasiun BBJM (1 channel).
+2026-08-02 22:59:53 | INFO     | bsma_backend | run_pipeline.py:76 | -> Analisis komponen: HNN (SR: 100.0 Hz)
+2026-08-02 22:59:54 | INFO     | bsma_backend | run_pipeline.py:116 |    [+] Selesai | PGA: 0.66 Gal
+2026-08-02 22:59:54 | INFO     | bsma_backend | run_pipeline.py:119 | -> Membuat Laporan PDF Gabungan...
+2026-08-02 22:59:57 | INFO     | bsma_backend | run_pipeline.py:125 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_BBJM_20260802_225954.pdf
+2026-08-02 22:59:57 | INFO     | bsma_backend | run_pipeline.py:54 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BBJM_00HNZ_BP4_0.1_40.mseed
+============================================================
+2026-08-02 22:59:57 | INFO     | bsma_backend | run_pipeline.py:63 | Stream dimuat untuk stasiun BBJM (1 channel).
+2026-08-02 22:59:57 | INFO     | bsma_backend | run_pipeline.py:76 | -> Analisis komponen: HNZ (SR: 100.0 Hz)
+2026-08-02 22:59:59 | INFO     | bsma_backend | run_pipeline.py:116 |    [+] Selesai | PGA: 0.26 Gal
+2026-08-02 22:59:59 | INFO     | bsma_backend | run_pipeline.py:119 | -> Membuat Laporan PDF Gabungan...
+2026-08-02 23:00:02 | INFO     | bsma_backend | run_pipeline.py:125 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_BBJM_20260802_225959.pdf
+2026-08-02 23:00:02 | INFO     | bsma_backend | run_pipeline.py:54 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BBJR_00HNE_BP4_0.1_40.mseed
+============================================================
+2026-08-02 23:00:02 | INFO     | bsma_backend | run_pipeline.py:63 | Stream dimuat untuk stasiun BBJR (1 channel).
+2026-08-02 23:00:02 | INFO     | bsma_backend | run_pipeline.py:76 | -> Analisis komponen: HNE (SR: 100.0 Hz)
+2026-08-02 23:00:04 | INFO     | bsma_backend | run_pipeline.py:116 |    [+] Selesai | PGA: 0.53 Gal
+2026-08-02 23:00:04 | INFO     | bsma_backend | run_pipeline.py:119 | -> Membuat Laporan PDF Gabungan...
+2026-08-02 23:00:07 | INFO     | bsma_backend | run_pipeline.py:125 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_BBJR_20260802_230004.pdf
+2026-08-02 23:00:07 | INFO     | bsma_backend | run_pipeline.py:54 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BBJR_00HNN_BP4_0.1_40.mseed
+============================================================
+2026-08-02 23:00:07 | INFO     | bsma_backend | run_pipeline.py:63 | Stream dimuat untuk stasiun BBJR (1 channel).
+2026-08-02 23:00:07 | INFO     | bsma_backend | run_pipeline.py:76 | -> Analisis komponen: HNN (SR: 100.0 Hz)
+2026-08-02 23:00:09 | INFO     | bsma_backend | run_pipeline.py:116 |    [+] Selesai | PGA: 0.72 Gal
+2026-08-02 23:00:09 | INFO     | bsma_backend | run_pipeline.py:119 | -> Membuat Laporan PDF Gabungan...
+2026-08-02 23:00:12 | INFO     | bsma_backend | run_pipeline.py:125 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_BBJR_20260802_230009.pdf
+2026-08-02 23:00:12 | INFO     | bsma_backend | run_pipeline.py:54 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BBJR_00HNZ_BP4_0.1_40.mseed
+============================================================
+2026-08-02 23:00:12 | INFO     | bsma_backend | run_pipeline.py:63 | Stream dimuat untuk stasiun BBJR (1 channel).
+2026-08-02 23:00:12 | INFO     | bsma_backend | run_pipeline.py:76 | -> Analisis komponen: HNZ (SR: 100.0 Hz)
+2026-08-02 23:00:13 | INFO     | bsma_backend | run_pipeline.py:116 |    [+] Selesai | PGA: 0.36 Gal
+2026-08-02 23:00:13 | INFO     | bsma_backend | run_pipeline.py:119 | -> Membuat Laporan PDF Gabungan...
+2026-08-02 23:00:16 | INFO     | bsma_backend | run_pipeline.py:125 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_BBJR_20260802_230013.pdf
+2026-08-02 23:00:16 | INFO     | bsma_backend | run_pipeline.py:54 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BMBNG_HNE_BP4_0.1_40.mseed
+============================================================
+2026-08-02 23:00:16 | INFO     | bsma_backend | run_pipeline.py:63 | Stream dimuat untuk stasiun BMBNG (1 channel).
+2026-08-02 23:00:16 | INFO     | bsma_backend | run_pipeline.py:76 | -> Analisis komponen: HNE (SR: 100.0 Hz)
+2026-08-02 23:00:18 | INFO     | bsma_backend | run_pipeline.py:116 |    [+] Selesai | PGA: 0.24 Gal
+2026-08-02 23:00:18 | INFO     | bsma_backend | run_pipeline.py:119 | -> Membuat Laporan PDF Gabungan...
+2026-08-02 23:00:22 | INFO     | bsma_backend | run_pipeline.py:125 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_BMBNG_20260802_230018.pdf
+2026-08-02 23:00:22 | INFO     | bsma_backend | run_pipeline.py:54 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BMBNG_HNN_BP4_0.1_40.mseed
+============================================================
+2026-08-02 23:00:22 | INFO     | bsma_backend | run_pipeline.py:63 | Stream dimuat untuk stasiun BMBNG (1 channel).
+2026-08-02 23:00:22 | INFO     | bsma_backend | run_pipeline.py:76 | -> Analisis komponen: HNN (SR: 100.0 Hz)
+2026-08-02 23:00:24 | INFO     | bsma_backend | run_pipeline.py:116 |    [+] Selesai | PGA: 0.27 Gal
+2026-08-02 23:00:24 | INFO     | bsma_backend | run_pipeline.py:119 | -> Membuat Laporan PDF Gabungan...
+2026-08-02 23:00:27 | INFO     | bsma_backend | run_pipeline.py:125 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_BMBNG_20260802_230024.pdf
+2026-08-02 23:00:27 | INFO     | bsma_backend | run_pipeline.py:54 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BMBNG_HNZ_BP4_0.1_40.mseed
+============================================================
+2026-08-02 23:00:27 | INFO     | bsma_backend | run_pipeline.py:63 | Stream dimuat untuk stasiun BMBNG (1 channel).
+2026-08-02 23:00:27 | INFO     | bsma_backend | run_pipeline.py:76 | -> Analisis komponen: HNZ (SR: 100.0 Hz)
+2026-08-02 23:00:28 | INFO     | bsma_backend | run_pipeline.py:116 |    [+] Selesai | PGA: 0.11 Gal
+2026-08-02 23:00:28 | INFO     | bsma_backend | run_pipeline.py:119 | -> Membuat Laporan PDF Gabungan...
+2026-08-02 23:00:32 | INFO     | bsma_backend | run_pipeline.py:125 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_BMBNG_20260802_230028.pdf
+2026-08-02 23:00:32 | INFO     | bsma_backend | run_pipeline.py:54 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BOJI_HNE_BP4_0.1_40.mseed
+============================================================
+2026-08-02 23:00:32 | INFO     | bsma_backend | run_pipeline.py:63 | Stream dimuat untuk stasiun BOJI (1 channel).
+2026-08-02 23:00:32 | INFO     | bsma_backend | run_pipeline.py:76 | -> Analisis komponen: HNE (SR: 100.0 Hz)
+2026-08-02 23:00:33 | INFO     | bsma_backend | run_pipeline.py:116 |    [+] Selesai | PGA: 6.37 Gal
+2026-08-02 23:00:33 | INFO     | bsma_backend | run_pipeline.py:119 | -> Membuat Laporan PDF Gabungan...
+2026-08-02 23:00:37 | INFO     | bsma_backend | run_pipeline.py:125 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_BOJI_20260802_230033.pdf
+2026-08-02 23:00:37 | INFO     | bsma_backend | run_pipeline.py:54 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BOJI_HNN_BP4_0.1_40.mseed
+============================================================
+2026-08-02 23:00:37 | INFO     | bsma_backend | run_pipeline.py:63 | Stream dimuat untuk stasiun BOJI (1 channel).
+2026-08-02 23:00:37 | INFO     | bsma_backend | run_pipeline.py:76 | -> Analisis komponen: HNN (SR: 100.0 Hz)
+2026-08-02 23:00:38 | INFO     | bsma_backend | run_pipeline.py:116 |    [+] Selesai | PGA: 7.69 Gal
+2026-08-02 23:00:38 | INFO     | bsma_backend | run_pipeline.py:119 | -> Membuat Laporan PDF Gabungan...
+2026-08-02 23:00:42 | INFO     | bsma_backend | run_pipeline.py:125 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_BOJI_20260802_230038.pdf
+2026-08-02 23:00:42 | INFO     | bsma_backend | run_pipeline.py:54 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BOJI_HNZ_BP4_0.1_40.mseed
+============================================================
+2026-08-02 23:00:42 | INFO     | bsma_backend | run_pipeline.py:63 | Stream dimuat untuk stasiun BOJI (1 channel).
+2026-08-02 23:00:42 | INFO     | bsma_backend | run_pipeline.py:76 | -> Analisis komponen: HNZ (SR: 100.0 Hz)
+2026-08-02 23:00:43 | INFO     | bsma_backend | run_pipeline.py:116 |    [+] Selesai | PGA: 2.58 Gal
+2026-08-02 23:00:43 | INFO     | bsma_backend | run_pipeline.py:119 | -> Membuat Laporan PDF Gabungan...
+2026-08-02 23:00:46 | INFO     | bsma_backend | run_pipeline.py:125 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_BOJI_20260802_230043.pdf
+2026-08-02 23:00:46 | INFO     | bsma_backend | run_pipeline.py:54 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_WGJR_00HNE_BP4_0.1_40.mseed
+============================================================
+2026-08-02 23:00:46 | INFO     | bsma_backend | run_pipeline.py:63 | Stream dimuat untuk stasiun WGJR (1 channel).
+2026-08-02 23:00:46 | INFO     | bsma_backend | run_pipeline.py:76 | -> Analisis komponen: HNE (SR: 100.0 Hz)
+2026-08-02 23:00:48 | INFO     | bsma_backend | run_pipeline.py:116 |    [+] Selesai | PGA: 32.51 Gal
+2026-08-02 23:00:48 | INFO     | bsma_backend | run_pipeline.py:119 | -> Membuat Laporan PDF Gabungan...
+2026-08-02 23:00:52 | INFO     | bsma_backend | run_pipeline.py:125 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_WGJR_20260802_230048.pdf
+2026-08-02 23:00:52 | INFO     | bsma_backend | run_pipeline.py:54 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_WGJR_00HNN_BP4_0.1_40.mseed
+============================================================
+2026-08-02 23:00:52 | INFO     | bsma_backend | run_pipeline.py:63 | Stream dimuat untuk stasiun WGJR (1 channel).
+2026-08-02 23:00:52 | INFO     | bsma_backend | run_pipeline.py:76 | -> Analisis komponen: HNN (SR: 100.0 Hz)
+2026-08-02 23:00:53 | INFO     | bsma_backend | run_pipeline.py:116 |    [+] Selesai | PGA: 29.17 Gal
+2026-08-02 23:00:53 | INFO     | bsma_backend | run_pipeline.py:119 | -> Membuat Laporan PDF Gabungan...
+2026-08-02 23:00:57 | INFO     | bsma_backend | run_pipeline.py:125 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_WGJR_20260802_230053.pdf
+2026-08-02 23:00:57 | INFO     | bsma_backend | run_pipeline.py:54 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_WGJR_00HNZ_BP4_0.1_40.mseed
+============================================================
+2026-08-02 23:00:57 | INFO     | bsma_backend | run_pipeline.py:63 | Stream dimuat untuk stasiun WGJR (1 channel).
+2026-08-02 23:00:57 | INFO     | bsma_backend | run_pipeline.py:76 | -> Analisis komponen: HNZ (SR: 100.0 Hz)
+2026-08-02 23:00:59 | INFO     | bsma_backend | run_pipeline.py:116 |    [+] Selesai | PGA: 9.73 Gal
+2026-08-02 23:00:59 | INFO     | bsma_backend | run_pipeline.py:119 | -> Membuat Laporan PDF Gabungan...
+2026-08-02 23:01:02 | INFO     | bsma_backend | run_pipeline.py:125 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_WGJR_20260802_230059.pdf
+2026-08-02 23:01:02 | INFO     | bsma_backend | run_pipeline.py:167 | 
+============================================================
+BATCH PROCESSING SELESAI.
+============================================================
+2026-08-03 07:27:32 | INFO     | root | logger.py:158 | ========================================
+2026-08-03 07:27:32 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-03 07:27:32 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-03 07:27:32 | INFO     | root | logger.py:161 | ========================================

@@ -1,109 +1,104 @@
 """
 BMKG Strong Motion Analyzer (BSMA)
-Core SDOF Solver: Nigam & Jennings (1969) Exact Recursive Method
-
-Implementasi eksak berbasis algoritma rekursif Navin C. Nigam & Paul C. Jennings (1969).
-Makalah Referensi: "Calculation of Response Spectra from Strong-Motion Earthquake Records",
-Bulletin of the Seismological Society of America, Vol. 59, No. 2, pp. 909-922, April 1969.
-
-Modul ini menggunakan formulasi Matriks A dan B yang didefinisikan secara eksplisit
-pada Lampiran (Appendix) makalah tersebut. Formulasi ini memberikan solusi eksak 
-tanpa truncation error, dengan asumsi akselerasi tanah bervariasi linear di antara 
-titik-titik sampel (Piecewise Linear Exact Method).
+Module: core/sdof/nigam_jennings.py
+Description: Exact Analytical SDOF Oscillator Solver (Nigam & Jennings, 1968).
+Uses the piecewise exact method for linear interpolation of ground excitation.
 """
 
+from __future__ import annotations
+
 import numpy as np
+from numpy.typing import NDArray
+
+__all__ = ["solve_nigam_jennings"]
+
+FloatArray = NDArray[np.float64]
+
 
 def solve_nigam_jennings(
-    acc_ground: np.ndarray, 
-    dt: float, 
-    T: float, 
-    damping: float
-) -> tuple[float, float, float]:
+    acceleration: FloatArray,
+    dt: float,
+    periods: FloatArray,
+    damping: float,
+) -> tuple[FloatArray, FloatArray, FloatArray]:
     """
-    Menyelesaikan respons SDOF menggunakan algoritma eksak Nigam & Jennings (1969).
-    
-    Parameters:
-    - acc_ground : np.ndarray (Akselerasi tanah dalam m/s^2)
-    - dt         : float (Interval waktu / delta t)
-    - T          : float (Periode natural struktur dalam detik)
-    - damping    : float (Rasio redaman, zeta)
-    
-    Returns:
-    - max_sd  : Spectral Displacement (meter)
-    - max_psv : Pseudo-Spectral Velocity (m/s)
-    - max_psa : Pseudo-Spectral Acceleration (m/s^2)
+    Menyelesaikan persamaan gerak SDOF menggunakan metode analitik eksak
+    Nigam-Jennings (Piecewise Linear Exact Method).
     """
-    # Limit struktur kaku mutlak (Rigid Structure, T -> 0)
-    if T <= 1e-5:
-        pga = float(np.max(np.abs(acc_ground)))
-        return 0.0, 0.0, pga
+    n_samples = acceleration.size
+    n_periods = periods.size
 
-    # Algoritma ini dirumuskan khusus untuk struktur Underdamped (zeta < 1.0).
-    # Untuk menghindari Division by Zero (pada akar kuadrat 1 - zeta^2), kita batasi nilainya.
-    if damping >= 1.0:
-        damping = 0.9999
+    u = np.zeros((n_periods, n_samples), dtype=np.float64)
+    v = np.zeros((n_periods, n_samples), dtype=np.float64)
+    a_abs = np.zeros((n_periods, n_samples), dtype=np.float64)
 
-    # Parameter Dasar
-    w = 2.0 * np.pi / T
-    w2 = w * w
-    w3 = w2 * w
-    z = damping
+    valid_idx = periods > 0.0
+    p_valid = periods[valid_idx]
+    n_valid = p_valid.size
 
-    wd = w * np.sqrt(1.0 - z * z)
-    z_sq = z / np.sqrt(1.0 - z * z)
+    if n_valid > 0:
+        z = damping
+        w = 2.0 * np.pi / p_valid
+        w2 = w ** 2
+        wd = w * np.sqrt(1.0 - z ** 2)
+        
+        # Eksponensial dan Trigonometri
+        E = np.exp(-z * w * dt)
+        S = np.sin(wd * dt)
+        C = np.cos(wd * dt)
 
-    E = np.exp(-z * w * dt)
-    S = np.sin(wd * dt)
-    C = np.cos(wd * dt)
+        z_s_term = z / np.sqrt(1.0 - z ** 2)
+        w_s_term = w / np.sqrt(1.0 - z ** 2)
 
-    # ==============================================================================
-    # Matriks Transisi Keadaan (A Matrix) - Nigam & Jennings (1969)
-    # ==============================================================================
-    a11 = E * (C + z_sq * S)
-    a12 = (E / wd) * S
-    a21 = -(w / np.sqrt(1.0 - z * z)) * E * S
-    a22 = E * (C - z_sq * S)
+        # Matriks Transisi Keadaan (State Transition Matrices)
+        A11 = E * (z_s_term * S + C)
+        A12 = E * (S / wd)
+        A21 = -E * (w_s_term * S)
+        A22 = E * (C - z_s_term * S)
 
-    # ==============================================================================
-    # Matriks Koefisien Eksitasi (B Matrix) - Nigam & Jennings (1969) Appendix
-    # ==============================================================================
-    # Suku bantu untuk mencegah pengulangan komputasi berlebihan
-    term1 = (2.0 * z * z - 1.0) / (w2 * dt)
-    term2 = 2.0 * z / (w3 * dt)
+        # Konstanta Solusi Partikular (Particular Solution Matrices)
+        # Menghindari pembagian berulang di dalam loop
+        term1 = (2.0 * z) / (w * dt)
+        term2 = (1.0 - 2.0 * z ** 2) / (wd * dt) - z_s_term
+        term3 = (2.0 * z ** 2 - 1.0) / (wd * dt)
+        
+        B11 = (term1 + E * (term2 * S - (1.0 + term1) * C)) / w2
+        B12 = (1.0 - term1 + E * (term3 * S + term1 * C)) / w2
 
-    # b11 dan b12 (Koefisien untuk update Displacement)
-    b11 = E * ((term1 + z / w) * (S / wd) + (term2 + 1.0 / w2) * C) - term2
-    b12 = -E * (term1 * (S / wd) + term2 * C) - 1.0 / w2 + term2
+        term4 = w_s_term + z / (dt * np.sqrt(1.0 - z ** 2))
+        term5 = z / (dt * np.sqrt(1.0 - z ** 2))
 
-    # b21 dan b22 (Koefisien untuk update Velocity)
-    b21 = E * ((term1 + z / w) * (C - z_sq * S) - (term2 + 1.0 / w2) * (wd * S + z * w * C)) + 1.0 / (w2 * dt)
-    b22 = -E * (term1 * (C - z_sq * S) - term2 * (wd * S + z * w * C)) - 1.0 / (w2 * dt)
+        B21 = (-1.0/dt + E * (term4 * S + C/dt)) / w2
+        B22 = (1.0/dt - E * (term5 * S + C/dt)) / w2
 
-    # ==============================================================================
-    # Iterasi Rekursif (Step-by-Step Exact State Update)
-    # ==============================================================================
-    npts = len(acc_ground)
-    u = np.zeros(npts, dtype=np.float64)  # Perpindahan relatif
-    v = np.zeros(npts, dtype=np.float64)  # Kecepatan relatif
+        # Workspace pre-allocation
+        u_v = np.zeros((n_valid, n_samples), dtype=np.float64)
+        v_v = np.zeros((n_valid, n_samples), dtype=np.float64)
 
-    # Kondisi Awal: u[0] = 0, v[0] = 0
-    u[0] = 0.0
-    v[0] = 0.0
+        # Loop Time-Stepping O(1) Memory
+        for i in range(n_samples - 1):
+            u_i = u_v[:, i]
+            v_i = v_v[:, i]
+            
+            # Percepatan tanah diubah menjadi gaya efektif (p = -ag)
+            p_i = -acceleration[i]
+            p_i1 = -acceleration[i+1]
 
-    # Iterasi eksak O(N) tanpa error akumulasi integrasi (truncation error)
-    for i in range(npts - 1):
-        ag_i = acc_ground[i]
-        ag_ip1 = acc_ground[i+1]
+            # Update State secara Rekursif
+            u_v[:, i+1] = A11 * u_i + A12 * v_i + B11 * p_i + B12 * p_i1
+            v_v[:, i+1] = A21 * u_i + A22 * v_i + B21 * p_i + B22 * p_i1
 
-        u[i+1] = a11 * u[i] + a12 * v[i] + b11 * ag_i + b12 * ag_ip1
-        v[i+1] = a21 * u[i] + a22 * v[i] + b21 * ag_i + b22 * ag_ip1
+        u[valid_idx, :] = u_v
+        v[valid_idx, :] = v_v
+        
+        # Secara fisis: a_abs = a_rel + ag = -2*zeta*w*v_rel - w^2*u_rel
+        # Menggunakan broadcasting otomatis dari numpy untuk perkalian elemen matriks [M,N] x [M,1]
+        v_term = 2.0 * z * w[:, np.newaxis] * v_v
+        u_term = w2[:, np.newaxis] * u_v
+        a_abs[valid_idx, :] = -v_term - u_term
 
-    # ==============================================================================
-    # Ekstraksi Parameter Output (Peak Values)
-    # ==============================================================================
-    max_sd = float(np.max(np.abs(u)))
-    max_psv = w * max_sd
-    max_psa = w2 * max_sd
+    zero_idx = ~valid_idx
+    if np.any(zero_idx):
+        a_abs[zero_idx, :] = acceleration
 
-    return max_sd, max_psv, max_psa
+    return u, v, a_abs

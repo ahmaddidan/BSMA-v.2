@@ -27,6 +27,7 @@ from abc import ABC
 from abc import abstractmethod
 
 from core.types.context import ProcessingContext
+from utils.exceptions import ProcessingError
 
 __all__ = [
     "PreprocessorPlugin",
@@ -41,13 +42,6 @@ class PreprocessorPlugin(ABC):
     ProcessingContext.
 
     Plugins must never modify the input context in-place.
-
-    Examples
-    --------
-
-    >>> plugin = BaselineCorrectionPlugin()
-    >>> new_context = plugin.process(context)
-
     """
 
     # ------------------------------------------------------------
@@ -57,65 +51,54 @@ class PreprocessorPlugin(ABC):
     @property
     @abstractmethod
     def plugin_name(self) -> str:
-        """
-        Human-readable plugin name.
-
-        Examples
-        --------
-        BaselineCorrectionPlugin
-        ButterworthFilterPlugin
-        IntegrationPlugin
-        """
+        """Human-readable plugin name."""
         raise NotImplementedError
 
     @property
     def plugin_version(self) -> str:
-        """
-        Plugin semantic version.
-
-        Override if necessary.
-        """
+        """Plugin semantic version."""
         return "1.0.0"
 
     @property
     def plugin_description(self) -> str:
-        """
-        Human-readable description.
-
-        Override in derived plugins.
-        """
+        """Human-readable description."""
         return ""
 
     # ------------------------------------------------------------
     # Validation
     # ------------------------------------------------------------
 
-    def validate_input(
-        self,
-        context: ProcessingContext,
-    ) -> None:
-        """
-        Validate ProcessingContext before execution.
+    def validate_input(self, context: ProcessingContext) -> None:
+        """Validate input context before processing safely."""
+        # Ambil data gelombang secara aman dari berbagai alternatif atribut
+        wf = getattr(context, "waveform", None)
+        if wf is None:
+            wf = getattr(context, "raw_waveform", None)
+        if wf is None:
+            wf = getattr(context, "acceleration", None)
 
-        Default implementation performs only minimal validation.
+        if wf is None:
+            raise ProcessingError("ProcessingContext tidak memiliki data gelombang yang valid.")
 
-        Derived plugins are encouraged to extend this method.
-        """
+        # Ekstrak array numpy (mendukung objek WaveformData maupun numpy array langsung)
+        data_arr = wf.data if hasattr(wf, "data") else wf
 
-        if context.waveform is None:
-            raise ValueError(
-                "ProcessingContext.waveform is None."
-            )
+        if data_arr is None:
+            raise ProcessingError("Array data gelombang bernilai None.")
 
-        if context.waveform.size == 0:
-            raise ValueError(
-                "Waveform contains no samples."
-            )
+        if hasattr(data_arr, "size") and data_arr.size == 0:
+            raise ProcessingError("Array data gelombang kosong (size == 0).")
+        elif not hasattr(data_arr, "size") and len(data_arr) == 0:
+            raise ProcessingError("Array data gelombang kosong (len == 0).")
 
-        if context.sampling_rate <= 0:
-            raise ValueError(
-                "Sampling rate must be positive."
-            )
+        # Validasi sampling rate jika tersedia di konteks
+        sr = getattr(context, "sampling_rate", None)
+        if sr is None and hasattr(wf, "sampling_rate"):
+            sr = wf.sampling_rate
+
+        if sr is not None and sr <= 0:
+            raise ValueError("Sampling rate must be positive.")
+
     # ------------------------------------------------------------
     # Processing
     # ------------------------------------------------------------
@@ -125,23 +108,7 @@ class PreprocessorPlugin(ABC):
         self,
         context: ProcessingContext,
     ) -> ProcessingContext:
-        """
-        Execute the processing algorithm.
-
-        Parameters
-        ----------
-        context
-            Current immutable processing context.
-
-        Returns
-        -------
-        ProcessingContext
-            A NEW ProcessingContext instance.
-
-        Notes
-        -----
-        Implementations MUST NOT modify the input context in-place.
-        """
+        """Execute the processing algorithm."""
         raise NotImplementedError
 
     # ------------------------------------------------------------
@@ -149,21 +116,9 @@ class PreprocessorPlugin(ABC):
     # ------------------------------------------------------------
 
     def initialize(self) -> None:
-        """
-        Optional initialization hook.
-
-        Override if the plugin needs to allocate resources,
-        initialize lookup tables, or prepare reusable objects.
-        """
         return None
 
     def finalize(self) -> None:
-        """
-        Optional cleanup hook.
-
-        Override if the plugin holds external resources that
-        should be released after processing.
-        """
         return None
 
     # ------------------------------------------------------------
@@ -171,22 +126,9 @@ class PreprocessorPlugin(ABC):
     # ------------------------------------------------------------
 
     def supports_parallel(self) -> bool:
-        """
-        Indicates whether the plugin is safe to execute in a
-        parallel processing environment.
-
-        Default
-        -------
-        True
-        """
         return True
 
     def reset(self) -> None:
-        """
-        Reset internal plugin state.
-
-        Stateless plugins do not need to override this method.
-        """
         return None
 
     # ------------------------------------------------------------

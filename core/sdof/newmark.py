@@ -1,90 +1,84 @@
 """
 BMKG Strong Motion Analyzer (BSMA)
-Core SDOF Solver: Newmark-beta Method (Average Acceleration, beta=0.25, gamma=0.5)
-
-Implementasi mutlak berbasis formulasi baku Anil K. Chopra (Dynamics of Structures, Chapter 5).
-Menggunakan pendekatan Absolute State Update (Effective Load at t+dt -> Displacement -> Acceleration -> Velocity).
+Module: core/sdof/newmark.py
+Description: Linear SDOF Oscillator Solver using Newmark-Beta (Average Acceleration).
+Optimized with memory-view array slicing to eliminate inside-loop allocations.
 """
 
+from __future__ import annotations
+
 import numpy as np
+from numpy.typing import NDArray
+
+__all__ = ["solve_newmark"]
+
+FloatArray = NDArray[np.float64]
+
 
 def solve_newmark(
-    acc_ground: np.ndarray, 
-    dt: float, 
-    T: float, 
-    damping: float
-) -> tuple[float, float, float]:
+    acceleration: FloatArray,
+    dt: float,
+    periods: FloatArray,
+    damping: float,
+) -> tuple[FloatArray, FloatArray, FloatArray]:
     """
-    Menyelesaikan persamaan gerak SDOF menggunakan Metode Newmark-beta (Average Acceleration).
-    
-    Parameters:
-    - acc_ground : np.ndarray (Akselerasi tanah dalam m/s^2)
-    - dt         : float (Interval waktu / delta t)
-    - T          : float (Periode natural struktur dalam detik)
-    - damping    : float (Rasio redaman, misal 0.05 untuk 5%)
-    
-    Returns:
-    - max_sd  : Spectral Displacement (meter)
-    - max_psv : Pseudo-Spectral Velocity (m/s)
-    - max_psa : Pseudo-Spectral Acceleration (m/s^2)
+    Menyelesaikan persamaan gerak SDOF menggunakan Newmark-Beta.
     """
-    # Kasus khusus: Struktur sangat kaku (Rigid Structure, T -> 0, PSA -> PGA)
-    if T <= 1e-4:
-        peak_acc = float(np.max(np.abs(acc_ground)))
-        return 0.0, 0.0, peak_acc
+    n_samples = acceleration.size
+    n_periods = periods.size
 
-    omega = 2.0 * np.pi / T
-    omega2 = omega * omega
-    
-    m = 1.0
-    c = 2.0 * damping * omega
-    k = omega2
+    u = np.zeros((n_periods, n_samples), dtype=np.float64)
+    v = np.zeros((n_periods, n_samples), dtype=np.float64)
+    a_abs = np.zeros((n_periods, n_samples), dtype=np.float64)
 
-    beta = 0.25
-    gamma = 0.5
-    dt2 = dt * dt
+    valid_idx = periods > 0.0
+    p_valid = periods[valid_idx]
+    n_valid = p_valid.size
 
-    # 1. Konstanta Integrasi Newmark (Chopra Chapter 5)
-    a0 = 1.0 / (beta * dt2)
-    a1 = gamma / (beta * dt)
-    a2 = 1.0 / (beta * dt)
-    a3 = 1.0 / (2.0 * beta) - 1.0
-    a4 = gamma / beta - 1.0
-    a5 = dt * (gamma / (2.0 * beta) - 1.0)
+    if n_valid > 0:
+        omega = 2.0 * np.pi / p_valid
+        c = 2.0 * damping * omega
+        k = omega ** 2
 
-    # 2. Kekakuan Efektif (K_hat)
-    k_hat = k + a1 * c + a0 * m
+        a0 = 4.0 / (dt ** 2)
+        a1 = 2.0 / dt
+        a2 = 4.0 / dt
+        a3 = 1.0
+        a4 = 1.0
 
-    npts = len(acc_ground)
-    u = np.zeros(npts, dtype=np.float64)  # Perpindahan relatif
-    v = np.zeros(npts, dtype=np.float64)  # Kecepatan relatif
-    a = np.zeros(npts, dtype=np.float64)  # Akselerasi relatif
+        k_hat = k + a0 + a1 * c
 
-    # 3. Kondisi Awal (t = 0)
-    # P_eff(0) = -m * ag(0)
-    # m*a0 + c*v0 + k*u0 = P_eff(0) -> a0 = (-m*ag[0] - c*v0 - k*u0) / m (karena m=1)
-    u[0] = 0.0
-    v[0] = 0.0
-    a[0] = -acc_ground[0] - c * v[0] - k * u[0]
+        # Workspace pre-allocation
+        u_v = np.zeros((n_valid, n_samples), dtype=np.float64)
+        v_v = np.zeros((n_valid, n_samples), dtype=np.float64)
+        a_v = np.zeros((n_valid, n_samples), dtype=np.float64)
 
-    # 4. Step-by-Step Numerical Integration (Chopra Algorithm)
-    for i in range(npts - 1):
-        # Beban efektif pada t + dt
-        p_eff_next = -m * acc_ground[i+1]
-        
-        # Beban efektif gabungan / terkoreksi (P_hat at i+1)
-        p_hat_next = p_eff_next + m * (a0 * u[i] + a2 * v[i] + a3 * a[i]) + c * (a1 * u[i] + a4 * v[i] + a5 * a[i])
-        
-        # Solusi perpindahan absolut pada langkah berikutnya (u at i+1)
-        u[i+1] = p_hat_next / k_hat
-        
-        # Pembaruan state akselerasi dan kecepatan absolut pada langkah berikutnya
-        a[i+1] = a0 * (u[i+1] - u[i]) - a2 * v[i] - a3 * a[i]
-        v[i+1] = v[i] + dt * ((1.0 - gamma) * a[i] + gamma * a[i+1])
+        a_v[:, 0] = -acceleration[0]
 
-    # 5. Ekstraksi Peak Response
-    max_sd = float(np.max(np.abs(u)))
-    max_psv = omega * max_sd
-    max_psa = omega2 * max_sd
+        # Vektorisasi eksekusi loop tanpa alokasi memori internal
+        for i in range(n_samples - 1):
+            u_i = u_v[:, i]
+            v_i = v_v[:, i]
+            a_i = a_v[:, i]
 
-    return max_sd, max_psv, max_psa
+            p_i1 = -acceleration[i+1]
+
+            p_hat = p_i1 + (a0 * u_i + a2 * v_i + a3 * a_i) + c * (a1 * u_i + a4 * v_i)
+
+            u_i1 = p_hat / k_hat
+            a_i1 = a0 * (u_i1 - u_i) - a2 * v_i - a3 * a_i
+            v_i1 = v_i + 0.5 * dt * (a_i + a_i1)
+
+            u_v[:, i+1] = u_i1
+            v_v[:, i+1] = v_i1
+            a_v[:, i+1] = a_i1
+
+        u[valid_idx, :] = u_v
+        v[valid_idx, :] = v_v
+        a_abs[valid_idx, :] = a_v + acceleration
+
+    zero_idx = ~valid_idx
+    if np.any(zero_idx):
+        a_abs[zero_idx, :] = acceleration
+
+    return u, v, a_abs

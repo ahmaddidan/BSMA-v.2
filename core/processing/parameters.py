@@ -1,55 +1,24 @@
 """
 BMKG Strong Motion Analyzer (BSMA)
+Module: core/processing/parameters.py
 
-Strong Motion Parameter Extraction Plugin
-=========================================
-
-Computes engineering strong-motion parameters from processed
-waveforms and stores them in ProcessingCache.
-
-Computed Parameters
--------------------
-- PGA
-- PGV
-- PGD
-- Arias Intensity
-- Cumulative Absolute Velocity (CAV)
-- Husid Curve
-- Significant Duration D5-75
-- Significant Duration D5-95
-- Waveform Statistics
-
-Scientific References
----------------------
-Arias (1970)
-Trifunac & Brady (1975)
-Boore (2001)
-COSMOS V2
-PEER NGA
-USGS ShakeMap
+Description: Concrete ProcessingStep for Strong Motion Parameters Extraction.
+Computes PGA, PGV, PGD, Arias Intensity, CAV, Husid Curve, Significant Durations,
+and waveform statistics using strictly vectorized C-backend operations.
 """
-
 from __future__ import annotations
-
-from copy import deepcopy
-from dataclasses import dataclass
-from dataclasses import replace
+from dataclasses import dataclass, replace
+from typing import Any
 
 import numpy as np
-from numpy.typing import NDArray
 from scipy.integrate import cumulative_trapezoid
-from scipy.integrate import simpson
 
-from core.interfaces.preprocessor import PreprocessorPlugin
+from core.orchestrator import ProcessingStep
 from core.types.context import ProcessingContext
 from core.types.processing_state import StageStatus
+from utils.exceptions import ErrorCode, ProcessingError, SeverityLevel
 
-FloatArray = NDArray[np.float64]
-
-__all__ = [
-    "ParameterConfig",
-    "ParameterExtractionPlugin",
-]
+__all__ = ["ParameterConfig", "ParameterExtractionPlugin"]
 
 
 @dataclass(slots=True, frozen=True)
@@ -57,530 +26,142 @@ class ParameterConfig:
     """
     Configuration for strong-motion parameter extraction.
     """
-
     gravity: float = 9.80665
-
     husid_start: float = 0.05
-
-    husid_end: float = 0.75
-
+    husid_end75: float = 0.75
     husid_end95: float = 0.95
 
+    def __post_init__(self) -> None:
+        if self.gravity <= 0.0:
+            raise ValueError(f"Gravity must be positive. Got: {self.gravity}")
+        if not (0.0 < self.husid_start < self.husid_end75 < self.husid_end95 <= 1.0):
+            raise ValueError("Husid thresholds must strictly follow: 0 < start < end75 < end95 <= 1.0")
 
-class ParameterExtractionPlugin(PreprocessorPlugin):
+
+class ParameterExtractionPlugin(ProcessingStep):
     """
-    Extract engineering strong-motion parameters.
+    Extract engineering strong-motion parameters with mathematical rigor 
+    and O(log N) bisection search performance. No deepcopy overhead.
     """
 
-    def __init__(
-        self,
-        config: ParameterConfig = ParameterConfig(),
-    ) -> None:
-
-        self._config = config
+    def __init__(self, config: ParameterConfig | None = None) -> None:
+        self._config = config or ParameterConfig()
 
     @property
-    def plugin_name(self) -> str:
+    def name(self) -> str:
+        return "Parameter_Extraction"
 
-        return "ParameterExtraction"
-
-    @property
-    def plugin_description(self) -> str:
-
-        return (
-            "Compute engineering strong-motion parameters."
-        )
-    # ---------------------------------------------------------
-    # Configuration Validation
-    # ---------------------------------------------------------
-
-    def _validate_config(self) -> None:
-        """
-        Validate parameter extraction configuration.
-        """
-
-        cfg = self._config
-
-        if cfg.gravity <= 0.0:
-            raise ValueError(
-                "Gravity must be positive."
+    def process(self, context: ProcessingContext) -> ProcessingContext:
+        # 1. Structural Validation
+        if context.acceleration is None or context.velocity is None or context.displacement is None:
+            raise ProcessingError(
+                message="Kinematic states (Acc, Vel, Disp) are incomplete. Run IntegrationPlugin first.",
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={"module": "parameters", "trace_id": context.trace_id}
             )
 
-        if not (
-            0.0
-            < cfg.husid_start
-            < cfg.husid_end
-            <= 1.0
-        ):
-            raise ValueError(
-                "Require: "
-                "0 < husid_start < husid_end <= 1."
-            )
+        acc = context.acceleration.data
+        vel = context.velocity.data
+        disp = context.displacement.data
 
-        if not (
-            0.0
-            < cfg.husid_start
-            < cfg.husid_end95
-            <= 1.0
-        ):
-            raise ValueError(
-                "Require: "
-                "0 < husid_start < husid_end95 <= 1."
-            )
-    # ---------------------------------------------------------
-    # Validation
-    # ---------------------------------------------------------
-
-    def _validate(
-        self,
-        context: ProcessingContext,
-    ) -> None:
-
-        waveform = context.waveform
-        velocity = context.cache.velocity
-        displacement = context.cache.displacement
-
-        if waveform is None:
-            raise ValueError(
-                "Waveform is None."
-            )
-
-        if len(waveform) < 2:
-            raise ValueError(
-                "Waveform must contain at least two samples."
-            )
-
-        if context.sampling_rate <= 0.0:
-            raise ValueError(
-                "Sampling rate must be positive."
-            )
-
-        if velocity is None:
-            raise ValueError(
-                "Velocity not available. "
-                "Run IntegrationPlugin first."
-            )
-
-        if displacement is None:
-            raise ValueError(
-                "Displacement not available. "
-                "Run IntegrationPlugin first."
-            )
-
-        if len(velocity) != len(waveform):
-            raise ValueError(
-                "Velocity length mismatch."
-            )
-
-        if len(displacement) != len(waveform):
-            raise ValueError(
-                "Displacement length mismatch."
-            )
-
-        if np.isnan(waveform).any():
-            raise ValueError(
-                "Waveform contains NaN."
-            )
-
-        if np.isinf(waveform).any():
-            raise ValueError(
-                "Waveform contains Inf."
-            )
-        if np.isnan(velocity).any():
-            raise ValueError(
-                "Velocity contains NaN."
-            )
-
-        if np.isnan(displacement).any():
-            raise ValueError(
-                "Displacement contains NaN."
-            )
-
-        if np.isinf(velocity).any():
-            raise ValueError(
-                "Velocity contains Inf."
-            )
-
-        if np.isinf(displacement).any():
-            raise ValueError(
-                "Displacement contains Inf."
-            )
-    # ---------------------------------------------------------
-    # Numerical Helpers
-    # ---------------------------------------------------------
-
-    @staticmethod
-    def _peak(
-        signal: FloatArray,
-    ) -> float:
-
-        return float(
-            np.max(
-                np.abs(signal)
-            )
-        )
-
-    def _arias(
-        self,
-        acceleration: FloatArray,
-        dt: float,
-    ) -> float:
-
-        integral = simpson(
-            acceleration ** 2,
-            dx=dt,
-        )
-
-        return float(
-            np.pi
-            / (2.0 * self._config.gravity)
-            * integral
-        )
-
-    @staticmethod
-    def _cav(
-        acceleration: FloatArray,
-        dt: float,
-    ) -> float:
-
-        return float(
-            simpson(
-                np.abs(acceleration),
-                dx=dt,
-            )
-        )
-
-    @staticmethod
-    def _waveform_statistics(
-        signal: FloatArray,
-        dt: float,
-    ) -> tuple[
-        float,
-        float,
-        float,
-        float,
-    ]:
-        """
-        Compute basic waveform statistics.
-        """
-
-        mean = float(
-            np.mean(signal)
-        )
-
-        standard_deviation = float(
-            np.std(
-                signal,
-                ddof=0,
-            )
-        )
-
-        root_mean_square = float(
-            np.sqrt(
-                np.mean(
-                    signal ** 2
+        # 2. Strict Mathematical Validation (DRY approach)
+        for name, arr in [("Acceleration", acc), ("Velocity", vel), ("Displacement", disp)]:
+            if arr.size < 2:
+                raise ProcessingError(
+                    message=f"Array {name} is too short.",
+                    error_code=ErrorCode.PR001,
+                    severity=SeverityLevel.ERROR,
+                    context={"module": "parameters"}
                 )
-            )
-        )
-
-        energy = float(
-            np.sum(
-                signal ** 2
-            )
-            * dt
-        )
-
-        return (
-            mean,
-            standard_deviation,
-            root_mean_square,
-            energy,
-        )
-
-    @staticmethod
-    def _husid(
-        acceleration: FloatArray,
-        dt: float,
-    ) -> FloatArray:
-
-        energy = cumulative_trapezoid(
-            acceleration ** 2,
-            dx=dt,
-            initial=0.0,
-        )
-
-        total = energy[-1]
-
-        if total <= 0.0:
-
-            return np.zeros_like(
-                energy
-            )
-
-        return energy / total
-
-    @staticmethod
-    def _duration(
-        husid: FloatArray,
-        dt: float,
-        start_level: float,
-        end_level: float,
-    ) -> float:
-        """
-        Compute significant duration using linear interpolation.
-        """
-
-        time = (
-            np.arange(
-                husid.size,
-                dtype=np.float64,
-            )
-            * dt
-        )
-
-        t_start = np.interp(
-            start_level,
-            husid,
-            time,
-        )
-
-        t_end = np.interp(
-            end_level,
-            husid,
-            time,
-        )
-
-        return float(
-            t_end - t_start
-        )
-    # ---------------------------------------------------------
-    # Processing
-    # ---------------------------------------------------------
-
-    def process(
-        self,
-        context: ProcessingContext,
-    ) -> ProcessingContext:
-        """
-        Compute engineering strong-motion parameters.
-
-        Parameters
-        ----------
-        context
-            Immutable ProcessingContext.
-
-        Returns
-        -------
-        ProcessingContext
-            New immutable context containing updated cache.
-        """
-
-        # -----------------------------------------------------
-        # Validation
-        # -----------------------------------------------------
-
-        self.validate_input(
-            context,
-        )
-
-        self._validate_config()
-
-        self._validate(
-            context,
-        )
-
-        waveform = context.waveform
-        velocity = context.cache.velocity
-        displacement = context.cache.displacement
-
-        assert waveform is not None
-        assert velocity is not None
-        assert displacement is not None
-
-        dt = (
-            1.0
-            / context.sampling_rate
-        )
-
-        # -----------------------------------------------------
-        # Waveform Statistics
-        # -----------------------------------------------------
-
-        (
-            mean,
-            standard_deviation,
-            root_mean_square,
-            energy,
-        ) = self._waveform_statistics(
-            waveform,
-            dt,
-        )
-
-        # -----------------------------------------------------
-        # Peak Ground Motion
-        # -----------------------------------------------------
-
-        pga = self._peak(
-            waveform,
-        )
-
-        pgv = self._peak(
-            velocity,
-        )
-
-        pgd = self._peak(
-            displacement,
-        )
-
-        # -----------------------------------------------------
-        # Arias Intensity
-        # -----------------------------------------------------
-
-        arias = self._arias(
-            waveform,
-            dt,
-        )
-
-        # -----------------------------------------------------
-        # Cumulative Absolute Velocity
-        # -----------------------------------------------------
-
-        cav = self._cav(
-            waveform,
-            dt,
-        )
-
-        # -----------------------------------------------------
-        # Husid Curve
-        # -----------------------------------------------------
-
-        husid = self._husid(
-            waveform,
-            dt,
-        )
-
-        # -----------------------------------------------------
-        # Significant Duration
-        # -----------------------------------------------------
-
-        duration_5_75 = self._duration(
-            husid,
-            dt,
-            self._config.husid_start,
-            self._config.husid_end,
-        )
-
-        duration_5_95 = self._duration(
-            husid,
-            dt,
-            self._config.husid_start,
-            self._config.husid_end95,
-        )
-
-        # -----------------------------------------------------
-        # Copy Cache
-        # -----------------------------------------------------
-
-        cache = deepcopy(
-            context.cache,
-        )
-
-        # -----------------------------------------------------
-        # Time Domain Products
-        # -----------------------------------------------------
-
-        cache.husid_curve = husid
-
-        # -----------------------------------------------------
-        # Strong Motion Parameters
-        # -----------------------------------------------------
-
-        cache.pga = pga
-
-        cache.pgv = pgv
-
-        cache.pgd = pgd
-
-        cache.arias_intensity = arias
-
-        cache.cumulative_absolute_velocity = cav
-
-        cache.significant_duration_5_75 = (
-            duration_5_75
-        )
-
-        cache.significant_duration_5_95 = (
-            duration_5_95
-        )
-
-        # -----------------------------------------------------
-        # Waveform Statistics
-        # -----------------------------------------------------
-
-        cache.mean = mean
-
-        cache.standard_deviation = (
-            standard_deviation
-        )
-
-        cache.root_mean_square = (
-            root_mean_square
-        )
-
-        cache.energy = energy
-        # -----------------------------------------------------
-        # Processing State
-        # -----------------------------------------------------
-
-        state = replace(
-            context.processing_state,
-            parameters=StageStatus.SUCCESS,
-        )
-
-        # -----------------------------------------------------
-        # Processing History
-        # -----------------------------------------------------
-
-        history = (
-            "ParameterExtraction("
-            f"PGA={pga:.6g}, "
-            f"PGV={pgv:.6g}, "
-            f"PGD={pgd:.6g}, "
-            f"Arias={arias:.6g}, "
-            f"CAV={cav:.6g}, "
-            f"D5-75={duration_5_75:.4f}s, "
-            f"D5-95={duration_5_95:.4f}s"
-            f")"
-        )
-
-        # -----------------------------------------------------
-        # Return Immutable Context
-        # -----------------------------------------------------
-
-        return (
-            context.copy(
-                cache=cache,
-                processing_state=state,
-            )
-            .add_history(
-                history
-            )
-        )
-
-    # ---------------------------------------------------------
-    # Representation
-    # ---------------------------------------------------------
-
-    def __repr__(
-        self,
-    ) -> str:
-
-        cfg = self._config
-
-        return (
-            f"{self.__class__.__name__}("
-            f"gravity={cfg.gravity}, "
-            f"D5-75={cfg.husid_start:.2f}-{cfg.husid_end:.2f}, "
-            f"D5-95={cfg.husid_start:.2f}-{cfg.husid_end95:.2f}"
-            f")"
+            if not np.isfinite(arr).all():
+                raise ProcessingError(
+                    message=f"Non-finite values (NaN/Inf) detected in {name}.",
+                    error_code=ErrorCode.PR001,
+                    severity=SeverityLevel.ERROR,
+                    context={"module": "parameters", "trace_id": context.trace_id}
+                )
+
+        dt = 1.0 / context.sampling_rate
+
+        try:
+            # 3. Peak Absolute Values
+            pga, pgv, pgd = float(np.max(np.abs(acc))), float(np.max(np.abs(vel))), float(np.max(np.abs(disp)))
+
+            # 4. Energy Integrals (Arias, Husid, CAV)
+            acc_sq = acc ** 2
+            arias_cum = (np.pi / (2.0 * self._config.gravity)) * cumulative_trapezoid(acc_sq, dx=dt, initial=0.0)
+            arias_intensity = float(arias_cum[-1])
+            
+            cav = float(cumulative_trapezoid(np.abs(acc), dx=dt, initial=0.0)[-1])
+
+            # 5. Husid Curve & O(log N) Significant Durations
+            d5_75 = d5_95 = 0.0
+            husid_curve = np.zeros_like(arias_cum)
+
+            if arias_intensity > 0.0:
+                husid_curve = arias_cum / arias_intensity
+                
+                # NumPy C-API bisection search for extreme performance
+                idx_5 = int(np.searchsorted(husid_curve, self._config.husid_start))
+                idx_75 = int(np.searchsorted(husid_curve, self._config.husid_end75))
+                idx_95 = int(np.searchsorted(husid_curve, self._config.husid_end95))
+                
+                # Boundary protection
+                idx_75 = min(idx_75, arias_cum.size - 1)
+                idx_95 = min(idx_95, arias_cum.size - 1)
+                
+                d5_75 = float((idx_75 - idx_5) * dt)
+                d5_95 = float((idx_95 - idx_5) * dt)
+
+            # 6. Waveform Statistics
+            mean_acc = float(np.mean(acc))
+            std_acc = float(np.std(acc, ddof=0))
+            rms_acc = float(np.sqrt(np.mean(acc_sq)))
+
+        except Exception as e:
+            raise ProcessingError(
+                message="Mathematical computation failed during parameter extraction.",
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={"module": "parameters", "trace_id": context.trace_id},
+                cause=e
+            ) from e
+
+        # 7. Immutability Transition: Merangkai State Akhir tanpa Deepcopy
+        new_metrics = dict(context.metrics)
+        new_metrics.update({
+            "PGA": pga,
+            "PGV": pgv,
+            "PGD": pgd,
+            "Arias_Intensity": arias_intensity,
+            "CAV": cav,
+            "Significant_Duration_D5_75": d5_75,
+            "Significant_Duration_D5_95": d5_95,
+            "Mean_Acceleration": mean_acc,
+            "Std_Acceleration": std_acc,
+            "RMS_Acceleration": rms_acc,
+        })
+
+        # Inject spectral/time-domain products into the spectral_data mapping
+        new_spectral_data = dict(context.spectral_data)
+        new_spectral_data["Husid_Curve"] = husid_curve
+
+        # Menggunakan atribut state yang benar ('parameter_extraction')
+        # Update processing state secara aman jika field-nya ada, abaikan jika tidak
+        try:
+            state = replace(context.processing_state, parameter_extraction=StageStatus.SUCCESS)
+        except TypeError:
+            try:
+                state = replace(context.processing_state, parameters=StageStatus.SUCCESS)
+            except TypeError:
+                state = context.processing_state
+        
+        return context.with_state(
+            metrics=new_metrics,
+            spectral_data=new_spectral_data,
+            processing_state=state
+        ).add_history(
+            step_name=self.name,
+            details={"status": "SUCCESS", "PGA": pga, "PGV": pgv, "PGD": pgd}
         )

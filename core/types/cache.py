@@ -56,9 +56,7 @@ class ProcessingCache:
     # ==========================================================
 
     velocity: FloatArray | None = None
-
     displacement: FloatArray | None = None
-
     husid_curve: FloatArray | None = None
 
     # ==========================================================
@@ -66,17 +64,12 @@ class ProcessingCache:
     # ==========================================================
 
     pga: float | None = None
-
     pgv: float | None = None
-
     pgd: float | None = None
 
     arias_intensity: float | None = None
-
     cumulative_absolute_velocity: float | None = None
-
     significant_duration_5_75: float | None = None
-
     significant_duration_5_95: float | None = None
 
     # ==========================================================
@@ -84,11 +77,8 @@ class ProcessingCache:
     # ==========================================================
 
     mean: float | None = None
-
     standard_deviation: float | None = None
-
     root_mean_square: float | None = None
-
     energy: float | None = None
 
     # ==========================================================
@@ -96,13 +86,9 @@ class ProcessingCache:
     # ==========================================================
 
     fft_frequency: FloatArray | None = None
-
     fft_amplitude: FloatArray | None = None
-
     fft_phase: FloatArray | None = None
-
     fourier_amplitude_spectrum: FloatArray | None = None
-
     power_spectral_density: FloatArray | None = None
 
     # ==========================================================
@@ -110,17 +96,11 @@ class ProcessingCache:
     # ==========================================================
 
     response_periods: FloatArray | None = None
-
     spectral_displacement: FloatArray | None = None
-
     spectral_velocity: FloatArray | None = None
-
     spectral_acceleration: FloatArray | None = None
-
     pseudo_spectral_velocity: FloatArray | None = None
-
     pseudo_spectral_acceleration: FloatArray | None = None
-
     peak_absolute_velocity: FloatArray | None = None
 
     # ==========================================================
@@ -128,9 +108,7 @@ class ProcessingCache:
     # ==========================================================
 
     hvsr: FloatArray | None = None
-
     rotd50: FloatArray | None = None
-
     rotd100: FloatArray | None = None
 
     # ==========================================================
@@ -139,24 +117,17 @@ class ProcessingCache:
 
     @property
     def has_velocity(self) -> bool:
-        """
-        True apabila velocity telah tersedia.
-        """
+        """True apabila velocity telah tersedia."""
         return self.velocity is not None
 
     @property
     def has_displacement(self) -> bool:
-        """
-        True apabila displacement telah tersedia.
-        """
+        """True apabila displacement telah tersedia."""
         return self.displacement is not None
 
     @property
     def has_time_domain(self) -> bool:
-        """
-        True apabila seluruh hasil utama domain waktu
-        telah tersedia.
-        """
+        """True apabila seluruh hasil utama domain waktu telah tersedia."""
         return (
             self.velocity is not None
             and self.displacement is not None
@@ -164,17 +135,12 @@ class ProcessingCache:
 
     @property
     def has_husid(self) -> bool:
-        """
-        True apabila Husid Curve telah dihitung.
-        """
+        """True apabila Husid Curve telah dihitung."""
         return self.husid_curve is not None
 
     @property
     def has_waveform_statistics(self) -> bool:
-        """
-        True apabila statistik dasar waveform
-        telah dihitung.
-        """
+        """True apabila statistik dasar waveform telah dihitung."""
         return all(
             value is not None
             for value in (
@@ -187,11 +153,7 @@ class ProcessingCache:
 
     @property
     def has_strong_motion_parameters(self) -> bool:
-        """
-        True apabila parameter Strong Motion utama
-        telah tersedia.
-        """
-
+        """True apabila parameter Strong Motion utama telah tersedia."""
         return all(
             value is not None
             for value in (
@@ -207,9 +169,7 @@ class ProcessingCache:
 
     @property
     def has_fft(self) -> bool:
-        """
-        True apabila FFT telah dihitung.
-        """
+        """True apabila FFT telah dihitung."""
         return (
             self.fft_frequency is not None
             and self.fft_amplitude is not None
@@ -217,35 +177,35 @@ class ProcessingCache:
 
     @property
     def has_frequency_domain(self) -> bool:
-        """
-        Alias untuk has_fft.
-
-        Memudahkan pembacaan pipeline dan GUI.
-        """
+        """Alias untuk has_fft. Memudahkan pembacaan pipeline dan GUI."""
         return self.has_fft
 
     @property
     def has_response_spectrum(self) -> bool:
         """
-        True apabila Response Spectrum telah tersedia.
+        True apabila trinitas Response Spectrum (SD, PSV, PSA) telah tersedia.
+        Mencegah downstream plugin membaca spektrum parsial.
         """
-        return (
-            self.response_periods is not None
-            and self.spectral_acceleration is not None
+        return all(
+            value is not None
+            for value in (
+                self.response_periods,
+                self.spectral_displacement,
+                self.pseudo_spectral_velocity,
+                self.pseudo_spectral_acceleration,
+            )
         )
 
     @property
     def is_empty(self) -> bool:
-        """
-        True apabila seluruh cache masih kosong.
-        """
-
+        """True apabila seluruh cache masih kosong."""
         return all(
             getattr(self, field_name) is None
             for field_name in self.__dataclass_fields__
         )
+
     # ==========================================================
-    # Utilities
+    # Utilities (Cascading Invalidation Enforced)
     # ==========================================================
 
     def clear(self) -> None:
@@ -256,12 +216,7 @@ class ProcessingCache:
         modified (baseline correction, detrending, filtering,
         tapering, etc.), since every derived quantity becomes
         invalid and must be recomputed.
-
-        Notes
-        -----
-        Metadata, processing state and QC are NOT affected.
         """
-
         for field_name in self.__dataclass_fields__:
             setattr(self, field_name, None)
 
@@ -269,20 +224,16 @@ class ProcessingCache:
         """
         Clear all quantities derived from the time domain.
 
-        This includes:
-        - velocity
-        - displacement
-        - Husid curve
-        - Strong-motion parameters
-        - Waveform statistics
+        If time domain components (velocity, displacement) are cleared, 
+        all downstream frequency and spectral products MUST also be cleared 
+        to prevent stale data propagation (Cascading Invalidation).
         """
-
         # Time-domain signals
         self.velocity = None
         self.displacement = None
         self.husid_curve = None
 
-        # Strong Motion
+        # Strong Motion Parameters
         self.pga = None
         self.pgv = None
         self.pgd = None
@@ -297,36 +248,28 @@ class ProcessingCache:
         self.root_mean_square = None
         self.energy = None
 
-    def clear_frequency_domain(self) -> None:
-        """
-        Clear all frequency-domain products.
-        """
+        # Enforce cascading invalidation
+        self.clear_frequency_domain()
+        self.clear_response_spectrum()
 
+    def clear_frequency_domain(self) -> None:
+        """Clear all frequency-domain products."""
         self.fft_frequency = None
         self.fft_amplitude = None
         self.fft_phase = None
-
         self.fourier_amplitude_spectrum = None
         self.power_spectral_density = None
-
         self.hvsr = None
 
     def clear_response_spectrum(self) -> None:
-        """
-        Clear all response spectrum products.
-        """
-
+        """Clear all response spectrum products."""
         self.response_periods = None
-
         self.spectral_displacement = None
         self.spectral_velocity = None
         self.spectral_acceleration = None
-
         self.pseudo_spectral_velocity = None
         self.pseudo_spectral_acceleration = None
-
         self.peak_absolute_velocity = None
-
         self.rotd50 = None
         self.rotd100 = None
 
@@ -342,35 +285,16 @@ class ProcessingCache:
         representation remains inexpensive for logging,
         diagnostics and JSON serialization.
         """
-
         return {
-
             "empty": self.is_empty,
-
             "time_domain": self.has_time_domain,
-
-            "waveform_statistics": (
-                self.has_waveform_statistics
-            ),
-
-            "strong_motion": (
-                self.has_strong_motion_parameters
-            ),
-
-            "frequency_domain": (
-                self.has_frequency_domain
-            ),
-
-            "response_spectrum": (
-                self.has_response_spectrum
-            ),
-
+            "waveform_statistics": self.has_waveform_statistics,
+            "strong_motion": self.has_strong_motion_parameters,
+            "frequency_domain": self.has_frequency_domain,
+            "response_spectrum": self.has_response_spectrum,
             "husid_curve": self.has_husid,
-
             "hvsr": self.hvsr is not None,
-
             "rotd50": self.rotd50 is not None,
-
             "rotd100": self.rotd100 is not None,
         }
 
@@ -379,7 +303,6 @@ class ProcessingCache:
     # ==========================================================
 
     def __repr__(self) -> str:
-
         return (
             f"{self.__class__.__name__}("
             f"time_domain={self.has_time_domain}, "

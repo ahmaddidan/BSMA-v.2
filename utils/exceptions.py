@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import timezone, datetime  # <-- PERBAIKAN DI SINI
 from enum import Enum
 from typing import Any
 
@@ -102,7 +102,7 @@ class BSMAError(Exception):
     details: dict[str, Any] = field(default_factory=dict)
 
     timestamp: datetime = field(
-        default_factory=lambda: datetime.now(tz=UTC),
+        default_factory=lambda: datetime.now(tz=timezone.utc),  # <-- PERBAIKAN DI SINI
         init=False,
     )
 

@@ -165,16 +165,17 @@ def configure_logging(
 # Public API
 # =============================================================================
 
-def get_logger(name: str | None = None) -> logging.Logger:
+def setup_logger(name: str | None = None) -> logging.Logger:
     """
     Return a configured logger.
+    Menggunakan nama setup_logger agar kompatibel dengan seluruh modul BSMA.
 
     Parameters
     ----------
     name :
         Usually use:
 
-            logger = get_logger(__name__)
+            logger = setup_logger(__name__)
 
     Returns
     -------
@@ -186,6 +187,8 @@ def get_logger(name: str | None = None) -> logging.Logger:
 
     return logging.getLogger(name)
 
+# Alias untuk kompatibilitas mundur jika ada modul yang telanjur memakai get_logger
+get_logger = setup_logger
 
 # =============================================================================
 # Example Usage
