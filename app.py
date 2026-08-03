@@ -1,6 +1,6 @@
 """
 BMKG Strong Motion Analyzer (BSMA)
-app.py - Final Professional Production-Grade Dashboard (V3.3 - Clean Enterprise UI)
+app.py - Final Professional Production-Grade Dashboard (V3.4 - Ultimate Clean UI)
 
 Author: Ahmad Didane & Technical Lead
 """
@@ -39,15 +39,9 @@ def inject_custom_css():
     st.markdown(
         """
         <style>
-        /* Menghilangkan fitur drag/resize pada sidebar secara absolut */
-        [data-testid="stSidebarResizeHandle"] {
-            display: none !important;
-            pointer-events: none !important;
-            width: 0px !important;
-        }
-        [data-testid="stSidebarResizer"] {
-            display: none !important;
-        }
+        /* Mengunci Resize Sidebar */
+        [data-testid="stSidebarResizeHandle"] { display: none !important; pointer-events: none !important; width: 0px !important; }
+        [data-testid="stSidebarResizer"] { display: none !important; }
         
         .block-container { padding-top: 1.5rem; padding-bottom: 2rem; }
         button[kind="primary"] { background-color: #28a745 !important; border: none !important; font-weight: bold; }
@@ -144,16 +138,22 @@ def main():
         st.markdown("<h2 style='margin-bottom: 0px; padding-bottom: 0px; line-height: 1.2;'>BMKG Strong Motion Analyzer</h2>", unsafe_allow_html=True)
         st.markdown("<div style='font-size: 14px; color: #7F8C8D; margin-top: 5px; margin-bottom: 15px;'>Professional Engineering Seismology Platform</div>", unsafe_allow_html=True)
 
+    # DIRECTORY INITIALIZATION
     data_dir, xml_dir, report_dir, temp_dir = Path("Data/mseed"), Path("Data/stationXML"), Path("outputs/reports"), Path("outputs/temp")
     for d in [data_dir, xml_dir, report_dir, temp_dir]: d.mkdir(parents=True, exist_ok=True)
+    
+    # STATE INITIALIZATION
     if 'all_contexts' not in st.session_state: st.session_state['all_contexts'] = {}
+    if 'export_ready' not in st.session_state: st.session_state['export_ready'] = False
+    if 'form_key' not in st.session_state: st.session_state['form_key'] = 0
 
     # SIDEBAR
     with st.sidebar:
         st.markdown("### Manajemen Data")
         
-        with st.form("upload_form", clear_on_submit=True):
-            st.markdown("<span style='font-size:12px; color:gray;'>Unggah arsip waveform dan metadata kalibrasi. Berkas akan diproses dan diamankan ke dalam memori sistem.</span>", unsafe_allow_html=True)
+        # MENGGUNAKAN FORM KEY AGAR BENAR-BENAR BERSIH SETELAH SUBMIT
+        with st.form(f"upload_form_{st.session_state['form_key']}", clear_on_submit=True):
+            st.markdown("<span style='font-size:12px; color:gray;'>Unggah arsip waveform dan metadata kalibrasi. Berkas akan diproses dan diamankan ke dalam sistem.</span>", unsafe_allow_html=True)
             upl_mseed = st.file_uploader("Data Gelombang", type=["mseed", "sac", "miniseed"], accept_multiple_files=True)
             upl_xml = st.file_uploader("Data Kalibrasi", type=["xml"], accept_multiple_files=True)
             
@@ -165,7 +165,7 @@ def main():
                 if upl_xml:
                     for uf in upl_xml:
                         with open(xml_dir / uf.name, "wb") as f: f.write(uf.getbuffer())
-                st.success("Berkas tersimpan.")
+                st.session_state['form_key'] += 1
                 st.rerun()
 
         mseed_files = list(data_dir.glob("*.mseed")) + list(data_dir.glob("*.sac")) + list(data_dir.glob("*.miniseed"))
@@ -183,10 +183,12 @@ def main():
         st.markdown("### Mode Analisis")
         app_mode = st.radio("Pilih Mode:", ["Analisis Stasiun", "Komparasi Multi-Stasiun", "Batch Rekapitulasi", "Ekspor Data"], label_visibility="collapsed")
 
+    # JIKA TIDAK ADA DATA, BERHENTI DI SINI
     if not mseed_files:
         st.info("Sistem belum mendeteksi arsip gelombang. Silakan lakukan manajemen data pada panel samping.")
         return
 
+    # LOAD ALL FILES INTO A STREAM
     master_stream = obspy.Stream()
     for f in mseed_files:
         try: master_stream += obspy.read(str(f))
@@ -257,7 +259,7 @@ def main():
                 *   **Guncangan Dominan:** Terjadi pada komponen **{strongest_ch}**.
                 *   **Klasifikasi Intensitas:** Berdasarkan standar BMKG, guncangan dikategorikan sebagai **SKALA {sig_id} ({sig_desc})**.
                 *   **Durasi Signifikan ($D_{{5-95}}$):** Energi guncangan utama berlangsung selama **{max_ctx.metrics.get('Significant_Duration_D5_95',0):.2f} detik**.
-                *   **Status Data:** {'Kalibrasi instrumen (StationXML) berhasil diaplikasikan.' if xml_path else 'Data mentah (Raw Counts) tanpa kalibrasi.'} Tidak terdeteksi kesalahan. Pemrosesan selesai.
+                *   **Status Data:** {'Kalibrasi instrumen (StationXML) berhasil diaplikasikan.' if xml_path else 'Data mentah (Raw Counts) tanpa kalibrasi.'} Tidak terdeteksi *clipping*. Pemrosesan selesai.
                 """)
                 df_data = []
                 for ch, c in ctxs.items():
@@ -419,6 +421,7 @@ def main():
                 except: pass
                 pb.progress((i + 1) / len(unique_stations))
             st.session_state['batch_df'] = pd.DataFrame(all_data)
+            txt.text("Pemrosesan selesai.")
         
         if 'batch_df' in st.session_state and not st.session_state['batch_df'].empty:
             df = st.session_state['batch_df']
@@ -427,20 +430,11 @@ def main():
             st.download_button("Unduh CSV", data=csv, file_name="Batch_Summary.csv", mime="text/csv")
 
     # =========================================================================
-    # MENU 4: EKSPOR ARSIP ZIP MASSAL
-    # =========================================================================
-    # =========================================================================
-    # MENU 4: EKSPOR DATA & LAPORAN
+    # MENU 4: EKSPOR ARSIP ZIP MASSAL (KUSTOMISASI)
     # =========================================================================
     elif app_mode == "Ekspor Data":
         st.markdown("### Ekspor Laporan & Data")
-        
-        if 'export_ready' not in st.session_state:
-            st.session_state['export_ready'] = False
 
-        # PERBAIKAN: Gunakan seluruh stasiun yang tersedia (unique_stations)
-        available_stations = unique_stations 
-        
         c_opt1, c_opt2 = st.columns(2)
         with c_opt1:
             st.markdown("#### 1. Pilih Format Ekspor")
@@ -449,18 +443,19 @@ def main():
             st.markdown("#### 2. Pilih Stasiun")
             select_all = st.checkbox("Pilih Semua Stasiun", value=True)
             if select_all:
-                selected_stns = available_stations
-                st.multiselect("Stasiun Terpilih:", options=available_stations, default=available_stations, disabled=True, label_visibility="collapsed")
+                selected_stns = unique_stations
+                st.multiselect("Stasiun Terpilih:", options=unique_stations, default=unique_stations, disabled=True, label_visibility="collapsed")
             else:
-                selected_stns = st.multiselect("Stasiun Terpilih:", options=available_stations, default=available_stations[:1], label_visibility="collapsed")
+                selected_stns = st.multiselect("Stasiun Terpilih:", options=unique_stations, default=unique_stations[:1], label_visibility="collapsed")
         
         if st.button("Proses Ekspor", type="primary"):
             if not selected_stns:
                 st.error("Pilih minimal 1 stasiun.")
             else:
+                st.session_state['export_ready'] = False
                 pb = st.progress(0); txt = st.empty()
                 all_sum = []
-                z_buf = io.BytesIO() if "PDF" in export_format else None
+                z_buf = io.BytesIO() if "PDF" in export_format or "Lengkap" in export_format else None
                 
                 if z_buf:
                     zf = zipfile.ZipFile(z_buf, "w", zipfile.ZIP_DEFLATED)
@@ -468,7 +463,6 @@ def main():
                 for i, code in enumerate(selected_stns):
                     txt.text(f"Menyiapkan data stasiun {code} ({i+1}/{len(selected_stns)})...")
                     
-                    # SMART CACHING: Proses on-the-fly jika belum ada di memori
                     if code not in st.session_state['all_contexts']:
                         xml_p = str(xml_dir / f"{code}.xml") if (xml_dir / f"{code}.xml").exists() else None
                         try:
@@ -483,11 +477,9 @@ def main():
                     ctxs = st.session_state['all_contexts'].get(code)
                     if not ctxs: continue
                         
-                    # Ekstrak CSV
                     if "CSV" in export_format or "Lengkap" in export_format:
                         all_sum.extend(extract_summary_data(code, ctxs))
                         
-                    # Ekstrak PDF
                     if "PDF" in export_format or "Lengkap" in export_format:
                         txt.text(f"Merender PDF {code}...")
                         p_path = export_station_report(code, ctxs, str(report_dir))
@@ -495,7 +487,6 @@ def main():
 
                     pb.progress((i+1)/len(selected_stns))
                 
-                # Finalisasi Berkas
                 if export_format == "Hanya CSV (Tabel)":
                     st.session_state['export_data'] = pd.DataFrame(all_sum).to_csv(index=False).encode('utf-8')
                     st.session_state['export_name'] = "BSMA_Database_Parameter.csv"
@@ -513,7 +504,7 @@ def main():
                 st.session_state['export_ready'] = True
 
         if st.session_state.get('export_ready'):
-            st.download_button("Unduh Arsip", data=st.session_state['export_data'], file_name=st.session_state['export_name'], mime=st.session_state['export_mime'], type="primary")
+            st.download_button("Unduh Arsip Sekarang", data=st.session_state['export_data'], file_name=st.session_state['export_name'], mime=st.session_state['export_mime'], type="primary")
 
 if __name__ == "__main__":
     main()
