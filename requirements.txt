@@ -5,5 +5,5 @@ pandas
 matplotlib
 plotly
 scipy
-reportlab
+fpdf
 setuptools
