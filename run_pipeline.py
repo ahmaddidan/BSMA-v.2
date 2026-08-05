@@ -78,6 +78,16 @@ def process_earthquake_data(waveform_path: Path, xml_path: Path | None, exporter
             # INSTRUMENT CORRECTION: Mengubah Counts ke Percepatan m/s^2
             if inventory:
                 logger.info(f"   [!] Menerapkan koreksi instrumen (Counts -> m/s²).")
+                
+                # === ALGORITMA SINKRONISASI LOKASI DINAMIS ===
+                try:
+                    # Mengambil kode lokasi asli dari XML dan menerapkannya ke trace MSEED
+                    xml_loc_code = inventory[0][0][0].location_code
+                    trace.stats.location = xml_loc_code
+                except Exception:
+                    pass
+                # =============================================
+
                 try:
                     # Menghilangkan respon alat dengan water level dan pre-filter standar seismologi
                     trace.remove_response(
