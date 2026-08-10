@@ -55,8 +55,25 @@ def test_cross_solver_on_real_data(real_earthquake_data, period):
     damping = 0.05  # Damping standar 5%
     
     # Eksekusi kedua solver
-    sd_nj, psv_nj, psa_nj = solve_nigam_jennings(acc, dt, period, damping)
-    sd_nm, psv_nm, psa_nm = solve_newmark(acc, dt, period, damping)
+    sd_nj, psv_nj, psa_nj = solve_nigam_jennings(
+        acc,
+        dt,
+        np.array([period], dtype=np.float64),
+        damping,
+    )
+    sd_nm, psv_nm, psa_nm = solve_newmark(
+        acc,
+        dt,
+        np.array([period], dtype=np.float64),
+        damping,
+    )
+
+    sd_nj = sd_nj[0]
+    psv_nj = psv_nj[0]
+    psa_nj = psa_nj[0]
+    sd_nm = sd_nm[0]
+    psv_nm = psv_nm[0]
+    psa_nm = psa_nm[0]
     
     # Hitung error relatif Newmark terhadap Nigam-Jennings
     err_psa = abs(psa_nm - psa_nj) / psa_nj if psa_nj > 0 else 0.0

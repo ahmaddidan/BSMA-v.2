@@ -1,510 +1,646 @@
-"""
-BMKG Strong Motion Analyzer (BSMA)
-app.py - Final Professional Production-Grade Dashboard (V3.4 - Ultimate Clean UI)
+"""BMKG Strong Motion Analyzer (BSMA) Streamlit dashboard."""
 
-Author: Ahmad Didane & Technical Lead
-"""
-import streamlit as st
-from pathlib import Path
-import obspy
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import zipfile
+from __future__ import annotations
+
 import io
+import json
+import hashlib
 import logging
+import re
+import zipfile
+from pathlib import Path
+from typing import Any
 
-# Impor Modul Backend BSMA
-from core.pipeline import PipelineBuilder
-from core.preprocessing.baseline import BaselineCorrectionPlugin
-from core.preprocessing.taper import TaperPlugin, TaperConfig
-from core.preprocessing.filter import ButterworthFilterPlugin, FilterConfig
-from core.preprocessing.integration import KinematicIntegrationPlugin, IntegrationConfig
-from core.processing.parameters import ParameterExtractionPlugin, ParameterConfig
-from core.processing.response_spectrum import ResponseSpectrumPlugin, ResponseSpectrumConfig
-from core.processing.advanced_analysis import compute_husid_and_duration, compute_fas
+import numpy as np
+import obspy
+import pandas as pd
+import plotly.graph_objects as go
+import streamlit as st
+from plotly.subplots import make_subplots
 
-from core.types.context import ProcessingContext, WaveformData
-from core.types.processing_state import ProcessingState
-from utils.pdf_exporter import export_station_report, get_sig_bmkg
+from core.preprocessing.filter import FilterType
+from services import (
+    AnalysisConfiguration,
+    AnalysisService,
+    BatchService,
+    ExportService,
+    extract_summary_data,
+)
 
-# =========================================================================
-# 1. KONFIGURASI HALAMAN & CSS
-# =========================================================================
-st.set_page_config(page_title="BSMA Dashboard", layout="wide", initial_sidebar_state="expanded")
+PROJECT_ROOT = Path(__file__).resolve().parent
+WAVEFORM_DIRECTORY = PROJECT_ROOT / "Data" / "mseed"
+INVENTORY_DIRECTORY = PROJECT_ROOT / "Data" / "stationXML"
+REPORT_DIRECTORY = PROJECT_ROOT / "outputs" / "reports"
+LOGO_PATH = PROJECT_ROOT / "Logo_Judul.png"
 
-def inject_custom_css():
-    st.markdown(
-        """
-        <style>
-        /* Mengunci Resize Sidebar */
-        [data-testid="stSidebarResizeHandle"] { display: none !important; pointer-events: none !important; width: 0px !important; }
-        [data-testid="stSidebarResizer"] { display: none !important; }
-        
-        .block-container { padding-top: 1.5rem; padding-bottom: 2rem; }
-        button[kind="primary"] { background-color: #28a745 !important; border: none !important; font-weight: bold; }
-        button[kind="primary"]:hover { background-color: #218838 !important; }
-        
-        .logo-card {background-color: #FFFFFF; padding: 5px 8px; border-radius: 8px; display: inline-flex; box-shadow: 0 2px 5px rgba(0,0,0,0.15);}
-        .header-subtext {font-size: 13px; color: #7F8C8D; margin-top: -10px; margin-bottom: 10px;}
-        
-        .badge-success { background-color: #17202A; color: #2ECC71; padding: 4px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #2ECC71; font-weight: 600;}
-        .badge-warning { background-color: #17202A; color: #F1C40F; padding: 4px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #F1C40F; font-weight: 600;}
-        
-        .metric-card {background-color: #1E1E24; padding: 15px; border-radius: 8px; border-left: 4px solid #3498DB; box-shadow: 0 2px 4px rgba(0,0,0,0.2); height: 100%; line-height: 1.2;}
-        .metric-title {color: #AAB7B8; font-size: 10px; text-transform: uppercase; font-weight: 700; margin-bottom: 5px;}
-        .metric-value {color: #FFFFFF; font-size: 18px; font-weight: 800;}
-        .metric-sub {color: #7F8C8D; font-size: 11px;}
-        
-        .sig-card {padding: 12px; border-radius: 8px; text-align: center; color: white; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3); height: 100%; display: flex; flex-direction: column; justify-content: center; line-height: 1.2;}
-        .sig-title {font-size: 11px; text-transform: uppercase; opacity: 0.9;}
-        .sig-scale {font-size: 16px; margin: 2px 0;}
-        
-        .stTabs [data-baseweb="tab-list"] { gap: 4px; }
-        .stTabs [data-baseweb="tab"] { background-color: #F1F3F5; border-radius: 4px 4px 0px 0px; padding: 8px 15px; font-size: 13px; font-weight: 600; color: #2C3E50; }
-        .stTabs [aria-selected="true"] { background-color: #2C3E50; color: white; }
-        </style>
-        """, unsafe_allow_html=True
-    )
+st.set_page_config(
+    page_title="BMKG Strong Motion Analyzer",
+    page_icon=":material/monitoring:",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-# =========================================================================
-# 2. FUNGSI PEMROSESAN BACKEND
-# =========================================================================
-@st.cache_resource
-def get_logger():
-    return logging.getLogger("bsma_gui")
 
-def get_dynamic_pipeline(logger, freq_min, freq_max, filter_type, damping):
-    return (
-        PipelineBuilder(logger=logger, halt_on_error=False)
-        .add(BaselineCorrectionPlugin(method="linear"))
-        .add(TaperPlugin(config=TaperConfig(alpha=0.05)))
-        .add(ButterworthFilterPlugin(config=FilterConfig(type=filter_type, freq_min=freq_min, freq_max=freq_max, corners=4, zerophase=True)))
-        .add(KinematicIntegrationPlugin(config=IntegrationConfig(remove_mean=True, remove_linear_trend=True)))
-        .add(ParameterExtractionPlugin(config=ParameterConfig(gravity=9.80665)))
-        .add(ResponseSpectrumPlugin(config=ResponseSpectrumConfig(damping=damping, solver="nigam_jennings")))
-        .build()
-    )
+def _initialise_state() -> None:
+    st.session_state.setdefault("contexts_by_station", {})
+    st.session_state.setdefault("batch_failures", {})
+    st.session_state.setdefault("last_station", None)
+    st.session_state.setdefault("benchmark_reference", None)
+    st.session_state.setdefault("benchmark_tolerance_percent", 10.0)
 
-def process_station_stream(st_station: obspy.Stream, inventory: obspy.Inventory, logger, freq_min, freq_max, filter_type, damping):
-    pipeline = get_dynamic_pipeline(logger, freq_min, freq_max, filter_type, damping)
-    contexts = {}
-    for tr in st_station:
-        channel = tr.stats.channel
-        if inventory:
-            try: tr.remove_response(inventory=inventory, output="ACC", water_level=60, pre_filt=[0.05, 0.1, 30.0, 35.0])
-            except Exception: pass 
-                
-        raw_wave = WaveformData(data=tr.data, sampling_rate=tr.stats.sampling_rate, unit="m/s^2")
-        init_ctx = ProcessingContext(
-            trace_id=tr.id, metadata=dict(tr.stats), raw_waveform=raw_wave,
-            acceleration=raw_wave, processing_state=ProcessingState(), history=()
+
+def _ensure_directories() -> None:
+    for directory in (WAVEFORM_DIRECTORY, INVENTORY_DIRECTORY, REPORT_DIRECTORY):
+        directory.mkdir(parents=True, exist_ok=True)
+
+
+def _waveform_files() -> list[Path]:
+    files: list[Path] = []
+    for suffix in ("*.mseed", "*.miniseed", "*.sac", "*.msd"):
+        files.extend(WAVEFORM_DIRECTORY.glob(suffix))
+    # A failed FDSN download can be saved with a MiniSEED extension.  Keep
+    # that source file intact, but do not repeatedly treat its HTTP error
+    # body as waveform input on every dashboard rerun.
+    return sorted(path for path in set(files) if not _is_fdsn_error_response(path))
+
+
+def _is_fdsn_error_response(path: Path) -> bool:
+    try:
+        preview = path.read_bytes()[:1024].decode("utf-8", errors="ignore").lower()
+    except OSError:
+        return False
+    return "error 404" in preview and "fdsnws" in preview
+
+
+def _load_master_stream(files: list[Path]) -> obspy.Stream:
+    stream = obspy.Stream()
+    failures: list[str] = []
+    for path in files:
+        try:
+            loaded = obspy.read(str(path))
+            source_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+            for trace in loaded:
+                trace.stats["bsma_source_file"] = path.name
+                trace.stats["bsma_source_sha256"] = source_hash
+            stream += loaded
+        except Exception as exc:
+            failures.append(f"{path.name}: {_read_error_detail(path, exc)}")
+    if failures:
+        st.warning("Sebagian waveform tidak dapat dibaca: " + "; ".join(failures))
+    return stream
+
+
+def _read_error_detail(path: Path, error: Exception) -> str:
+    """Return an actionable ingestion error without exposing a traceback."""
+    try:
+        preview = path.read_bytes()[:1024].decode("utf-8", errors="ignore").lower()
+    except OSError:
+        preview = ""
+
+    if "error 404" in preview or "no metadata found" in preview:
+        return (
+            "berisi respons 404 dari layanan data, bukan rekaman MiniSEED. "
+            "Unduh ulang interval/channel yang tersedia lalu unggah file baru."
         )
-        contexts[channel] = pipeline.run(init_ctx)
-    return contexts
+    return str(error)
 
-def extract_summary_data(station_code, contexts):
-    data = []
-    for ch, ctx in contexts.items():
-        m = ctx.metrics
-        pga_gal = m.get("PGA", 0) * 100.0
-        sig = get_sig_bmkg(pga_gal)
-        data.append({
-            "Stasiun": station_code, "Channel": ch, "PGA (Gal)": round(pga_gal, 4),
-            "PGV (cm/s)": round(m.get("PGV", 0) * 100.0, 4), "PGD (cm)": round(m.get("PGD", 0) * 100.0, 4),
-            "Arias Int (m/s)": round(m.get("Arias_Intensity", 0), 6),
-            "Durasi (s)": round(m.get("Significant_Duration_D5_95", 0), 2),
-            "SIG BMKG": f"SIG {sig[0]} ({sig[4]})"
-        })
-    return data
 
-# =========================================================================
-# 3. MAIN DASHBOARD
-# =========================================================================
-def main():
-    inject_custom_css()
-    logger = get_logger()
+def _find_inventory(station: str) -> obspy.Inventory | None:
+    source = _find_inventory_path(station)
+    if source is None:
+        return None
+    try:
+        return obspy.read_inventory(str(source))
+    except Exception as exc:
+        logging.getLogger("bsma.dashboard").warning(
+            "Ignoring unreadable StationXML %s for station %s: %s",
+            source.name,
+            station,
+            exc,
+        )
+        return None
 
-    # HEADER COMPACT
-    col_logo, col_title = st.columns([0.05, 0.95], vertical_alignment="center")
-    with col_logo:
-        logo_path = Path("Logo_Judul.png")
-        if logo_path.exists(): st.image(str(logo_path), width=70)
-        else: st.markdown('<div style="font-size: 40px; text-align: center;">BMKG</div>', unsafe_allow_html=True)
-    
-    with col_title:
-        st.markdown("<h2 style='margin-bottom: 0px; padding-bottom: 0px; line-height: 1.2;'>BMKG Strong Motion Analyzer</h2>", unsafe_allow_html=True)
-        st.markdown("<div style='font-size: 14px; color: #7F8C8D; margin-top: 5px; margin-bottom: 15px;'>Professional Engineering Seismology Platform</div>", unsafe_allow_html=True)
 
-    # DIRECTORY INITIALIZATION
-    data_dir, xml_dir, report_dir, temp_dir = Path("Data/mseed"), Path("Data/stationXML"), Path("outputs/reports"), Path("outputs/temp")
-    for d in [data_dir, xml_dir, report_dir, temp_dir]: d.mkdir(parents=True, exist_ok=True)
-    
-    # STATE INITIALIZATION
-    if 'all_contexts' not in st.session_state: st.session_state['all_contexts'] = {}
-    if 'export_ready' not in st.session_state: st.session_state['export_ready'] = False
-    if 'form_key' not in st.session_state: st.session_state['form_key'] = 0
+def _find_inventory_path(station: str) -> Path | None:
+    """Find only a StationXML whose filename explicitly identifies station."""
+    direct = INVENTORY_DIRECTORY / f"{station}.xml"
+    candidates = [direct] if direct.is_file() else list(INVENTORY_DIRECTORY.glob("*.xml"))
+    for candidate in candidates:
+        if candidate.stem.upper() == station.upper() or station.upper() in candidate.stem.upper():
+            return candidate
+    return None
 
-    # SIDEBAR
+
+def _configuration_from_sidebar() -> tuple[AnalysisConfiguration, dict[str, Any]]:
     with st.sidebar:
-        st.markdown("### Manajemen Data")
-        
-        # MENGGUNAKAN FORM KEY AGAR BENAR-BENAR BERSIH SETELAH SUBMIT
-        with st.form(f"upload_form_{st.session_state['form_key']}", clear_on_submit=True):
-            st.markdown("<span style='font-size:12px; color:gray;'>Unggah arsip waveform dan metadata kalibrasi. Berkas akan diproses dan diamankan ke dalam sistem.</span>", unsafe_allow_html=True)
-            upl_mseed = st.file_uploader("Data Gelombang", type=["mseed", "sac", "miniseed"], accept_multiple_files=True)
-            upl_xml = st.file_uploader("Data Kalibrasi", type=["xml"], accept_multiple_files=True)
-            
-            submitted = st.form_submit_button("Simpan Data")
+        with st.expander("Processing configuration", expanded=False):
+            st.caption("Default: zero-phase 4th-order Butterworth band-pass filter (0.25–25 Hz).")
+            st.caption("The default is a conservative starting point; review corner frequencies against each record's signal-to-noise ratio.")
+            with st.form("processing_configuration", border=False):
+                filter_type = st.selectbox("Filter type", options=[member.value for member in FilterType], index=0)
+                frequency_min = st.number_input("Low cutoff (Hz)", min_value=0.001, value=0.25)
+                frequency_max = st.number_input("High cutoff (Hz)", min_value=0.01, value=25.0)
+                adaptive_filter = st.checkbox(
+                    "Apply SNR/Nyquist screening recommendation",
+                    value=True,
+                    help="Caps the high corner below 80% Nyquist and raises the low corner conservatively for weak SNR. The exact decision is retained in the audit log.",
+                )
+                damping = st.number_input("Response-spectrum damping ratio", min_value=0.0, max_value=0.99, value=0.05, step=0.01)
+                unit_labels = {"Meter per second squared (m/s²)": "m/s^2", "Gal / centimeter per second squared (Gal)": "gal", "Centimeter per second squared (cm/s²)": "cm/s^2"}
+                input_unit_label = st.selectbox("Unit when StationXML is unavailable", options=list(unit_labels), help="Confirm this only when MiniSEED samples are already physical acceleration, not ADC counts.")
+                provenance = st.selectbox(
+                    "Input data provenance",
+                    ["Already processed physical acceleration", "Raw instrument counts with StationXML", "Unknown - require scientific review"],
+                    help="Use the first option only when the provider confirms the samples are acceleration and any prior filtering is documented. Files labelled BP4 are treated as already filtered, not raw counts.",
+                )
+                st.session_state["apply_instrument_response"] = provenance == "Raw instrument counts with StationXML"
+                st.session_state["input_provenance"] = provenance
+                applied = st.form_submit_button("Apply configuration", icon=":material/tune:")
+        if applied:
+            st.session_state.pop("contexts_by_station", None)
+            st.session_state["contexts_by_station"] = {}
+            st.session_state["last_station"] = None
+
+        with st.expander("Event information (optional)", expanded=False):
+            event_mode = st.radio("Report event details", ["Do not include (recommended)", "Add manually for the PDF"], help="MiniSEED normally provides record start time; StationXML provides instrument/station metadata. Neither reliably contains earthquake origin, magnitude, or depth.")
+            event_info = {}
+            if event_mode == "Add manually for the PDF":
+                event_info = {"time": st.text_input("Origin time (UTC)", placeholder="YYYY-MM-DD HH:MM:SS"), "latitude": st.text_input("Latitude"), "longitude": st.text_input("Longitude"), "magnitude": st.text_input("Magnitude"), "depth_km": st.text_input("Depth (km)"), "epicentral_distance_km": st.text_input("Epicentral distance (km)")}
+
+        with st.expander("Reference benchmark (optional)", expanded=False):
+            st.caption("Upload a CSV with channel plus any of PGA, PGV, PGD, Arias_Intensity, Significant_Duration_D5_95, or PSA. Optional record_id scopes rows to one recording window.")
+            benchmark_upload = st.file_uploader("Reference metrics CSV", type=["csv"], key="benchmark_upload")
+            st.session_state["benchmark_tolerance_percent"] = st.number_input(
+                "Relative tolerance (%)",
+                min_value=0.1,
+                max_value=100.0,
+                value=float(st.session_state["benchmark_tolerance_percent"]),
+                step=0.5,
+                help="A comparison passes when the relative difference is within this tolerance. The reference source and matching preprocessing must be documented.",
+            )
+            if benchmark_upload is not None:
+                try:
+                    reference = pd.read_csv(benchmark_upload)
+                    if "channel" not in {str(column).lower() for column in reference.columns}:
+                        raise ValueError("CSV must contain a 'channel' column.")
+                    st.session_state["benchmark_reference"] = reference
+                    st.success(f"Loaded {len(reference)} reference row(s).")
+                except Exception as exc:
+                    st.error(f"Reference benchmark could not be read: {exc}")
+
+    return (
+        AnalysisConfiguration(
+            filter_type=filter_type,
+            freq_min_hz=float(frequency_min),
+            freq_max_hz=float(frequency_max),
+            damping_ratio=float(damping),
+            input_unit=unit_labels[input_unit_label],
+            input_mode="raw_counts" if provenance == "Raw instrument counts with StationXML" else "physical_acceleration",
+            adaptive_filter=bool(adaptive_filter),
+        ),
+        {key: value for key, value in event_info.items() if value},
+    )
+
+
+def _upload_data() -> None:
+    with st.sidebar:
+        with st.expander("Input data", expanded=False):
+            with st.form("input_upload", clear_on_submit=True):
+                waveforms = st.file_uploader(
+                    "Waveforms", type=["mseed", "miniseed", "msd", "sac"], accept_multiple_files=True
+                )
+                inventories = st.file_uploader(
+                    "StationXML", type=["xml", "stationxml"], accept_multiple_files=True
+                )
+                submitted = st.form_submit_button("Store input data", icon=":material/upload:")
             if submitted:
-                if upl_mseed:
-                    for uf in upl_mseed:
-                        with open(data_dir / uf.name, "wb") as f: f.write(uf.getbuffer())
-                if upl_xml:
-                    for uf in upl_xml:
-                        with open(xml_dir / uf.name, "wb") as f: f.write(uf.getbuffer())
-                st.session_state['form_key'] += 1
+                for upload, target in ((upload, WAVEFORM_DIRECTORY) for upload in waveforms or []):
+                    (target / Path(upload.name).name).write_bytes(upload.getvalue())
+                for upload, target in ((upload, INVENTORY_DIRECTORY) for upload in inventories or []):
+                    (target / Path(upload.name).name).write_bytes(upload.getvalue())
+                st.success("Input data stored. Reloading stations.")
                 st.rerun()
 
-        mseed_files = list(data_dir.glob("*.mseed")) + list(data_dir.glob("*.sac")) + list(data_dir.glob("*.miniseed"))
-        
-        st.markdown("---")
-        st.markdown("### Konfigurasi Pemrosesan")
-        with st.expander("Parameter Filter & Redaman", expanded=False):
-            filter_type = st.selectbox("Tipe Filter", ["bandpass", "lowpass", "highpass", "bandstop"], index=0)
-            f_col1, f_col2 = st.columns(2)
-            freq_min = f_col1.number_input("Freq Min (Hz)", value=0.1)
-            freq_max = f_col2.number_input("Freq Max (Hz)", value=25.0)
-            damping_ratio = st.number_input("Rasio Redaman", value=0.05, step=0.01)
 
-        st.markdown("---")
-        st.markdown("### Mode Analisis")
-        app_mode = st.radio("Pilih Mode:", ["Analisis Stasiun", "Komparasi Multi-Stasiun", "Batch Rekapitulasi", "Ekspor Data"], label_visibility="collapsed")
+def _service(configuration: AnalysisConfiguration) -> AnalysisService:
+    return AnalysisService(configuration, logger=logging.getLogger("bsma.dashboard"))
 
-    # JIKA TIDAK ADA DATA, BERHENTI DI SINI
-    if not mseed_files:
-        st.info("Sistem belum mendeteksi arsip gelombang. Silakan lakukan manajemen data pada panel samping.")
-        return
 
-    # LOAD ALL FILES INTO A STREAM
-    master_stream = obspy.Stream()
-    for f in mseed_files:
-        try: master_stream += obspy.read(str(f))
-        except: pass
-    unique_stations = sorted(list(set([tr.stats.station for tr in master_stream])))
+def _record_windows(stream: obspy.Stream) -> dict[str, obspy.Stream]:
+    """Group one station's components by their common recording start time."""
+    windows: dict[str, obspy.Stream] = {}
+    for trace in sorted(stream, key=lambda item: item.stats.starttime):
+        label = f"{trace.stats.station} | {trace.stats.starttime.strftime('%Y-%m-%d %H:%M:%S')} UTC"
+        windows.setdefault(label, obspy.Stream()).append(trace.copy())
+    return windows
 
-    # =========================================================================
-    # MENU 1: ANALISIS STASIUN TUNGGAL
-    # =========================================================================
-    if app_mode == "Analisis Stasiun":
-        c_sel1, c_sel2, c_sel3 = st.columns([3, 3, 2], vertical_alignment="bottom")
-        with c_sel1:
-            selected_stn = st.selectbox("Station Name:", unique_stations)
-            st_selected = master_stream.select(station=selected_stn)
-        
-        with c_sel2:
-            possible_xml = xml_dir / f"{selected_stn}.xml"
-            xml_path = str(possible_xml) if possible_xml.exists() else None
-            if xml_path: st.markdown(f"<div class='badge-success'>Calibration Applied: {possible_xml.name}</div>", unsafe_allow_html=True)
-            else: st.markdown("<div class='badge-warning'>Raw Counts Only</div>", unsafe_allow_html=True)
 
-        with c_sel3:
-            process_btn = st.button("PROCESS DATA", use_container_width=True, type="primary")
+def _process_one_station(
+    record_id: str,
+    station_stream: obspy.Stream,
+    configuration: AnalysisConfiguration,
+) -> dict[str, Any]:
+    contexts = _service(configuration).process_station_stream(
+        station_stream,
+        _find_inventory(str(station_stream[0].stats.station)) if st.session_state.get("apply_instrument_response", False) else None,
+    )
+    st.session_state["contexts_by_station"][record_id] = contexts
+    st.session_state["last_station"] = record_id
+    return contexts
 
-        if process_btn:
-            with st.spinner(f"Processing {len(st_selected)} channels..."):
-                inventory = obspy.read_inventory(xml_path) if xml_path else None
-                contexts = process_station_stream(st_selected, inventory, logger, freq_min, freq_max, filter_type, damping_ratio)
-                st.session_state["single_stn"] = selected_stn
-                st.session_state["single_ctx"] = contexts
-                st.session_state['all_contexts'][selected_stn] = contexts
 
-        if "single_ctx" in st.session_state and st.session_state["single_stn"] == selected_stn:
-            stn = st.session_state["single_stn"]
-            ctxs = st.session_state["single_ctx"]
-            sample_tr = st_selected[0].stats
-            
-            strongest_ch = max(ctxs, key=lambda k: ctxs[k].metrics.get("PGA", 0))
-            max_ctx = ctxs[strongest_ch]
-            
-            pga_ms2 = max_ctx.metrics.get("PGA", 0)
-            pga_gal = pga_ms2 * 100.0
-            pga_percent_g = (pga_ms2 / 9.80665) * 100.0
-            
-            sig_data = get_sig_bmkg(pga_gal)
-            sig_id, rgb, sig_desc, mmi = sig_data[0], sig_data[2], sig_data[3], sig_data[4]
-            
-            st.markdown(f"<span style='color:#7F8C8D; font-size:13px;'><b>Network:</b> {sample_tr.network} &nbsp;|&nbsp; <b>Channels:</b> {' '.join(ctxs.keys())} &nbsp;|&nbsp; <b>Sampling:</b> {sample_tr.sampling_rate} Hz &nbsp;|&nbsp; <b>UTC:</b> {sample_tr.starttime.strftime('%Y-%m-%d %H:%M:%S')}</span>", unsafe_allow_html=True)
-            
-            c1, c2, c3, c4, c5, c6 = st.columns([1, 1.2, 1.2, 1.2, 1.2, 1.8])
-            c1.markdown(f"<div class='metric-card'><div class='metric-title'>STRONGEST COMP</div><div class='metric-value'>{strongest_ch}</div></div>", unsafe_allow_html=True)
-            c2.markdown(f"<div class='metric-card'><div class='metric-title'>PEAK GROUND ACC</div><div class='metric-value'>{pga_gal:.3f} Gal</div><div class='metric-sub'>{pga_percent_g:.3f} %g</div></div>", unsafe_allow_html=True)
-            c3.markdown(f"<div class='metric-card'><div class='metric-title'>PEAK GROUND VEL</div><div class='metric-value'>{max_ctx.metrics.get('PGV',0)*100:.3f}</div><div class='metric-sub'>cm/s</div></div>", unsafe_allow_html=True)
-            c4.markdown(f"<div class='metric-card'><div class='metric-title'>PEAK GROUND DISP</div><div class='metric-value'>{max_ctx.metrics.get('PGD',0)*100:.4f}</div><div class='metric-sub'>cm</div></div>", unsafe_allow_html=True)
-            c5.markdown(f"<div class='metric-card'><div class='metric-title'>ARIAS INTENSITY</div><div class='metric-value'>{max_ctx.metrics.get('Arias_Intensity',0):.5f}</div><div class='metric-sub'>m/s</div></div>", unsafe_allow_html=True)
-            c6.markdown(f"<div class='sig-card' style='background-color: rgb({rgb[0]},{rgb[1]},{rgb[2]}); color: {'#FFF' if sig_id in ['IV', 'V'] else '#000'};'><div class='sig-title'>SKALA {sig_id} SIG-BMKG</div><div class='sig-scale'>{sig_desc}</div><div class='sig-mmi'>Equivalent MMI {mmi}</div></div>", unsafe_allow_html=True)
+def _display_metrics(contexts: dict[str, Any]) -> None:
+    strongest_channel, strongest = max(
+        contexts.items(), key=lambda item: float(item[1].metrics.get("PGA", 0.0))
+    )
+    metrics = strongest.metrics
+    metadata = strongest.metadata
+    st.caption(f"Network: {metadata.get('network', '-')} | Channels: {' '.join(contexts)} | Sampling: {strongest.sampling_rate:.1f} Hz | Record: {metadata.get('starttime', '-')}")
+    with st.container(horizontal=True):
+        st.metric("Strongest component", strongest_channel, help="Component with the largest processed peak ground acceleration.", border=True)
+        st.metric("PGA", f"{float(metrics.get('PGA', 0.0)) * 100:.3f} Gal", help="Peak Ground Acceleration: maximum absolute ground acceleration.", border=True)
+        st.metric("PGV", f"{float(metrics.get('PGV', 0.0)) * 100:.3f} cm/s", help="Peak Ground Velocity: maximum absolute integrated ground velocity.", border=True)
+        st.metric("PGD", f"{float(metrics.get('PGD', 0.0)) * 100:.4f} cm", help="Peak Ground Displacement: maximum absolute integrated ground displacement.", border=True)
+        st.metric("Arias intensity", f"{float(metrics.get('Arias_Intensity', 0.0)):.5f} m/s", help="Energy-related intensity measure computed from the processed acceleration history.", border=True)
+        st.metric("D5-95", f"{float(metrics.get('Significant_Duration_D5_95', 0.0)):.2f} s", help="Time interval over which cumulative Arias energy grows from 5% to 95%.", border=True)
+        sig = ExportService._sig_label(float(metrics.get("PGA", 0.0)) * 100.0)
+        st.metric("SIG-BMKG", sig, help="Klasifikasi intensitas berdasarkan PGA dalam Gal.", border=True)
+    sig_messages = {
+        "SIG I": (st.info, "Skala I - Putih: tidak dirasakan (MMI I-II)."),
+        "SIG II": (st.success, "Skala II - Hijau: dirasakan (MMI III-V)."),
+        "SIG III": (st.warning, "Skala III - Kuning: kerusakan ringan (MMI VI)."),
+        "SIG IV": (st.warning, "Skala IV - Jingga: kerusakan sedang (MMI VII-VIII)."),
+        "SIG V": (st.error, "Skala V - Merah: kerusakan berat (MMI IX-XII)."),
+    }
+    render_message, message = sig_messages[sig]
+    render_message(message, icon=":material/vibration:")
 
-            st.markdown("<br>", unsafe_allow_html=True)
-            
-            t_sum, t_wave, t_spec, t_hus, t_fas, t_qc, t_pdf = st.tabs([
-                "SUMMARY", "WAVEFORM", "RESPONSE SPECTRUM", "HUSID PLOT", "FAS", "AUDIT LOG", "REPORT (PDF)"
-            ])
 
-            with t_sum:
-                st.markdown(f"""
-                ### Interpretasi Hasil
-                *   **Percepatan Tanah Maksimum (PGA):** Tercatat sebesar **{pga_gal:.3f} Gal** (setara **{pga_percent_g:.3f} %g**).
-                *   **Guncangan Dominan:** Terjadi pada komponen **{strongest_ch}**.
-                *   **Klasifikasi Intensitas:** Berdasarkan standar BMKG, guncangan dikategorikan sebagai **SKALA {sig_id} ({sig_desc})**.
-                *   **Durasi Signifikan ($D_{{5-95}}$):** Energi guncangan utama berlangsung selama **{max_ctx.metrics.get('Significant_Duration_D5_95',0):.2f} detik**.
-                *   **Status Data:** {'Kalibrasi instrumen (StationXML) berhasil diaplikasikan.' if xml_path else 'Data mentah (Raw Counts) tanpa kalibrasi.'} Tidak terdeteksi *clipping*. Pemrosesan selesai.
-                """)
-                df_data = []
-                for ch, c in ctxs.items():
-                    m = c.metrics
-                    ch_gal = m.get('PGA',0)*100
-                    df_data.append({"Channel": ch, "PGA (Gal)": round(ch_gal, 3), "PGA (%g)": round((m.get('PGA',0)/9.80665)*100, 3), "PGV (cm/s)": round(m.get('PGV',0)*100, 3), "PGD (cm)": round(m.get('PGD',0)*100, 4), "Arias (m/s)": round(m.get('Arias_Intensity',0), 5), "Durasi (s)": round(m.get('Significant_Duration_D5_95',0), 2), "SIG": f"SIG {get_sig_bmkg(ch_gal)[0]}"})
-                st.dataframe(pd.DataFrame(df_data), use_container_width=True)
-
-            with t_wave:
-                with st.expander("Informasi Waveform"):
-                    st.markdown("Visualisasi historis percepatan (PGA), kecepatan (PGV), dan perpindahan (PGD) tanah. Titik merah menunjukkan lokasi percepatan puncak (PGA), sedangkan garis vertikal putus-putus menandakan interval Durasi Signifikan (D5 - D95) di mana 90% energi seismik utama dilepaskan.")
-                    
-                view_ch = st.selectbox("Select Component:", list(ctxs.keys()), label_visibility="collapsed")
-                ctx = ctxs[view_ch]
-                time = np.arange(len(ctx.acceleration.data)) / ctx.sampling_rate
-                _, t_5, t_95, _ = compute_husid_and_duration(ctx.acceleration.data, ctx.sampling_rate)
-                idx_pga = np.argmax(np.abs(ctx.acceleration.data))
-                
-                fig = make_subplots(rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.03)
-                fig.add_trace(go.Scatter(x=time, y=ctx.raw_waveform.data * 100, fill='tozeroy', line=dict(color='#00D4FF', width=1), name="Raw"), row=1, col=1)
-                fig.add_trace(go.Scatter(x=time, y=ctx.acceleration.data, line=dict(color='#00FF99', width=1), name="Acc"), row=2, col=1)
-                fig.add_trace(go.Scatter(x=time, y=ctx.velocity.data * 100, line=dict(color='#FFD54F', width=1), name="Vel"), row=3, col=1)
-                fig.add_trace(go.Scatter(x=time, y=ctx.displacement.data * 100, line=dict(color='#FF6B6B', width=1), name="Disp"), row=4, col=1)
-                
-                fig.add_trace(go.Scatter(x=[time[idx_pga]], y=[ctx.acceleration.data[idx_pga]], mode='markers+text', text=['PGA'], textposition="top center", marker=dict(color='red', size=8), name="PGA"), row=2, col=1)
-                fig.add_vline(x=t_5, line_dash="dash", line_color="orange", annotation_text="D5", row=2, col=1)
-                fig.add_vline(x=t_95, line_dash="dash", line_color="red", annotation_text="D95", row=2, col=1)
-
-                fig.update_yaxes(title_text="Raw (Gal)", row=1, col=1)
-                fig.update_yaxes(title_text="Acc (m/s²)", row=2, col=1)
-                fig.update_yaxes(title_text="Vel (cm/s)", row=3, col=1)
-                fig.update_yaxes(title_text="Disp (cm)", row=4, col=1)
-                fig.update_xaxes(title_text="Time (seconds)", row=4, col=1)
-
-                fig.update_layout(height=750, margin=dict(l=10, r=10, t=10, b=10), showlegend=False, plot_bgcolor='rgba(30,30,36,1)', paper_bgcolor='rgba(30,30,36,0)')
-                fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(255,255,255,0.12)', color='#DDDDDD')
-                fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(255,255,255,0.12)', color='#DDDDDD')
-                st.plotly_chart(fig, use_container_width=True)
-
-            with t_spec:
-                with st.expander("Informasi Response Spectrum"):
-                    st.markdown("Spektrum respons (PSA) memetakan estimasi percepatan puncak yang akan dialami struktur bangunan berdasarkan periode alaminya. Kurva ini merupakan parameter kunci bagi rekayasawan sipil untuk memastikan desain struktur tahan terhadap gaya geser gempa.")
-                fig_s = go.Figure()
-                colors = {"HNE": "purple", "HNN": "goldenrod", "HNZ": "darkgreen"}
-                for ch, c in ctxs.items():
-                    psa = c.spectral_data.get("PSA", c.spectral_data.get("psa"))
-                    per = c.spectral_data.get("Periods", c.spectral_data.get("periods"))
-                    if psa is not None and per is not None:
-                        psa_g = psa / 9.80665
-                        fig_s.add_trace(go.Scatter(x=per, y=psa_g, mode='lines', name=f"{ch} (Max: {np.max(psa_g):.3f} g)", line=dict(color=colors.get(ch[-3:], 'cyan'), width=2)))
-                fig_s.update_xaxes(type="log", title_text="Periode (detik)", gridcolor='rgba(255,255,255,0.12)')
-                fig_s.update_yaxes(title_text="Spectral Acc (g)", gridcolor='rgba(255,255,255,0.12)')
-                fig_s.update_layout(height=450, plot_bgcolor='rgba(30,30,36,1)', paper_bgcolor='rgba(30,30,36,0)', font=dict(color='#DDD'), legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99))
-                st.plotly_chart(fig_s, use_container_width=True)
-
-            with t_hus:
-                with st.expander("Informasi Husid Plot"):
-                    st.markdown("Kurva persentase penumpukan Intensitas Arias terhadap waktu. Husid plot digunakan untuk secara presisi mengidentifikasi interval waktu (D5 ke D95) di mana energi destruktif gempa paling banyak dilepaskan secara masif.")
-                try:
-                    time_v = np.arange(len(max_ctx.acceleration.data)) / max_ctx.sampling_rate
-                    husid, t_5, t_95, d_5_95 = compute_husid_and_duration(max_ctx.acceleration.data, max_ctx.sampling_rate)
-                    fig_h = go.Figure()
-                    fig_h.add_trace(go.Scatter(x=time_v, y=husid*100, line=dict(color='#00FF99', width=2), name="Husid", fill='tozeroy'))
-                    fig_h.add_vline(x=t_5, line_dash="dash", line_color="orange", annotation_text=f"D5 ({t_5:.1f}s)")
-                    fig_h.add_vline(x=t_95, line_dash="dash", line_color="red", annotation_text=f"D95 ({t_95:.1f}s)")
-                    fig_h.update_layout(title=f"Durasi Signifikan D5-95: {d_5_95:.2f} detik", height=400, xaxis_title="Waktu (s)", yaxis_title="Energi (%)", plot_bgcolor='rgba(30,30,36,1)', paper_bgcolor='rgba(30,30,36,0)', font=dict(color='#DDD'))
-                    fig_h.update_xaxes(gridcolor='rgba(255,255,255,0.12)')
-                    fig_h.update_yaxes(gridcolor='rgba(255,255,255,0.12)')
-                    st.plotly_chart(fig_h, use_container_width=True)
-                except Exception as e: st.error(f"Gagal: {e}")
-
-            with t_fas:
-                with st.expander("Informasi Fourier Amplitude Spectrum (FAS)"):
-                    st.markdown("Transformasi rekaman domain waktu ke domain frekuensi menggunakan FFT (Fast Fourier Transform). Menunjukkan spektrum frekuensi dominan guncangan yang krusial untuk mengidentifikasi potensi efek resonansi geologi lokal (*site effect*).")
-                try:
-                    freqs, fas = compute_fas(max_ctx.acceleration.data, max_ctx.sampling_rate)
-                    fig_f = go.Figure()
-                    fig_f.add_trace(go.Scatter(x=freqs, y=fas, line=dict(color='#FF6B6B', width=1.5)))
-                    fig_f.update_xaxes(type="log", title_text="Frekuensi (Hz)", gridcolor='rgba(255,255,255,0.12)')
-                    fig_f.update_yaxes(type="log", title_text="Amplitudo", gridcolor='rgba(255,255,255,0.12)')
-                    fig_f.update_layout(height=400, plot_bgcolor='rgba(30,30,36,1)', paper_bgcolor='rgba(30,30,36,0)', font=dict(color='#DDD'))
-                    st.plotly_chart(fig_f, use_container_width=True)
-                except Exception as e: st.error(f"Gagal: {e}")
-
-            with t_qc:
-                st.markdown(f"**Channel Report:** {strongest_ch}")
-                for log in max_ctx.history:
-                    step = log.get("step", "Unknown")
-                    status = log.get("status", "SUCCESS")
-                    color = "#2ECC71" if status == "SUCCESS" else "#E74C3C"
-                    detail_str = ""
-                    for k, v in log.items():
-                        if k not in ["step", "status"]: detail_str += f" | {k}: {v}"
-                    st.markdown(f"<div style='background-color:#1E1E24; padding:10px; margin-bottom:5px; border-left:3px solid {color}; border-radius:4px;'><span style='font-weight:bold; color:#FFF;'>{step}</span> <span style='color:{color};'>[{status}]</span><br><span style='font-size:12px; color:#AAB7B8;'>{detail_str}</span></div>", unsafe_allow_html=True)
-
-            with t_pdf:
-                st.info("Mengekspor seluruh tabel, spektrum overlay, dan grafik 4-panel ketiga komponen ke dalam PDF resmi BMKG.")
-                if st.button("Generate Laporan PDF", type="primary"):
-                    with st.spinner("Merender..."):
-                        pdf_path = export_station_report(stn, ctxs, str(report_dir))
-                        with open(pdf_path, "rb") as f:
-                            st.download_button("Unduh PDF Laporan", data=f, file_name=pdf_path.name, mime="application/pdf")
-
-    # =========================================================================
-    # MENU 2: KOMPARASI MULTI-STASIUN
-    # =========================================================================
-    elif app_mode == "Komparasi Multi-Stasiun":
-        st.markdown("### Komparasi Parameter Multi-Stasiun")
-        selected_stations = st.multiselect("Pilih Stasiun:", options=unique_stations)
-        
-        if st.button("Jalankan Komparasi", type="primary") and selected_stations:
-            with st.spinner("Memproses..."):
-                c_data = []
-                fig_comp = go.Figure()
-                colors = ['#00D4FF', '#00FF99', '#FFD54F', '#FF6B6B', '#A569BD']
-                
-                for i, s in enumerate(selected_stations):
-                    xml_p = str(xml_dir / f"{s}.xml") if (xml_dir / f"{s}.xml").exists() else None
-                    try:
-                        inv = obspy.read_inventory(xml_p) if xml_p else None
-                        ctxs = process_station_stream(master_stream.select(station=s), inv, logger, freq_min, freq_max, filter_type, damping_ratio)
-                        st.session_state['all_contexts'][s] = ctxs 
-                        c_data.extend(extract_summary_data(s, ctxs))
-                        
-                        strongest_ch = max(ctxs, key=lambda k: ctxs[k].metrics.get("PGA", 0))
-                        c_spec = ctxs[strongest_ch].spectral_data
-                        psa = c_spec.get("PSA", c_spec.get("psa"))
-                        per = c_spec.get("Periods", c_spec.get("periods"))
-                        
-                        if psa is not None and per is not None:
-                            psa_g = psa / 9.80665
-                            fig_comp.add_trace(go.Scatter(x=per, y=psa_g, mode='lines', name=f"{s} ({strongest_ch})", line=dict(color=colors[i % len(colors)], width=2)))
-                    except: pass
-                
-                st.markdown("#### Overlay Spektrum Respons Antar-Stasiun")
-                fig_comp.update_xaxes(type="log", title_text="Periode (detik)", gridcolor='rgba(255,255,255,0.12)')
-                fig_comp.update_yaxes(title_text="Spectral Acc (g)", gridcolor='rgba(255,255,255,0.12)')
-                fig_comp.update_layout(height=450, plot_bgcolor='rgba(30,30,36,1)', paper_bgcolor='rgba(30,30,36,0)', font=dict(color='#DDD'))
-                st.plotly_chart(fig_comp, use_container_width=True)
-                
-                st.markdown("#### Tabel Perbandingan Parameter")
-                st.dataframe(pd.DataFrame(c_data), use_container_width=True)
-
-    # =========================================================================
-    # MENU 3: TABEL REKAPITULASI BATCH
-    # =========================================================================
-    elif app_mode == "Batch Rekapitulasi":
-        st.markdown("### Rekapitulasi Seluruh Jaringan")
-        if st.button("Proses Semua Data", type="primary"):
-            pb = st.progress(0); txt = st.empty(); all_data = []
-            for i, stn in enumerate(unique_stations):
-                txt.text(f"Memproses {stn}...")
-                xml_p = str(xml_dir / f"{stn}.xml") if (xml_dir / f"{stn}.xml").exists() else None
-                try:
-                    inv = obspy.read_inventory(xml_p) if xml_p else None
-                    ctxs = process_station_stream(master_stream.select(station=stn), inv, logger, freq_min, freq_max, filter_type, damping_ratio)
-                    st.session_state['all_contexts'][stn] = ctxs
-                    all_data.extend(extract_summary_data(stn, ctxs))
-                except: pass
-                pb.progress((i + 1) / len(unique_stations))
-            st.session_state['batch_df'] = pd.DataFrame(all_data)
-            txt.text("Pemrosesan selesai.")
-        
-        if 'batch_df' in st.session_state and not st.session_state['batch_df'].empty:
-            df = st.session_state['batch_df']
-            st.dataframe(df.style.highlight_max(subset=['PGA (Gal)'], color='lightcoral'), use_container_width=True)
-            csv = df.to_csv(index=False).encode('utf-8')
-            st.download_button("Unduh CSV", data=csv, file_name="Batch_Summary.csv", mime="text/csv")
-
-    # =========================================================================
-    # MENU 4: EKSPOR ARSIP ZIP MASSAL (KUSTOMISASI)
-    # =========================================================================
-    elif app_mode == "Ekspor Data":
-        st.markdown("### Ekspor Laporan & Data")
-
-        c_opt1, c_opt2 = st.columns(2)
-        with c_opt1:
-            st.markdown("#### 1. Pilih Format Ekspor")
-            export_format = st.radio("Format:", ["Lengkap (PDF & CSV dalam ZIP)", "Hanya PDF (ZIP)", "Hanya CSV (Tabel)"], label_visibility="collapsed")
-        with c_opt2:
-            st.markdown("#### 2. Pilih Stasiun")
-            select_all = st.checkbox("Pilih Semua Stasiun", value=True)
-            if select_all:
-                selected_stns = unique_stations
-                st.multiselect("Stasiun Terpilih:", options=unique_stations, default=unique_stations, disabled=True, label_visibility="collapsed")
-            else:
-                selected_stns = st.multiselect("Stasiun Terpilih:", options=unique_stations, default=unique_stations[:1], label_visibility="collapsed")
-        
-        if st.button("Proses Ekspor", type="primary"):
-            if not selected_stns:
-                st.error("Pilih minimal 1 stasiun.")
-            else:
-                st.session_state['export_ready'] = False
-                pb = st.progress(0); txt = st.empty()
-                all_sum = []
-                z_buf = io.BytesIO() if "PDF" in export_format or "Lengkap" in export_format else None
-                
-                if z_buf:
-                    zf = zipfile.ZipFile(z_buf, "w", zipfile.ZIP_DEFLATED)
-                
-                for i, code in enumerate(selected_stns):
-                    txt.text(f"Menyiapkan data stasiun {code} ({i+1}/{len(selected_stns)})...")
-                    
-                    if code not in st.session_state['all_contexts']:
-                        xml_p = str(xml_dir / f"{code}.xml") if (xml_dir / f"{code}.xml").exists() else None
-                        try:
-                            inv = obspy.read_inventory(xml_p) if xml_p else None
-                            st_selected = master_stream.select(station=code)
-                            ctxs = process_station_stream(st_selected, inv, logger, freq_min, freq_max, filter_type, damping_ratio)
-                            st.session_state['all_contexts'][code] = ctxs
-                        except Exception as e:
-                            logger.error(f"Gagal memproses {code}: {e}")
-                            continue
-                            
-                    ctxs = st.session_state['all_contexts'].get(code)
-                    if not ctxs: continue
-                        
-                    if "CSV" in export_format or "Lengkap" in export_format:
-                        all_sum.extend(extract_summary_data(code, ctxs))
-                        
-                    if "PDF" in export_format or "Lengkap" in export_format:
-                        txt.text(f"Merender PDF {code}...")
-                        p_path = export_station_report(code, ctxs, str(report_dir))
-                        zf.write(p_path, arcname=f"Laporan_PDF/{p_path.name}")
-
-                    pb.progress((i+1)/len(selected_stns))
-                
-                if export_format == "Hanya CSV (Tabel)":
-                    st.session_state['export_data'] = pd.DataFrame(all_sum).to_csv(index=False).encode('utf-8')
-                    st.session_state['export_name'] = "BSMA_Database_Parameter.csv"
-                    st.session_state['export_mime'] = "text/csv"
+def _display_benchmark(record_id: str, contexts: dict[str, Any]) -> None:
+    """Compare processed metrics with an operator-supplied generic reference CSV."""
+    reference = st.session_state.get("benchmark_reference")
+    with st.expander("Numerical benchmark", expanded=False):
+        if reference is None:
+            st.info("No reference CSV loaded. This is optional; use it to compare this result with an independently processed record.")
+            return
+        normalized = reference.rename(columns={str(column): str(column).strip().lower() for column in reference.columns})
+        if "record_id" in normalized.columns:
+            normalized = normalized[normalized["record_id"].astype(str).isin({record_id, "*", ""})]
+        available = {
+            "pga": "PGA",
+            "pgv": "PGV",
+            "pgd": "PGD",
+            "arias_intensity": "Arias_Intensity",
+            "significant_duration_d5_95": "Significant_Duration_D5_95",
+            "psa": "PSA",
+        }
+        tolerance = float(st.session_state["benchmark_tolerance_percent"])
+        rows: list[dict[str, Any]] = []
+        for _, reference_row in normalized.iterrows():
+            channel = str(reference_row.get("channel", "")).strip()
+            context = contexts.get(channel)
+            if context is None:
+                rows.append({"channel": channel or "-", "metric": "-", "status": "NOT FOUND", "detail": "Reference channel is not in this record."})
+                continue
+            for csv_name, metric_name in available.items():
+                if csv_name not in normalized.columns or pd.isna(reference_row[csv_name]):
+                    continue
+                reference_value = float(reference_row[csv_name])
+                if metric_name == "PSA":
+                    spectrum = np.asarray(context.spectral_data.get("PSA", []), dtype=float)
+                    computed_value = float(np.nanmax(spectrum)) if spectrum.size else np.nan
                 else:
-                    if "Lengkap" in export_format and all_sum:
-                        zf.writestr("Database_Parameter.csv", pd.DataFrame(all_sum).to_csv(index=False).encode('utf-8'))
-                    zf.close()
-                    z_buf.seek(0)
-                    st.session_state['export_data'] = z_buf.getvalue()
-                    st.session_state['export_name'] = "BSMA_Laporan_Massal.zip"
-                    st.session_state['export_mime'] = "application/zip"
-                    
-                txt.text("Penyusunan berkas selesai!")
-                st.session_state['export_ready'] = True
+                    computed_value = float(context.metrics.get(metric_name, np.nan))
+                relative_error = abs(computed_value - reference_value) / max(abs(reference_value), 1e-12) * 100.0
+                rows.append(
+                    {
+                        "channel": channel,
+                        "metric": metric_name,
+                        "computed": computed_value,
+                        "reference": reference_value,
+                        "difference (%)": relative_error,
+                        "status": "PASS" if relative_error <= tolerance else "REVIEW",
+                    }
+                )
+        if not rows:
+            st.warning("The CSV has no comparable metric rows for this recording window.")
+            return
+        st.caption(f"Tolerance: {tolerance:.1f}%. A REVIEW result is a scientific review prompt, not automatic proof that either dataset is wrong.")
+        st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
 
-        if st.session_state.get('export_ready'):
-            st.download_button("Unduh Arsip Sekarang", data=st.session_state['export_data'], file_name=st.session_state['export_name'], mime=st.session_state['export_mime'], type="primary")
 
-if __name__ == "__main__":
-    main()
+def _display_analysis(station: str, contexts: dict[str, Any], event_info: dict[str, Any]) -> None:
+    _display_metrics(contexts)
+    rows = extract_summary_data(station, contexts)
+    summary, waveform, spectrum, husid_tab, fas, audit, report = st.tabs(
+        ["Summary", "Waveforms", "Response spectrum", "Husid plot", "FAS", "QC audit", "Report"]
+    )
+    with summary:
+        st.dataframe(pd.DataFrame(rows), hide_index=True)
+        strongest_channel, strongest = max(contexts.items(), key=lambda item: float(item[1].metrics.get("PGA", 0.0)))
+        pga = float(strongest.metrics.get("PGA", 0.0))
+        duration = float(strongest.metrics.get("Significant_Duration_D5_95", 0.0))
+        pga_gal = pga * 100.0
+        percent_g = pga / 9.80665 * 100.0
+        sig = ExportService._sig_label(pga_gal)
+        descriptions = {"SIG I": "TIDAK DIRASAKAN", "SIG II": "DIRASAKAN", "SIG III": "KERUSAKAN RINGAN", "SIG IV": "KERUSAKAN SEDANG", "SIG V": "KERUSAKAN BERAT"}
+        qc = strongest.qc
+        calibration = "terkalibrasi dengan StationXML" if strongest.processing_state.response_correction.value == "SUCCESS" else "tanpa kalibrasi respons instrumen"
+        clipping = "tidak terdeteksi clipping" if qc is None or not qc.has_clipping else "terdeteksi indikasi clipping"
+        st.markdown(
+            f"### Interpretasi hasil\n"
+            f"**Percepatan tanah maksimum (PGA):** {pga_gal:.3f} Gal ({percent_g:.3f} %g).  \n"
+            f"**Guncangan dominan:** komponen **{strongest_channel}**.  \n"
+            f"**Klasifikasi intensitas:** **{sig} — {descriptions[sig]}**.  \n"
+            f"**Durasi signifikan (D5–D95):** {duration:.2f} detik.  \n"
+            f"**Status data:** {calibration}; {clipping}; pemrosesan selesai."
+        )
+        _display_benchmark(station, contexts)
+    with waveform:
+        channels = st.multiselect(
+            "Components to display",
+            list(contexts),
+            default=list(contexts),
+            help="Each selected component is drawn with its own acceleration, velocity, and displacement histories. PGA, D5, and D95 markers are derived from that component.",
+        )
+        for channel in channels:
+            context = contexts[channel]
+            acceleration = context.acceleration
+            if acceleration is None:
+                st.warning(f"{channel}: acceleration history is unavailable.")
+                continue
+            st.markdown(f"#### {channel}")
+            time = np.arange(acceleration.npts) / acceleration.sampling_rate
+            figure = make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.04)
+            for row, data, name in (
+                (1, acceleration.data, "Acceleration (m/s2)"),
+                (2, context.velocity.data, "Velocity (m/s)"),
+                (3, context.displacement.data, "Displacement (m)"),
+            ):
+                figure.add_trace(go.Scatter(x=time, y=data, mode="lines", name=name), row=row, col=1)
+                figure.update_yaxes(title_text=name, row=row, col=1)
+            pga_index = int(np.argmax(np.abs(acceleration.data)))
+            figure.add_vline(x=float(time[pga_index]), line_color="red", line_dash="dot", annotation_text="PGA")
+            husid = context.cache.husid_curve
+            if husid is not None and len(husid) == len(time):
+                for level, label, color in ((0.05, "D5", "orange"), (0.95, "D95", "green")):
+                    index = int(np.searchsorted(np.asarray(husid), level))
+                    figure.add_vline(x=float(time[min(index, len(time) - 1)]), line_color=color, line_dash="dash", annotation_text=label)
+            figure.update_xaxes(title_text="Time (s)", row=3, col=1)
+            figure.update_layout(height=700, showlegend=False, margin=dict(l=10, r=10, t=20, b=10))
+            st.plotly_chart(figure, width="stretch")
+    with spectrum:
+        figure = go.Figure()
+        for channel, context in contexts.items():
+            periods = context.spectral_data.get("periods")
+            psa = context.spectral_data.get("PSA")
+            if periods is not None and psa is not None:
+                figure.add_trace(
+                    go.Scatter(x=periods, y=np.asarray(psa) / 9.80665, mode="lines", name=channel)
+                )
+        figure.update_xaxes(type="log", title="Period (s)")
+        figure.update_yaxes(title="PSA (g)")
+        figure.update_layout(height=450, margin=dict(l=10, r=10, t=20, b=10))
+        st.plotly_chart(figure, width="stretch")
+    with husid_tab:
+        st.caption("Husid plot menunjukkan persentase kumulatif energi Arias; D5 dan D95 membatasi durasi energi utama.")
+        figure = go.Figure()
+        for channel, context in contexts.items():
+            curve = context.cache.husid_curve
+            if curve is not None:
+                time = np.arange(curve.size) / context.sampling_rate
+                figure.add_trace(go.Scatter(x=time, y=np.asarray(curve) * 100, mode="lines", name=channel))
+        figure.update_layout(height=450, xaxis_title="Time (s)", yaxis_title="Cumulative Arias energy (%)")
+        st.plotly_chart(figure, width="stretch")
+    with fas:
+        st.caption("Fourier Amplitude Spectrum (FAS) memperlihatkan kandungan amplitudo terhadap frekuensi setelah pemrosesan.")
+        figure = go.Figure()
+        for channel, context in contexts.items():
+            data = context.acceleration.data
+            frequency = np.fft.rfftfreq(data.size, d=context.dt)
+            amplitude = np.abs(np.fft.rfft(data)) / data.size
+            figure.add_trace(go.Scatter(x=frequency[1:], y=amplitude[1:], mode="lines", name=channel))
+        figure.update_layout(height=450, xaxis_type="log", yaxis_type="log", xaxis_title="Frequency (Hz)", yaxis_title="Amplitude (m/s2)")
+        st.plotly_chart(figure, width="stretch")
+    with audit:
+        st.caption("Audit trail berikut menyimpan keputusan ilmiah dan setiap tahap pemrosesan yang benar-benar dijalankan untuk tiap komponen.")
+        narratives = {
+            "ScientificProvenance": "Mencatat sumber, checksum, satuan, versi engine, dan waktu proses.",
+            "RawQC": "Memeriksa integritas sampel, clipping, flatline, drift, dan indikator SNR.",
+            "InstrumentResponse": "Menentukan apakah respons instrumen dikoreksi atau sengaja dilewati.",
+            "FilterRecommendation": "Memilih sudut filter berdasarkan sampling rate, Nyquist, dan screening SNR.",
+            "BaselineCorrection": "Menghapus offset atau tren baseline sebelum filtering.",
+            "Taper": "Menerapkan taper untuk mengurangi artefak pada tepi rekaman.",
+            "ButterworthFilter": "Menerapkan filter Butterworth zero-phase pada band yang diaudit.",
+            "KinematicIntegration": "Mengintegrasikan percepatan untuk memperoleh kecepatan dan perpindahan.",
+            "ParameterExtraction": "Mengekstrak parameter strong-motion dan durasi energi.",
+            "Response_Spectrum": "Menghitung spektrum respons dengan redaman yang ditetapkan.",
+        }
+        for channel, context in contexts.items():
+            st.subheader(channel)
+            qc = context.qc
+            if qc is not None:
+                quality_message = f"QC score {qc.quality_score}/100"
+                if qc.is_valid:
+                    st.success(quality_message + ": processing permitted; review any warnings below.", icon=":material/check_circle:")
+                else:
+                    st.error(quality_message + ": processing blocked by the quality gate.", icon=":material/error:")
+            for entry in context.history:
+                stage = entry.get("step", entry.get("stage", entry.get("plugin", "Processing step")))
+                status = entry.get("status", "SUCCESS")
+                display_stage = str(stage).split("(", maxsplit=1)[0]
+                details = {key: value for key, value in entry.items() if key not in {"step", "stage", "plugin", "status", "timestamp"}}
+                with st.expander(f"{stage} [{status}]", expanded=False):
+                    st.caption(narratives.get(display_stage, "Tahap pemrosesan tercatat dalam provenance."))
+                    if details:
+                        st.json(details)
+                    else:
+                        st.caption("Tahap selesai tanpa parameter tambahan yang dicatat.")
+    with report:
+        if st.button("Generate station PDF", icon=":material/picture_as_pdf:"):
+            safe_record_id = re.sub(r'[<>:"/\\|?*]+', "_", station)
+            output = REPORT_DIRECTORY / f"BSMA_Report_{safe_record_id}.pdf"
+            with st.spinner("Generating PDF report..."):
+                pdf_path = ExportService().export_station_pdf(
+                    station,
+                    contexts,
+                    output,
+                    event_info=event_info or None,
+                )
+            st.session_state["last_pdf"] = pdf_path.read_bytes()
+            st.session_state["last_pdf_name"] = pdf_path.name
+        if st.session_state.get("last_pdf"):
+            st.download_button(
+                "Download PDF report",
+                data=st.session_state["last_pdf"],
+                file_name=st.session_state["last_pdf_name"],
+                mime="application/pdf",
+                icon=":material/download:",
+            )
+
+
+def _batch_analysis(
+    records: dict[str, obspy.Stream],
+    configuration: AnalysisConfiguration,
+) -> None:
+    unknown_provenance = st.session_state.get("input_provenance") == "Unknown - require scientific review"
+    missing_inventory = [
+        record
+        for record, stream in records.items()
+        if configuration.input_mode == "raw_counts" and _find_inventory_path(str(stream[0].stats.station)) is None
+    ]
+    if unknown_provenance:
+        st.warning("Processing is blocked until the input is declared as raw counts with StationXML or already processed physical acceleration.")
+    if missing_inventory:
+        st.error("Raw-count mode requires StationXML for every record. Missing: " + ", ".join(missing_inventory))
+    if st.button(
+        "Process all stations",
+        type="primary",
+        icon=":material/play_arrow:",
+        disabled=unknown_provenance or bool(missing_inventory),
+    ):
+        progress = st.progress(0, text="Preparing batch analysis")
+
+        def on_progress(index: int, total: int, station: str) -> None:
+            progress.progress(index / total, text=f"Processing {station} ({index}/{total})")
+
+        streams = records
+        inventories = {record: _find_inventory(str(stream[0].stats.station)) if st.session_state.get("apply_instrument_response", False) else None for record, stream in streams.items()}
+        result = BatchService(_service(configuration)).process_stations(
+            streams, inventories, progress_callback=on_progress
+        )
+        st.session_state["contexts_by_station"].update(result.contexts_by_station)
+        st.session_state["batch_failures"] = result.failures
+        st.session_state["batch_rows"] = result.summary_rows()
+        progress.progress(1.0, text="Batch analysis complete")
+
+    rows = st.session_state.get("batch_rows", [])
+    if rows:
+        st.dataframe(pd.DataFrame(rows), hide_index=True)
+    if st.session_state.get("batch_failures"):
+        st.error("Failed stations")
+        st.json(st.session_state["batch_failures"])
+
+
+def _export_batch(event_info: dict[str, Any]) -> None:
+    contexts = st.session_state["contexts_by_station"]
+    if not contexts:
+        st.info("Process at least one station before export.")
+        return
+    selected = st.multiselect("Stations to export", list(contexts), default=list(contexts))
+    if st.button("Build export package", type="primary", icon=":material/archive:"):
+        if not selected:
+            st.error("Select at least one station.")
+            return
+        exporter = ExportService()
+        with io.BytesIO() as buffer:
+            with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+                selected_contexts = {station: contexts[station] for station in selected}
+                csv_path = exporter.export_batch_csv(
+                    selected_contexts, REPORT_DIRECTORY / "BSMA_Summary.csv"
+                )
+                archive.write(csv_path, arcname="BSMA_Summary.csv")
+                provenance = {
+                    station: {
+                        channel: {
+                            "trace_id": context.trace_id,
+                            "raw_waveform_sha256": hashlib.sha256(context.raw_waveform.data.tobytes()).hexdigest(),
+                            "raw_unit": context.raw_waveform.unit,
+                            "acceleration_unit": context.acceleration.unit if context.acceleration is not None else None,
+                            "metadata": dict(context.metadata),
+                            "metrics": dict(context.metrics),
+                            "processing_state": context.processing_state.to_dict(),
+                            "configuration": dict(context.config),
+                            "history": list(context.history),
+                            "qc": context.qc.to_dict() if context.qc is not None else None,
+                        }
+                        for channel, context in station_contexts.items()
+                    }
+                    for station, station_contexts in selected_contexts.items()
+                }
+                archive.writestr("provenance.json", json.dumps(provenance, indent=2, default=str))
+                for station, station_contexts in selected_contexts.items():
+                    pdf_path = exporter.export_station_pdf(
+                        station,
+                        station_contexts,
+                        REPORT_DIRECTORY / f"BSMA_Report_{station}.pdf",
+                        event_info=event_info or None,
+                    )
+                    archive.write(pdf_path, arcname=f"reports/{pdf_path.name}")
+                    for png_path in exporter.export_station_waveform_pngs(
+                        station,
+                        station_contexts,
+                        REPORT_DIRECTORY / "waveforms",
+                    ):
+                        archive.write(png_path, arcname=f"waveforms/{png_path.name}")
+            st.session_state["export_archive"] = buffer.getvalue()
+        st.session_state["export_archive_name"] = "BSMA_Operational_Exports.zip"
+    if st.session_state.get("export_archive"):
+        st.download_button(
+            "Download export package",
+            data=st.session_state["export_archive"],
+            file_name=st.session_state["export_archive_name"],
+            mime="application/zip",
+            icon=":material/download:",
+        )
+
+
+_initialise_state()
+_ensure_directories()
+_upload_data()
+configuration, event_info = _configuration_from_sidebar()
+
+if LOGO_PATH.is_file():
+    st.image(str(LOGO_PATH), width=180)
+st.title("BMKG Strong Motion Analyzer")
+st.caption("Scientific processing and engineering review of strong-motion records with traceable quality control and exports.")
+
+files = _waveform_files()
+if not files:
+    st.info("Upload MiniSEED/SAC waveforms and optional StationXML from the sidebar to begin.")
+    st.stop()
+
+master_stream = _load_master_stream(files)
+records = _record_windows(master_stream)
+if not records:
+    st.error("No usable station traces were found in the input files.")
+    st.stop()
+
+mode = st.segmented_control(
+    "Workflow",
+    options=["Single-station review", "Multi-station processing", "Export results"],
+    default="Single-station review",
+    key="app_mode",
+)
+
+if mode == "Single-station review":
+    record_id = st.selectbox("Recording window", list(records))
+    station_stream = records[record_id]
+    station = str(station_stream[0].stats.station)
+    inventory_path = _find_inventory_path(station)
+    inventory = _find_inventory(station) if st.session_state.get("apply_instrument_response", False) else None
+    st.caption(f"StationXML correction enabled: {inventory_path.name}." if inventory is not None and inventory_path else "Using declared physical acceleration; StationXML response correction is disabled.")
+    unknown_provenance = st.session_state.get("input_provenance") == "Unknown - require scientific review"
+    missing_inventory = configuration.input_mode == "raw_counts" and inventory is None
+    if unknown_provenance:
+        st.warning("Processing is blocked until the input data mode is declared.")
+    if missing_inventory:
+        st.error("Raw-count mode requires a readable StationXML matching this station; processing has been blocked to prevent an invalid unit conversion.")
+    if st.button(
+        "Process selected record",
+        type="primary",
+        icon=":material/play_arrow:",
+        disabled=unknown_provenance or missing_inventory,
+    ):
+        try:
+            with st.spinner(f"Processing {station}..."):
+                _process_one_station(record_id, station_stream, configuration)
+        except Exception as exc:
+            st.exception(exc)
+    contexts = st.session_state["contexts_by_station"].get(record_id)
+    if contexts:
+        _display_analysis(record_id, contexts, event_info)
+elif mode == "Multi-station processing":
+    _batch_analysis(records, configuration)
+else:
+    _export_batch(event_info)

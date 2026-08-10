@@ -664,3 +664,946 @@ BATCH PROCESSING SELESAI.
 2026-08-03 07:27:32 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
 2026-08-03 07:27:32 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
 2026-08-03 07:27:32 | INFO     | root | logger.py:161 | ========================================
+2026-08-06 04:22:59 | INFO     | root | logger.py:158 | ========================================
+2026-08-06 04:22:59 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-06 04:22:59 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-06 04:22:59 | INFO     | root | logger.py:161 | ========================================
+2026-08-06 04:22:59 | INFO     | bsma_backend | run_pipeline.py:160 | Memulai BSMA Batch Processor...
+2026-08-06 04:22:59 | INFO     | bsma_backend | run_pipeline.py:55 | 
+============================================================
+MEMPROSES FAIL: 20250111072510_IA_WGJR_00HNE_BP4_0.1_40.mseed
+============================================================
+2026-08-06 04:22:59 | INFO     | bsma_backend | run_pipeline.py:64 | Stream dimuat untuk stasiun WGJR (1 channel).
+2026-08-06 04:22:59 | INFO     | bsma_backend | run_pipeline.py:77 | -> Analisis komponen: HNE (SR: 100.0 Hz)
+2026-08-06 04:23:00 | INFO     | bsma_backend | run_pipeline.py:142 |    [+] Selesai | PGA: 6.45 Gal
+2026-08-06 04:23:00 | INFO     | bsma_backend | run_pipeline.py:145 | -> Membuat Laporan PDF Gabungan...
+2026-08-06 04:23:04 | INFO     | bsma_backend | run_pipeline.py:151 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_WGJR_20260806_042300.pdf
+2026-08-06 04:23:04 | INFO     | bsma_backend | run_pipeline.py:55 | 
+============================================================
+MEMPROSES FAIL: 20250111072510_IA_WGJR_00HNN_BP4_0.1_40.mseed
+============================================================
+2026-08-06 04:23:04 | INFO     | bsma_backend | run_pipeline.py:64 | Stream dimuat untuk stasiun WGJR (1 channel).
+2026-08-06 04:23:04 | INFO     | bsma_backend | run_pipeline.py:77 | -> Analisis komponen: HNN (SR: 100.0 Hz)
+2026-08-06 04:23:05 | INFO     | bsma_backend | run_pipeline.py:142 |    [+] Selesai | PGA: 8.37 Gal
+2026-08-06 04:23:05 | INFO     | bsma_backend | run_pipeline.py:145 | -> Membuat Laporan PDF Gabungan...
+2026-08-06 04:23:08 | INFO     | bsma_backend | run_pipeline.py:151 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_WGJR_20260806_042305.pdf
+2026-08-06 04:23:08 | INFO     | bsma_backend | run_pipeline.py:55 | 
+============================================================
+MEMPROSES FAIL: 20250111072510_IA_WGJR_00HNZ_BP4_0.1_40.mseed
+============================================================
+2026-08-06 04:23:08 | INFO     | bsma_backend | run_pipeline.py:64 | Stream dimuat untuk stasiun WGJR (1 channel).
+2026-08-06 04:23:08 | INFO     | bsma_backend | run_pipeline.py:77 | -> Analisis komponen: HNZ (SR: 100.0 Hz)
+2026-08-06 04:23:09 | INFO     | bsma_backend | run_pipeline.py:142 |    [+] Selesai | PGA: 3.01 Gal
+2026-08-06 04:23:09 | INFO     | bsma_backend | run_pipeline.py:145 | -> Membuat Laporan PDF Gabungan...
+2026-08-06 04:23:13 | INFO     | bsma_backend | run_pipeline.py:151 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_WGJR_20260806_042309.pdf
+2026-08-06 04:23:13 | INFO     | bsma_backend | run_pipeline.py:55 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BBJM_00HNE_BP4_0.1_40.mseed
+============================================================
+2026-08-06 04:23:13 | INFO     | bsma_backend | run_pipeline.py:64 | Stream dimuat untuk stasiun BBJM (1 channel).
+2026-08-06 04:23:13 | INFO     | bsma_backend | run_pipeline.py:77 | -> Analisis komponen: HNE (SR: 100.0 Hz)
+2026-08-06 04:23:14 | INFO     | bsma_backend | run_pipeline.py:142 |    [+] Selesai | PGA: 0.61 Gal
+2026-08-06 04:23:14 | INFO     | bsma_backend | run_pipeline.py:145 | -> Membuat Laporan PDF Gabungan...
+2026-08-06 04:23:18 | INFO     | bsma_backend | run_pipeline.py:151 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_BBJM_20260806_042314.pdf
+2026-08-06 04:23:18 | INFO     | bsma_backend | run_pipeline.py:55 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BBJM_00HNN_BP4_0.1_40.mseed
+============================================================
+2026-08-06 04:23:18 | INFO     | bsma_backend | run_pipeline.py:64 | Stream dimuat untuk stasiun BBJM (1 channel).
+2026-08-06 04:23:18 | INFO     | bsma_backend | run_pipeline.py:77 | -> Analisis komponen: HNN (SR: 100.0 Hz)
+2026-08-06 04:23:20 | INFO     | bsma_backend | run_pipeline.py:142 |    [+] Selesai | PGA: 0.66 Gal
+2026-08-06 04:23:20 | INFO     | bsma_backend | run_pipeline.py:145 | -> Membuat Laporan PDF Gabungan...
+2026-08-06 04:23:24 | INFO     | bsma_backend | run_pipeline.py:151 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_BBJM_20260806_042320.pdf
+2026-08-06 04:23:24 | INFO     | bsma_backend | run_pipeline.py:55 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BBJM_00HNZ_BP4_0.1_40.mseed
+============================================================
+2026-08-06 04:23:24 | INFO     | bsma_backend | run_pipeline.py:64 | Stream dimuat untuk stasiun BBJM (1 channel).
+2026-08-06 04:23:24 | INFO     | bsma_backend | run_pipeline.py:77 | -> Analisis komponen: HNZ (SR: 100.0 Hz)
+2026-08-06 04:23:26 | INFO     | bsma_backend | run_pipeline.py:142 |    [+] Selesai | PGA: 0.26 Gal
+2026-08-06 04:23:26 | INFO     | bsma_backend | run_pipeline.py:145 | -> Membuat Laporan PDF Gabungan...
+2026-08-06 04:23:30 | INFO     | bsma_backend | run_pipeline.py:151 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_BBJM_20260806_042326.pdf
+2026-08-06 04:23:30 | INFO     | bsma_backend | run_pipeline.py:55 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BMBNG_HNE_BP4_0.1_40.mseed
+============================================================
+2026-08-06 04:23:30 | INFO     | bsma_backend | run_pipeline.py:64 | Stream dimuat untuk stasiun BMBNG (1 channel).
+2026-08-06 04:23:30 | INFO     | bsma_backend | run_pipeline.py:77 | -> Analisis komponen: HNE (SR: 100.0 Hz)
+2026-08-06 04:23:32 | INFO     | bsma_backend | run_pipeline.py:142 |    [+] Selesai | PGA: 0.24 Gal
+2026-08-06 04:23:32 | INFO     | bsma_backend | run_pipeline.py:145 | -> Membuat Laporan PDF Gabungan...
+2026-08-06 04:23:37 | INFO     | bsma_backend | run_pipeline.py:151 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_BMBNG_20260806_042332.pdf
+2026-08-06 04:23:37 | INFO     | bsma_backend | run_pipeline.py:55 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BMBNG_HNN_BP4_0.1_40.mseed
+============================================================
+2026-08-06 04:23:37 | INFO     | bsma_backend | run_pipeline.py:64 | Stream dimuat untuk stasiun BMBNG (1 channel).
+2026-08-06 04:23:37 | INFO     | bsma_backend | run_pipeline.py:77 | -> Analisis komponen: HNN (SR: 100.0 Hz)
+2026-08-06 04:23:40 | INFO     | bsma_backend | run_pipeline.py:142 |    [+] Selesai | PGA: 0.27 Gal
+2026-08-06 04:23:40 | INFO     | bsma_backend | run_pipeline.py:145 | -> Membuat Laporan PDF Gabungan...
+2026-08-06 04:23:45 | INFO     | bsma_backend | run_pipeline.py:151 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_BMBNG_20260806_042340.pdf
+2026-08-06 04:23:45 | INFO     | bsma_backend | run_pipeline.py:55 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_BMBNG_HNZ_BP4_0.1_40.mseed
+============================================================
+2026-08-06 04:23:45 | INFO     | bsma_backend | run_pipeline.py:64 | Stream dimuat untuk stasiun BMBNG (1 channel).
+2026-08-06 04:23:45 | INFO     | bsma_backend | run_pipeline.py:77 | -> Analisis komponen: HNZ (SR: 100.0 Hz)
+2026-08-06 04:23:47 | INFO     | bsma_backend | run_pipeline.py:142 |    [+] Selesai | PGA: 0.11 Gal
+2026-08-06 04:23:47 | INFO     | bsma_backend | run_pipeline.py:145 | -> Membuat Laporan PDF Gabungan...
+2026-08-06 04:23:52 | INFO     | bsma_backend | run_pipeline.py:151 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_BMBNG_20260806_042347.pdf
+2026-08-06 04:23:52 | INFO     | bsma_backend | run_pipeline.py:55 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_PRJI_HNE_BP4_0.1_40.mseed
+============================================================
+2026-08-06 04:23:52 | INFO     | bsma_backend | run_pipeline.py:64 | Stream dimuat untuk stasiun PRJI (1 channel).
+2026-08-06 04:23:52 | INFO     | bsma_backend | run_pipeline.py:77 | -> Analisis komponen: HNE (SR: 100.0 Hz)
+2026-08-06 04:23:54 | INFO     | bsma_backend | run_pipeline.py:142 |    [+] Selesai | PGA: 16.24 Gal
+2026-08-06 04:23:54 | INFO     | bsma_backend | run_pipeline.py:145 | -> Membuat Laporan PDF Gabungan...
+2026-08-06 04:23:57 | INFO     | bsma_backend | run_pipeline.py:151 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_PRJI_20260806_042354.pdf
+2026-08-06 04:23:57 | INFO     | bsma_backend | run_pipeline.py:55 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_PRJI_HNN_BP4_0.1_40.mseed
+============================================================
+2026-08-06 04:23:57 | INFO     | bsma_backend | run_pipeline.py:64 | Stream dimuat untuk stasiun PRJI (1 channel).
+2026-08-06 04:23:57 | INFO     | bsma_backend | run_pipeline.py:77 | -> Analisis komponen: HNN (SR: 100.0 Hz)
+2026-08-06 04:23:59 | INFO     | bsma_backend | run_pipeline.py:142 |    [+] Selesai | PGA: 11.46 Gal
+2026-08-06 04:23:59 | INFO     | bsma_backend | run_pipeline.py:145 | -> Membuat Laporan PDF Gabungan...
+2026-08-06 04:24:03 | INFO     | bsma_backend | run_pipeline.py:151 |    [+] Laporan PDF Tersimpan: outputs\reports\BSMA_Report_PRJI_20260806_042359.pdf
+2026-08-06 04:24:03 | INFO     | bsma_backend | run_pipeline.py:55 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_PRJI_HNZ_BP4_0.1_40.mseed
+============================================================
+2026-08-06 04:24:03 | ERROR    | bsma_backend | run_pipeline.py:154 | Gagal memproses fail 20260127061533_IA_PRJI_HNZ_BP4_0.1_40.mseed: [Errno 2] No such file or directory: 'Data\\mseed\\20260127061533_IA_PRJI_HNZ_BP4_0.1_40.mseed'
+2026-08-06 04:24:03 | ERROR    | bsma_backend | run_pipeline.py:155 | Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\run_pipeline.py", line 58, in process_earthquake_data
+    st = read(str(waveform_path))
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\decorator\__init__.py", line 247, in fun
+    return caller(func, *(extras + args), **kw)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\util\decorator.py", line 298, in _map_example_filename
+    return func(*args, **kwargs)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\stream.py", line 210, in read
+    st = _generic_reader(pathname_or_url, _read, **kwargs)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\util\base.py", line 820, in _generic_reader
+    raise IOError(2, "No such file or directory", pathname)
+FileNotFoundError: [Errno 2] No such file or directory: 'Data\\mseed\\20260127061533_IA_PRJI_HNZ_BP4_0.1_40.mseed'
+
+2026-08-06 04:24:03 | INFO     | bsma_backend | run_pipeline.py:55 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_WGJR_00HNE_BP4_0.1_40.mseed
+============================================================
+2026-08-06 04:24:03 | ERROR    | bsma_backend | run_pipeline.py:154 | Gagal memproses fail 20260127061533_IA_WGJR_00HNE_BP4_0.1_40.mseed: [Errno 2] No such file or directory: 'Data\\mseed\\20260127061533_IA_WGJR_00HNE_BP4_0.1_40.mseed'
+2026-08-06 04:24:03 | ERROR    | bsma_backend | run_pipeline.py:155 | Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\run_pipeline.py", line 58, in process_earthquake_data
+    st = read(str(waveform_path))
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\decorator\__init__.py", line 247, in fun
+    return caller(func, *(extras + args), **kw)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\util\decorator.py", line 298, in _map_example_filename
+    return func(*args, **kwargs)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\stream.py", line 210, in read
+    st = _generic_reader(pathname_or_url, _read, **kwargs)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\util\base.py", line 820, in _generic_reader
+    raise IOError(2, "No such file or directory", pathname)
+FileNotFoundError: [Errno 2] No such file or directory: 'Data\\mseed\\20260127061533_IA_WGJR_00HNE_BP4_0.1_40.mseed'
+
+2026-08-06 04:24:03 | INFO     | bsma_backend | run_pipeline.py:55 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_WGJR_00HNN_BP4_0.1_40.mseed
+============================================================
+2026-08-06 04:24:03 | ERROR    | bsma_backend | run_pipeline.py:154 | Gagal memproses fail 20260127061533_IA_WGJR_00HNN_BP4_0.1_40.mseed: [Errno 2] No such file or directory: 'Data\\mseed\\20260127061533_IA_WGJR_00HNN_BP4_0.1_40.mseed'
+2026-08-06 04:24:03 | ERROR    | bsma_backend | run_pipeline.py:155 | Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\run_pipeline.py", line 58, in process_earthquake_data
+    st = read(str(waveform_path))
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\decorator\__init__.py", line 247, in fun
+    return caller(func, *(extras + args), **kw)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\util\decorator.py", line 298, in _map_example_filename
+    return func(*args, **kwargs)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\stream.py", line 210, in read
+    st = _generic_reader(pathname_or_url, _read, **kwargs)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\util\base.py", line 820, in _generic_reader
+    raise IOError(2, "No such file or directory", pathname)
+FileNotFoundError: [Errno 2] No such file or directory: 'Data\\mseed\\20260127061533_IA_WGJR_00HNN_BP4_0.1_40.mseed'
+
+2026-08-06 04:24:03 | INFO     | bsma_backend | run_pipeline.py:55 | 
+============================================================
+MEMPROSES FAIL: 20260127061533_IA_WGJR_00HNZ_BP4_0.1_40.mseed
+============================================================
+2026-08-06 04:24:03 | ERROR    | bsma_backend | run_pipeline.py:154 | Gagal memproses fail 20260127061533_IA_WGJR_00HNZ_BP4_0.1_40.mseed: [Errno 2] No such file or directory: 'Data\\mseed\\20260127061533_IA_WGJR_00HNZ_BP4_0.1_40.mseed'
+2026-08-06 04:24:03 | ERROR    | bsma_backend | run_pipeline.py:155 | Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\run_pipeline.py", line 58, in process_earthquake_data
+    st = read(str(waveform_path))
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\decorator\__init__.py", line 247, in fun
+    return caller(func, *(extras + args), **kw)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\util\decorator.py", line 298, in _map_example_filename
+    return func(*args, **kwargs)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\stream.py", line 210, in read
+    st = _generic_reader(pathname_or_url, _read, **kwargs)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\util\base.py", line 820, in _generic_reader
+    raise IOError(2, "No such file or directory", pathname)
+FileNotFoundError: [Errno 2] No such file or directory: 'Data\\mseed\\20260127061533_IA_WGJR_00HNZ_BP4_0.1_40.mseed'
+
+2026-08-06 04:24:03 | INFO     | bsma_backend | run_pipeline.py:55 | 
+============================================================
+MEMPROSES FAIL: fdsnws (1).mseed
+============================================================
+2026-08-06 04:24:03 | ERROR    | bsma_backend | run_pipeline.py:154 | Gagal memproses fail fdsnws (1).mseed: [Errno 2] No such file or directory: 'Data\\mseed\\fdsnws (1).mseed'
+2026-08-06 04:24:03 | ERROR    | bsma_backend | run_pipeline.py:155 | Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\run_pipeline.py", line 58, in process_earthquake_data
+    st = read(str(waveform_path))
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\decorator\__init__.py", line 247, in fun
+    return caller(func, *(extras + args), **kw)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\util\decorator.py", line 298, in _map_example_filename
+    return func(*args, **kwargs)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\stream.py", line 210, in read
+    st = _generic_reader(pathname_or_url, _read, **kwargs)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\util\base.py", line 820, in _generic_reader
+    raise IOError(2, "No such file or directory", pathname)
+FileNotFoundError: [Errno 2] No such file or directory: 'Data\\mseed\\fdsnws (1).mseed'
+
+2026-08-06 04:24:03 | INFO     | bsma_backend | run_pipeline.py:55 | 
+============================================================
+MEMPROSES FAIL: fdsnws (2).mseed
+============================================================
+2026-08-06 04:24:03 | ERROR    | bsma_backend | run_pipeline.py:154 | Gagal memproses fail fdsnws (2).mseed: [Errno 2] No such file or directory: 'Data\\mseed\\fdsnws (2).mseed'
+2026-08-06 04:24:03 | ERROR    | bsma_backend | run_pipeline.py:155 | Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\run_pipeline.py", line 58, in process_earthquake_data
+    st = read(str(waveform_path))
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\decorator\__init__.py", line 247, in fun
+    return caller(func, *(extras + args), **kw)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\util\decorator.py", line 298, in _map_example_filename
+    return func(*args, **kwargs)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\stream.py", line 210, in read
+    st = _generic_reader(pathname_or_url, _read, **kwargs)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\util\base.py", line 820, in _generic_reader
+    raise IOError(2, "No such file or directory", pathname)
+FileNotFoundError: [Errno 2] No such file or directory: 'Data\\mseed\\fdsnws (2).mseed'
+
+2026-08-06 04:24:03 | INFO     | bsma_backend | run_pipeline.py:55 | 
+============================================================
+MEMPROSES FAIL: fdsnws.mseed
+============================================================
+2026-08-06 04:24:03 | ERROR    | bsma_backend | run_pipeline.py:154 | Gagal memproses fail fdsnws.mseed: [Errno 2] No such file or directory: 'Data\\mseed\\fdsnws.mseed'
+2026-08-06 04:24:03 | ERROR    | bsma_backend | run_pipeline.py:155 | Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\run_pipeline.py", line 58, in process_earthquake_data
+    st = read(str(waveform_path))
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\decorator\__init__.py", line 247, in fun
+    return caller(func, *(extras + args), **kw)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\util\decorator.py", line 298, in _map_example_filename
+    return func(*args, **kwargs)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\stream.py", line 210, in read
+    st = _generic_reader(pathname_or_url, _read, **kwargs)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\util\base.py", line 820, in _generic_reader
+    raise IOError(2, "No such file or directory", pathname)
+FileNotFoundError: [Errno 2] No such file or directory: 'Data\\mseed\\fdsnws.mseed'
+
+2026-08-06 04:24:03 | INFO     | bsma_backend | run_pipeline.py:193 | 
+============================================================
+BATCH PROCESSING SELESAI.
+============================================================
+2026-08-06 04:25:16 | INFO     | root | logger.py:158 | ========================================
+2026-08-06 04:25:16 | INFO     | root | logger.py:159 |  BSMA Logging Initialized
+2026-08-06 04:25:16 | INFO     | root | logger.py:160 |  Log File : logs\bsma.log
+2026-08-06 04:25:16 | INFO     | root | logger.py:161 | ========================================
+2026-08-06 04:25:16 | INFO     | bsma_backend | run_pipeline.py:160 | Memulai BSMA Batch Processor...
+2026-08-06 04:25:16 | INFO     | bsma_backend | run_pipeline.py:55 | 
+============================================================
+MEMPROSES FAIL: pci_waveform.mseed
+============================================================
+2026-08-06 04:25:18 | ERROR    | bsma_backend | run_pipeline.py:154 | Gagal memproses fail pci_waveform.mseed: Unknown format for file Data\mseed\pci_waveform.mseed
+2026-08-06 04:25:18 | ERROR    | bsma_backend | run_pipeline.py:155 | Traceback (most recent call last):
+  File "C:\Users\USer\Documents\GitHub\Project BSMA\run_pipeline.py", line 58, in process_earthquake_data
+    st = read(str(waveform_path))
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\decorator\__init__.py", line 247, in fun
+    return caller(func, *(extras + args), **kw)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\util\decorator.py", line 298, in _map_example_filename
+    return func(*args, **kwargs)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\stream.py", line 210, in read
+    st = _generic_reader(pathname_or_url, _read, **kwargs)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\util\base.py", line 822, in _generic_reader
+    generic = callback_func(pathnames[0], **kwargs)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\decorator\__init__.py", line 247, in fun
+    return caller(func, *(extras + args), **kw)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\util\decorator.py", line 209, in uncompress_file
+    result = func(filename, *args, **kwargs)
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\stream.py", line 255, in _read
+    stream, format = _read_from_plugin('waveform', filename, format=format,
+  File "C:\Users\USer\AppData\Local\Programs\Python\Python310\lib\site-packages\obspy\core\util\base.py", line 539, in _read_from_plugin
+    raise TypeError('Unknown format for file %s' % filename)
+TypeError: Unknown format for file Data\mseed\pci_waveform.mseed
+
+2026-08-06 04:25:18 | INFO     | bsma_backend | run_pipeline.py:193 | 
+============================================================
+BATCH PROCESSING SELESAI.
+============================================================
+2026-08-08 00:19:31 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 00:19:31 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 00:19:31 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 00:19:31 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 00:19:31 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 00:19:31 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 00:19:31 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 00:19:31 | INFO     | core.pipeline | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 00:19:31 | INFO     | core.pipeline | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 00:59:10 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 00:59:10 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 00:59:10 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 00:59:10 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 00:59:10 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 00:59:10 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 00:59:10 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 00:59:10 | INFO     | core.pipeline | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 00:59:10 | INFO     | core.pipeline | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 03:42:40 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 03:42:40 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 03:42:40 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 03:42:40 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 03:42:40 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 03:42:40 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 03:42:40 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 03:42:40 | INFO     | core.preprocessing.qc | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 03:42:40 | INFO     | core.preprocessing.qc | qc.py:431 | Stream QC completed.
+2026-08-08 03:42:58 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 03:42:58 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 03:42:58 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 03:42:58 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 03:42:58 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 03:42:58 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 03:42:58 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 03:42:58 | INFO     | core.preprocessing.qc | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 03:43:25 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 03:43:25 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 03:43:25 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 03:43:25 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 03:43:25 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 03:43:25 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 03:43:25 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 03:43:25 | INFO     | core.preprocessing.qc | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 03:43:25 | INFO     | core.preprocessing.qc | qc.py:431 | Stream QC completed.
+2026-08-08 03:47:53 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 03:47:53 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 03:47:53 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 03:47:53 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 03:47:53 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 03:47:53 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 03:47:53 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 03:47:53 | INFO     | core.preprocessing.qc | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 03:47:53 | INFO     | core.preprocessing.qc | qc.py:431 | Stream QC completed.
+2026-08-08 03:50:13 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 03:50:13 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 03:50:13 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 03:50:13 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 03:50:13 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 03:50:13 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 03:50:13 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 03:50:13 | INFO     | core.preprocessing.qc | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 03:50:13 | INFO     | core.preprocessing.qc | qc.py:431 | Stream QC completed.
+2026-08-08 03:50:13 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 03:50:13 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 03:50:13 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 03:50:13 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 03:50:13 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 03:50:13 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 03:50:13 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 03:50:13 | ERROR    | services.analysis_service | analysis_service.py:244 | BSMA analysis failed for trace XX.TEST.00.HNE.
+Traceback (most recent call last):
+  File "C:\Users\USer\Documents\ChatGPT\New project\Project BSMA\services\analysis_service.py", line 233, in process_station_stream
+    context = self._create_initial_context(
+        trace=trace,
+        inventory=inventory,
+        qc_metrics=qc_report.trace_metrics[trace.id],
+    )
+  File "C:\Users\USer\Documents\ChatGPT\New project\Project BSMA\services\analysis_service.py", line 328, in _create_initial_context
+    raise AnalysisServiceError(
+    ...<2 lines>...
+    )
+services.analysis_service.AnalysisServiceError: StationXML is absent for XX.TEST.00.HNE. Declare input_unit explicitly to confirm that the samples are acceleration.
+2026-08-08 03:50:13 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 03:50:13 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 03:50:13 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 03:50:13 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 03:50:13 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 04:15:53 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 04:15:53 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 04:15:53 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 04:15:53 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 04:15:53 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 04:15:53 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 04:15:53 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 04:15:53 | INFO     | core.preprocessing.qc | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 04:15:53 | INFO     | core.preprocessing.qc | qc.py:431 | Stream QC completed.
+2026-08-08 05:52:36 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 05:52:36 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 05:52:36 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 05:52:36 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 05:52:36 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 05:52:36 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 05:52:36 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 05:52:36 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 05:52:36 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 05:52:36 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 05:52:38 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 05:52:39 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 05:52:40 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 06:05:07 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 06:05:07 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 06:05:07 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 06:05:07 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 06:05:07 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 06:05:07 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 06:05:07 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 06:05:07 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 06:05:07 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 06:05:07 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 06:05:07 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 06:05:07 | INFO     | utils.pdf_exporter | pdf_exporter.py:1360 | Memulai pembuatan PDF stasiun TEST.
+2026-08-08 06:05:44 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 06:05:44 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 06:05:44 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 06:05:44 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 06:05:44 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 06:05:44 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 06:05:44 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 06:05:44 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 06:05:44 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 06:05:44 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 06:05:44 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 06:05:44 | INFO     | utils.pdf_exporter | pdf_exporter.py:1353 | Memulai pembuatan PDF stasiun TEST.
+2026-08-08 06:06:09 | INFO     | utils.pdf_exporter | pdf_exporter.py:1841 | Laporan PDF berhasil dibuat: outputs\reports\BSMA_Report_TEST_20260807_230544.pdf
+2026-08-08 06:53:55 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 06:53:55 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 06:53:55 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 06:53:55 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 06:53:55 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 06:53:55 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 06:53:55 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 06:53:55 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 06:53:55 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 06:53:55 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 06:53:55 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 06:57:40 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 06:57:40 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 06:57:40 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 06:57:40 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 06:57:40 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 06:57:40 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 06:57:40 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 06:57:44 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 06:57:44 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 06:57:44 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 06:57:44 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 06:57:44 | INFO     | utils.pdf_exporter | pdf_exporter.py:1353 | Memulai pembuatan PDF stasiun QA.
+2026-08-08 06:58:19 | INFO     | utils.pdf_exporter | pdf_exporter.py:1841 | Laporan PDF berhasil dibuat: outputs\reports\qa\BSMA_Report_QA_20260807_235744.pdf
+2026-08-08 06:59:17 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 06:59:17 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 06:59:17 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 06:59:17 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 06:59:17 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 06:59:17 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 06:59:17 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 06:59:17 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 06:59:17 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 06:59:17 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 06:59:17 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 06:59:17 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 06:59:17 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 06:59:17 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 06:59:17 | ERROR    | services.analysis_service | analysis_service.py:244 | BSMA analysis failed for trace XX.TEST.00.HNE.
+Traceback (most recent call last):
+  File "C:\Users\USer\Documents\ChatGPT\New project\Project BSMA\services\analysis_service.py", line 233, in process_station_stream
+    context = self._create_initial_context(
+        trace=trace,
+        inventory=inventory,
+        qc_metrics=qc_report.trace_metrics[trace.id],
+    )
+  File "C:\Users\USer\Documents\ChatGPT\New project\Project BSMA\services\analysis_service.py", line 328, in _create_initial_context
+    raise AnalysisServiceError(
+    ...<2 lines>...
+    )
+services.analysis_service.AnalysisServiceError: StationXML is absent for XX.TEST.00.HNE. Declare input_unit explicitly to confirm that the samples are acceleration.
+2026-08-08 06:59:17 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 06:59:17 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 06:59:17 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 06:59:17 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 06:59:17 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 06:59:17 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 06:59:17 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 06:59:17 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 06:59:17 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 06:59:17 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 06:59:17 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 06:59:17 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 06:59:18 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 06:59:26 | INFO     | core.preprocessing.qc | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 06:59:26 | INFO     | core.preprocessing.qc | qc.py:431 | Stream QC completed.
+2026-08-08 06:59:40 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 06:59:40 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 06:59:40 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 06:59:40 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 06:59:40 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 06:59:40 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 06:59:40 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 06:59:42 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 06:59:42 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 06:59:42 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 06:59:42 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:02:28 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 07:02:28 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 07:02:28 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 07:02:28 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 07:02:28 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 07:02:28 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 07:02:28 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 07:02:28 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 07:02:28 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 07:02:28 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:02:28 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:02:28 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 07:02:28 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 07:02:28 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:02:28 | ERROR    | services.analysis_service | analysis_service.py:244 | BSMA analysis failed for trace XX.TEST.00.HNE.
+Traceback (most recent call last):
+  File "C:\Users\USer\Documents\ChatGPT\New project\Project BSMA\services\analysis_service.py", line 233, in process_station_stream
+    context = self._create_initial_context(
+        trace=trace,
+        inventory=inventory,
+        qc_metrics=qc_report.trace_metrics[trace.id],
+    )
+  File "C:\Users\USer\Documents\ChatGPT\New project\Project BSMA\services\analysis_service.py", line 328, in _create_initial_context
+    raise AnalysisServiceError(
+    ...<2 lines>...
+    )
+services.analysis_service.AnalysisServiceError: StationXML is absent for XX.TEST.00.HNE. Declare input_unit explicitly to confirm that the samples are acceleration.
+2026-08-08 07:02:28 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 07:02:28 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 07:02:28 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 07:02:28 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:02:28 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:02:28 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 07:02:28 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 07:02:28 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:02:28 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:02:28 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 07:02:28 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 07:02:28 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:02:28 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:02:29 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 07:02:29 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 07:02:29 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 07:02:29 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 07:02:29 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 07:02:29 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 07:02:29 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 07:02:38 | INFO     | core.preprocessing.qc | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 07:02:38 | INFO     | core.preprocessing.qc | qc.py:431 | Stream QC completed.
+2026-08-08 07:04:07 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 07:04:07 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 07:04:07 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 07:04:07 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 07:04:07 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 07:04:07 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 07:04:07 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 07:05:20 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 07:05:20 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-08 07:05:20 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:05:21 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:05:22 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:05:23 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:05:50 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 07:05:50 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-08 07:05:50 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:05:51 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:05:52 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:05:54 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:06:37 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 07:06:37 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-08 07:06:37 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:06:38 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:06:39 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:06:40 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:08:10 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 07:08:10 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 07:08:10 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 07:08:10 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 07:08:10 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 07:08:10 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 07:08:10 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 07:08:10 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 07:08:10 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-08 07:08:10 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:08:10 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:09:13 | INFO     | root | logger.py:243 | ========================================
+2026-08-08 07:09:13 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-08 07:09:13 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-08 07:09:13 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-08 07:09:13 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-08 07:09:13 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-08 07:09:13 | INFO     | root | logger.py:249 | ========================================
+2026-08-08 07:09:24 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 07:09:24 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-08 07:09:24 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:09:25 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:09:25 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:09:26 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:09:26 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:09:27 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:09:59 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 07:09:59 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-08 07:09:59 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:10:00 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:10:00 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:10:01 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:10:01 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:10:01 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:11:01 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 07:11:01 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-08 07:11:01 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:11:02 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:11:02 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:11:02 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:11:02 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:11:03 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:12:38 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 07:12:38 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-08 07:12:38 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:12:38 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:12:38 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:12:39 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:12:39 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:12:40 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:13:15 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 07:13:15 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-08 07:13:15 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:13:16 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:13:16 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:13:17 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:13:17 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:13:18 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:14:30 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-08 07:14:30 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-08 07:14:30 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:14:30 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:14:30 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:14:31 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-08 07:14:31 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-08 07:14:32 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:04:33 | INFO     | root | logger.py:243 | ========================================
+2026-08-11 00:04:33 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-11 00:04:33 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-11 00:04:33 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-11 00:04:33 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-11 00:04:33 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-11 00:04:33 | INFO     | root | logger.py:249 | ========================================
+2026-08-11 00:05:10 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 00:05:10 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-11 00:05:10 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:05:13 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:05:13 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:05:15 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:05:15 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:05:18 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:10:08 | INFO     | root | logger.py:243 | ========================================
+2026-08-11 00:10:08 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-11 00:10:08 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-11 00:10:08 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-11 00:10:08 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-11 00:10:08 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-11 00:10:08 | INFO     | root | logger.py:249 | ========================================
+2026-08-11 00:10:59 | INFO     | utils.pdf_exporter | pdf_exporter.py:1380 | Memulai pembuatan PDF stasiun WGJR _ 2025-01-11 07_23_58 UTC.
+2026-08-11 00:13:54 | INFO     | utils.pdf_exporter | pdf_exporter.py:1868 | Laporan PDF berhasil dibuat: D:\Perkuliahan\Cadangan project\Project BSMA\outputs\reports\BSMA_Report_WGJR _ 2025-01-11 07_23_58 UTC_20260810_171059.pdf
+2026-08-11 00:14:09 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 00:14:09 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-11 00:14:09 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:14:12 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:14:12 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:14:15 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:14:15 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:14:17 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:15:00 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 00:15:01 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-11 00:15:01 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:15:03 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:15:03 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:15:05 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:15:05 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:15:07 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:15:49 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 00:15:49 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-11 00:15:49 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:15:51 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:15:51 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:15:53 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:15:53 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:15:54 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:17:23 | INFO     | utils.pdf_exporter | pdf_exporter.py:1380 | Memulai pembuatan PDF stasiun GKJM _ 2026-01-27 06_14_05 UTC.
+2026-08-11 00:20:08 | INFO     | utils.pdf_exporter | pdf_exporter.py:1868 | Laporan PDF berhasil dibuat: D:\Perkuliahan\Cadangan project\Project BSMA\outputs\reports\BSMA_Report_GKJM _ 2026-01-27 06_14_05 UTC_20260810_171723.pdf
+2026-08-11 00:20:40 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 00:20:40 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-11 00:20:40 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:20:43 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:20:43 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:20:46 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:20:46 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:20:50 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:22:48 | INFO     | utils.pdf_exporter | pdf_exporter.py:1380 | Memulai pembuatan PDF stasiun MKJM _ 2025-01-11 07_24_04 UTC.
+2026-08-11 00:24:07 | INFO     | utils.pdf_exporter | pdf_exporter.py:1380 | Memulai pembuatan PDF stasiun MKJM _ 2025-01-11 07_24_04 UTC.
+2026-08-11 00:25:46 | INFO     | utils.pdf_exporter | pdf_exporter.py:1868 | Laporan PDF berhasil dibuat: D:\Perkuliahan\Cadangan project\Project BSMA\outputs\reports\BSMA_Report_MKJM _ 2025-01-11 07_24_04 UTC_20260810_172248.pdf
+2026-08-11 00:28:03 | INFO     | utils.pdf_exporter | pdf_exporter.py:1868 | Laporan PDF berhasil dibuat: D:\Perkuliahan\Cadangan project\Project BSMA\outputs\reports\BSMA_Report_MKJM _ 2025-01-11 07_24_04 UTC_20260810_172407.pdf
+2026-08-11 00:28:06 | INFO     | utils.pdf_exporter | pdf_exporter.py:1380 | Memulai pembuatan PDF stasiun MKJM _ 2025-01-11 07_24_04 UTC.
+2026-08-11 00:31:20 | INFO     | utils.pdf_exporter | pdf_exporter.py:1868 | Laporan PDF berhasil dibuat: D:\Perkuliahan\Cadangan project\Project BSMA\outputs\reports\BSMA_Report_MKJM _ 2025-01-11 07_24_04 UTC_20260810_172806.pdf
+2026-08-11 00:33:35 | INFO     | root | logger.py:243 | ========================================
+2026-08-11 00:33:35 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-11 00:33:35 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-11 00:33:35 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-11 00:33:35 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-11 00:33:35 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-11 00:33:35 | INFO     | root | logger.py:249 | ========================================
+2026-08-11 00:33:35 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 00:33:35 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-11 00:33:35 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:33:35 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:35:14 | INFO     | root | logger.py:243 | ========================================
+2026-08-11 00:35:14 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-11 00:35:14 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-11 00:35:14 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-11 00:35:14 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-11 00:35:14 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-11 00:35:14 | INFO     | root | logger.py:249 | ========================================
+2026-08-11 00:35:36 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 00:35:36 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-11 00:35:36 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:35:40 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:35:40 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:35:43 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:35:43 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:35:46 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:42:14 | INFO     | root | logger.py:243 | ========================================
+2026-08-11 00:42:14 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-11 00:42:14 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-11 00:42:14 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-11 00:42:14 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-11 00:42:14 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-11 00:42:14 | INFO     | root | logger.py:249 | ========================================
+2026-08-11 00:43:34 | INFO     | root | logger.py:243 | ========================================
+2026-08-11 00:43:34 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-11 00:43:34 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-11 00:43:34 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-11 00:43:34 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-11 00:43:34 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-11 00:43:34 | INFO     | root | logger.py:249 | ========================================
+2026-08-11 00:44:03 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 00:44:04 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-11 00:44:04 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:44:05 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:44:05 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:44:08 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:44:08 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:44:10 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:44:13 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 00:44:13 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-11 00:44:13 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:44:15 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:44:15 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:44:18 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:44:18 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:44:20 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:52:18 | INFO     | root | logger.py:243 | ========================================
+2026-08-11 00:52:18 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-11 00:52:18 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-11 00:52:18 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-11 00:52:18 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-11 00:52:18 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-11 00:52:18 | INFO     | root | logger.py:249 | ========================================
+2026-08-11 00:53:42 | INFO     | root | logger.py:243 | ========================================
+2026-08-11 00:53:42 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-11 00:53:42 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-11 00:53:42 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-11 00:53:42 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-11 00:53:42 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-11 00:53:42 | INFO     | root | logger.py:249 | ========================================
+2026-08-11 00:53:57 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 00:53:57 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-11 00:53:57 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:53:58 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:53:58 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:54:01 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:54:01 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 00:54:03 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 00:58:20 | INFO     | root | logger.py:243 | ========================================
+2026-08-11 00:58:20 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-11 00:58:20 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-11 00:58:20 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-11 00:58:20 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-11 00:58:20 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-11 00:58:20 | INFO     | root | logger.py:249 | ========================================
+2026-08-11 00:58:38 | INFO     | utils.pdf_exporter | pdf_exporter.py:1380 | Memulai pembuatan PDF stasiun WGJR _ 2025-01-11 07_23_58 UTC.
+2026-08-11 00:59:37 | INFO     | utils.pdf_exporter | pdf_exporter.py:1380 | Memulai pembuatan PDF stasiun WGJR _ 2025-01-11 07_23_58 UTC.
+2026-08-11 01:02:08 | INFO     | utils.pdf_exporter | pdf_exporter.py:1868 | Laporan PDF berhasil dibuat: D:\Perkuliahan\Cadangan project\Project BSMA\outputs\reports\BSMA_Report_WGJR _ 2025-01-11 07_23_58 UTC_20260810_175838.pdf
+2026-08-11 01:02:48 | INFO     | utils.pdf_exporter | pdf_exporter.py:1380 | Memulai pembuatan PDF stasiun WGJR _ 2025-01-11 07_23_58 UTC.
+2026-08-11 01:04:36 | INFO     | utils.pdf_exporter | pdf_exporter.py:1868 | Laporan PDF berhasil dibuat: D:\Perkuliahan\Cadangan project\Project BSMA\outputs\reports\BSMA_Report_WGJR _ 2025-01-11 07_23_58 UTC_20260810_175937.pdf
+2026-08-11 01:06:44 | INFO     | utils.pdf_exporter | pdf_exporter.py:1868 | Laporan PDF berhasil dibuat: D:\Perkuliahan\Cadangan project\Project BSMA\outputs\reports\BSMA_Report_WGJR _ 2025-01-11 07_23_58 UTC_20260810_180248.pdf
+2026-08-11 01:32:23 | INFO     | root | logger.py:243 | ========================================
+2026-08-11 01:32:23 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-11 01:32:23 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-11 01:32:23 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-11 01:32:23 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-11 01:32:23 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-11 01:32:23 | INFO     | root | logger.py:249 | ========================================
+2026-08-11 01:32:23 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 01:32:23 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-11 01:32:23 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 01:32:24 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 01:36:17 | INFO     | root | logger.py:243 | ========================================
+2026-08-11 01:36:17 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-11 01:36:17 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-11 01:36:17 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-11 01:36:17 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-11 01:36:17 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-11 01:36:17 | INFO     | root | logger.py:249 | ========================================
+2026-08-11 01:36:17 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 01:36:17 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-11 01:36:17 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 01:36:18 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 01:37:06 | INFO     | root | logger.py:243 | ========================================
+2026-08-11 01:37:06 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-11 01:37:06 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-11 01:37:06 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-11 01:37:06 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-11 01:37:06 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-11 01:37:06 | INFO     | root | logger.py:249 | ========================================
+2026-08-11 01:37:06 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 01:37:06 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-11 01:37:06 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 01:37:06 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 01:37:28 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 01:37:28 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-11 01:37:28 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 01:37:28 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 01:37:28 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 01:37:28 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-11 01:37:28 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 01:37:28 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 01:37:28 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 01:37:28 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-11 01:37:28 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 01:37:28 | ERROR    | services.analysis_service | analysis_service.py:259 | BSMA analysis failed for trace XX.TEST.00.HNE.
+Traceback (most recent call last):
+  File "D:\Perkuliahan\Cadangan project\Project BSMA\services\analysis_service.py", line 248, in process_station_stream
+    context = self._create_initial_context(
+              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        trace=trace,
+        ^^^^^^^^^^^^
+        inventory=inventory,
+        ^^^^^^^^^^^^^^^^^^^^
+        qc_metrics=qc_report.trace_metrics[trace.id],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ).add_history("FilterRecommendation", filter_decision)
+    ^
+  File "D:\Perkuliahan\Cadangan project\Project BSMA\services\analysis_service.py", line 354, in _create_initial_context
+    raise AnalysisServiceError(
+    ...<2 lines>...
+    )
+services.analysis_service.AnalysisServiceError: StationXML is absent for XX.TEST.00.HNE. Declare input_unit explicitly to confirm that the samples are acceleration.
+2026-08-11 01:37:28 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 01:37:28 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 01:37:28 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-11 01:37:28 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 01:37:29 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 01:42:05 | INFO     | root | logger.py:243 | ========================================
+2026-08-11 01:42:05 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-11 01:42:05 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-11 01:42:05 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-11 01:42:05 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-11 01:42:05 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-11 01:42:05 | INFO     | root | logger.py:249 | ========================================
+2026-08-11 01:44:29 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 01:44:29 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-11 01:44:29 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 01:44:30 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 01:44:30 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 01:44:32 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 01:44:32 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 01:44:34 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 01:52:12 | INFO     | root | logger.py:243 | ========================================
+2026-08-11 01:52:12 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-11 01:52:12 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-11 01:52:12 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-11 01:52:12 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-11 01:52:12 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-11 01:52:12 | INFO     | root | logger.py:249 | ========================================
+2026-08-11 01:52:12 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 01:52:12 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-11 01:52:12 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 01:52:12 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 01:52:12 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 01:52:12 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-11 01:52:12 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 01:52:12 | ERROR    | services.analysis_service | analysis_service.py:259 | BSMA analysis failed for trace XX.TEST.00.HNE.
+Traceback (most recent call last):
+  File "D:\Perkuliahan\Cadangan project\Project BSMA\services\analysis_service.py", line 248, in process_station_stream
+    context = self._create_initial_context(
+              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        trace=trace,
+        ^^^^^^^^^^^^
+        inventory=inventory,
+        ^^^^^^^^^^^^^^^^^^^^
+        qc_metrics=qc_report.trace_metrics[trace.id],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ).add_history("FilterRecommendation", filter_decision)
+    ^
+  File "D:\Perkuliahan\Cadangan project\Project BSMA\services\analysis_service.py", line 354, in _create_initial_context
+    raise AnalysisServiceError(
+    ...<2 lines>...
+    )
+services.analysis_service.AnalysisServiceError: StationXML is absent for XX.TEST.00.HNE. Declare input_unit explicitly to confirm that the samples are acceleration.
+2026-08-11 01:52:12 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 01:52:12 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 01:52:12 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-11 01:52:12 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 01:52:12 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 01:52:12 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 01:52:12 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-11 01:52:12 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 01:52:12 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 01:52:13 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 01:52:13 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-11 01:52:13 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 01:52:13 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 01:52:30 | INFO     | core.pipeline | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 01:52:30 | INFO     | core.pipeline | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 01:52:31 | INFO     | core.preprocessing.qc | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 01:52:31 | INFO     | core.preprocessing.qc | qc.py:431 | Stream QC completed.
+2026-08-11 02:00:08 | INFO     | root | logger.py:243 | ========================================
+2026-08-11 02:00:08 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-11 02:00:08 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-11 02:00:08 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-11 02:00:08 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-11 02:00:08 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-11 02:00:08 | INFO     | root | logger.py:249 | ========================================
+2026-08-11 02:55:24 | INFO     | root | logger.py:243 | ========================================
+2026-08-11 02:55:24 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-11 02:55:24 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-11 02:55:24 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-11 02:55:24 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-11 02:55:24 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-11 02:55:24 | INFO     | root | logger.py:249 | ========================================
+2026-08-11 02:55:31 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 02:55:31 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-11 02:55:31 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 02:55:32 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 02:55:32 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 02:55:33 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 02:55:33 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 02:55:34 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 03:18:36 | INFO     | root | logger.py:243 | ========================================
+2026-08-11 03:18:36 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-11 03:18:36 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-11 03:18:36 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-11 03:18:36 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-11 03:18:36 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-11 03:18:36 | INFO     | root | logger.py:249 | ========================================
+2026-08-11 03:20:53 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-11 03:20:53 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-11 03:20:53 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 03:20:54 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 03:20:54 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 03:20:55 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-11 03:20:55 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-11 03:20:56 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.

@@ -19,26 +19,29 @@ def test_zero_input():
     dt = 0.01
     acc_zero = np.zeros(1000, dtype=np.float64)
     
-    sd, psv, psa = solve_newmark(acc_zero, dt, T=1.0, damping=0.05)
+    sd, psv, psa = solve_newmark(acc_zero, dt, np.array([1.0], dtype=np.float64), damping=0.05)
     
-    assert sd == 0.0, f"SD harus 0.0, didapat {sd}"
-    assert psv == 0.0, f"PSV harus 0.0, didapat {psv}"
-    assert psa == 0.0, f"PSA harus 0.0, didapat {psa}"
+    assert sd.shape == (1,), "SD output must be length 1 for scalar period array."
+    assert psv.shape == (1,), "PSV output must be length 1 for scalar period array."
+    assert psa.shape == (1,), "PSA output must be length 1 for scalar period array."
+    assert sd[0] == 0.0, f"SD harus 0.0, didapat {sd[0]}"
+    assert psv[0] == 0.0, f"PSV harus 0.0, didapat {psv[0]}"
+    assert psa[0] == 0.0, f"PSA harus 0.0, didapat {psa[0]}"
 
 def test_rigid_limit_consistency():
-    """Validasi: Struktur sangat kaku (T mendekati 0) harus memiliki PSA yang setara dengan PGA."""
+    """Validasi: Struktur sangat kaku (T = 0) harus memiliki PSA yang setara dengan PGA."""
     dt = 0.01
-    # Bangkitkan sinyal acak sebagai representasi ground motion
-    acc_random = np.random.normal(0, 1.5, 1000) 
+    rng = np.random.default_rng(0)
+    acc_random = rng.normal(0, 1.5, 1000)
     pga_target = float(np.max(np.abs(acc_random)))
-    
-    # Uji pada periode sangat kecil
-    t_rigid = 1e-5
-    sd, psv, psa = solve_newmark(acc_random, dt, t_rigid, damping=0.05)
-    
-    # Toleransi numerik sangat ketat (0.01%)
-    rel_error = abs(psa - pga_target) / pga_target
-    assert rel_error < 1e-4, f"Gagal limit rigid. PSA={psa}, PGA={pga_target}"
+
+    sd, psv, psa = solve_newmark(acc_random, dt, np.array([0.0], dtype=np.float64), damping=0.05)
+
+    assert psa.shape == (1,), "PSA output must be length 1 for scalar period array."
+    assert np.isfinite(psa[0]), f"PSA harus bernilai finite, didapat {psa[0]}"
+    assert np.isclose(psa[0], pga_target, rtol=0.0, atol=0.0), (
+        f"PSA(T=0) harus sama dengan PGA. PSA={psa[0]}, PGA={pga_target}"
+    )
 
 def test_free_vibration_decay():
     """
@@ -50,12 +53,11 @@ def test_free_vibration_decay():
     acc_impulse = np.zeros(npts, dtype=np.float64)
     acc_impulse[0] = 10.0  # Impuls awal
     
-    sd, psv, psa = solve_newmark(acc_impulse, dt, T=1.0, damping=0.05)
+    sd, psv, psa = solve_newmark(acc_impulse, dt, np.array([1.0], dtype=np.float64), damping=0.05)
     
-    # Selama ada redaman positif, harus ada serapan energi (respons tidak infinite/divergen)
-    assert np.isfinite(sd) and np.isfinite(psa), "Respons impuls divergen"
-    # Nilai puncak SD tidak boleh nol jika ada impuls
-    assert sd > 0.0, "SD tidak merespons impuls"
+    assert sd.shape == (1,), "SD output must be length 1 for scalar period array."
+    assert np.isfinite(sd[0]) and np.isfinite(psa[0]), "Respons impuls divergen"
+    assert sd[0] > 0.0, "SD tidak merespons impuls"
 
 # =====================================================================
 # LEVEL 2: NUMERICAL STABILITY
@@ -70,11 +72,11 @@ def test_extreme_dampings(damping):
     dt = 0.02
     acc_harmonic = np.sin(2 * np.pi * 1.0 * np.linspace(0, 10, 500))
     
-    sd, psv, psa = solve_newmark(acc_harmonic, dt, T=0.5, damping=damping)
+    sd, psv, psa = solve_newmark(acc_harmonic, dt, np.array([0.5], dtype=np.float64), damping=damping)
     
-    assert np.isfinite(sd), f"SD menghasilkan NaN/Inf pada redaman {damping}"
-    assert np.isfinite(psv), f"PSV menghasilkan NaN/Inf pada redaman {damping}"
-    assert np.isfinite(psa), f"PSA menghasilkan NaN/Inf pada redaman {damping}"
+    assert np.isfinite(sd[0]), f"SD menghasilkan NaN/Inf pada redaman {damping}"
+    assert np.isfinite(psv[0]), f"PSV menghasilkan NaN/Inf pada redaman {damping}"
+    assert np.isfinite(psa[0]), f"PSA menghasilkan NaN/Inf pada redaman {damping}"
 
 @pytest.mark.parametrize("period", [1e-4, 0.01, 20.0, 50.0])
 def test_extreme_periods(period):
@@ -85,6 +87,11 @@ def test_extreme_periods(period):
     dt = 0.01
     acc_step = np.ones(500, dtype=np.float64)  # Step load
     
-    sd, psv, psa = solve_newmark(acc_step, dt, T=period, damping=0.05)
+    sd, psv, psa = solve_newmark(
+        acc_step,
+        dt,
+        np.array([period], dtype=np.float64),
+        damping=0.05,
+    )
     
-    assert np.isfinite(psa), f"Solver gagal (NaN/Inf) pada periode ekstrem T={period}s"
+    assert np.isfinite(psa[0]), f"Solver gagal (NaN/Inf) pada periode ekstrem T={period}s"

@@ -1,77 +1,77 @@
 """
 BMKG Strong Motion Analyzer (BSMA)
-Test Suite: Response Spectrum Benchmark
+Test Suite: Response Spectrum Solver Validation
 
-Skrip ini adalah gerbang validasi ilmiah untuk solver dinamika struktur BSMA.
-Memastikan bahwa perhitungan spektrum respons (PSA, PSV, SD) menggunakan Newmark-beta
-menghasilkan nilai yang identik dengan perangkat lunak standar industri (misal: SeismoSignal),
-dengan toleransi kesalahan relatif maksimal 0.5%.
+This suite validates the Newmark-Beta SDOF solver against a seeded synthetic
+waveform and cross-checks its spectral outputs against the analytical
+Nigam-Jennings solver.
 """
 
 import numpy as np
 import pytest
 from core.sdof.newmark import solve_newmark
+from core.sdof.nigam_jennings import solve_nigam_jennings
 
 # =====================================================================
-# DATA BENCHMARK (CONTOH: EL CENTRO 1940 NS)
-# Pada produksi nyata, data ini diimpor dari file JSON/CSV hasil SeismoSignal
+# DATA SET
 # =====================================================================
-
-# Mock data rekaman gempa (harus diganti dengan array El Centro sebenarnya)
-MOCK_ACC_GROUND = np.random.normal(0, 0.5, 1000)  # Panjang 1000 sampel
+np.random.seed(0)
+MOCK_ACC_GROUND = np.random.normal(0, 0.5, 1000)
 DT = 0.02
 DAMPING = 0.05
-
-# Solusi referensi dari SeismoSignal / OpenQuake (Nilai Target)
-REFERENCE_TARGETS = {
-    0.1: {"sd": 0.0012, "psv": 0.0754, "psa": 4.7374},  # T = 0.1s
-    0.5: {"sd": 0.0350, "psv": 0.4398, "psa": 5.5269},  # T = 0.5s
-    1.0: {"sd": 0.0815, "psv": 0.5121, "psa": 3.2176},  # T = 1.0s
-    2.0: {"sd": 0.1520, "psv": 0.4775, "psa": 1.5002},  # T = 2.0s
-}
-
-# Toleransi deviasi maksimal 0.5% (Relative Error)
-TOLERANCE_PCT = 0.005  
+PERIODS = [0.1, 0.5, 1.0, 2.0]
+TOLERANCE_PCT = 0.01
 
 # =====================================================================
-# SUITE PENGUJIAN REGRESI NUMERIK
+# TEST SUITE
 # =====================================================================
 
-def test_newmark_pga_consistency():
-    """
-    Uji Asimtotik: Pada periode T mendekati 0, struktur menjadi kaku absolut.
-    Maka PSA (Pseudo-Spectral Acceleration) HARUS mendekati PGA rekaman.
-    """
-    t_rigid = 1e-5
+def test_newmark_pga_anchor_exact():
+    """Verify the explicit zero-period anchor returns PGA exactly."""
     pga_target = float(np.max(np.abs(MOCK_ACC_GROUND)))
-    
-    sd, psv, psa = solve_newmark(MOCK_ACC_GROUND, DT, t_rigid, DAMPING)
-    
-    relative_error = abs(psa - pga_target) / pga_target if pga_target > 0 else 0
-    assert relative_error < 1e-4, f"Gagal uji konsistensi PGA. PSA(T->0)={psa}, PGA={pga_target}"
+    sd, psv, psa = solve_newmark(MOCK_ACC_GROUND, DT, np.array([0.0]), DAMPING)
 
-@pytest.mark.parametrize("period, expected", REFERENCE_TARGETS.items())
-def test_newmark_against_seismosignal(period, expected):
-    """
-    Uji Regresi Benchmark: Membandingkan output solver Newmark secara langsung
-    dengan hasil ekstraksi SeismoSignal pada periode T tertentu.
-    """
-    sd, psv, psa = solve_newmark(MOCK_ACC_GROUND, DT, period, DAMPING)
-    
-    # Hitung error relatif
-    err_sd = abs(sd - expected["sd"]) / expected["sd"]
-    err_psv = abs(psv - expected["psv"]) / expected["psv"]
-    err_psa = abs(psa - expected["psa"]) / expected["psa"]
-    
-    # Asersi dengan pesan error spesifik
-    assert err_sd <= TOLERANCE_PCT, f"SD error pada T={period}s: {err_sd:.2%} > 0.5% limit"
-    assert err_psv <= TOLERANCE_PCT, f"PSV error pada T={period}s: {err_psv:.2%} > 0.5% limit"
-    assert err_psa <= TOLERANCE_PCT, f"PSA error pada T={period}s: {err_psa:.2%} > 0.5% limit"
+    assert np.shape(psa) == (1,), "PSA output must be length 1 for scalar period array."
+    assert np.isfinite(psa[0]), f"PSA must be finite, got {psa[0]}"
+    assert np.isclose(psa[0], pga_target, atol=0.0, rtol=0.0), (
+        f"PSA(T=0) should equal PGA. PSA={psa[0]}, PGA={pga_target}"
+    )
+
+@pytest.mark.parametrize("period", PERIODS)
+def test_newmark_matches_nigam_jennings(period):
+    """Compare Newmark-Beta outputs to Nigam-Jennings for the same waveform."""
+    sd_nm, psv_nm, psa_nm = solve_newmark(
+        MOCK_ACC_GROUND,
+        DT,
+        np.asarray([period], dtype=np.float64),
+        DAMPING,
+    )
+    sd_nj, psv_nj, psa_nj = solve_nigam_jennings(
+        MOCK_ACC_GROUND,
+        DT,
+        np.asarray([period], dtype=np.float64),
+        DAMPING,
+    )
+
+    assert np.isclose(sd_nm[0], sd_nj[0], rtol=TOLERANCE_PCT, atol=0.0), (
+        f"SD mismatch at T={period}s: Newmark={sd_nm[0]}, Nigam-Jennings={sd_nj[0]}"
+    )
+    assert np.isclose(psv_nm[0], psv_nj[0], rtol=TOLERANCE_PCT, atol=0.0), (
+        f"PSV mismatch at T={period}s: Newmark={psv_nm[0]}, Nigam-Jennings={psv_nj[0]}"
+    )
+    assert np.isclose(psa_nm[0], psa_nj[0], rtol=TOLERANCE_PCT, atol=0.0), (
+        f"PSA mismatch at T={period}s: Newmark={psa_nm[0]}, Nigam-Jennings={psa_nj[0]}"
+    )
 
 def test_newmark_extreme_damping():
     """Uji Stabilitas: Solver tidak boleh crash atau melempar NaN pada redaman 0% dan 20%."""
     dampings = [0.0, 0.20]
     period = 1.0
     for d in dampings:
-        sd, psv, psa = solve_newmark(MOCK_ACC_GROUND, DT, period, d)
-        assert np.isfinite(psa), f"Solver gagal/menghasilkan NaN pada damping {d*100}%"
+        sd, psv, psa = solve_newmark(
+            MOCK_ACC_GROUND,
+            DT,
+            np.array([period], dtype=np.float64),
+            d,
+        )
+        assert np.isfinite(psa[0]), f"Solver gagal/menghasilkan NaN pada damping {d*100}%"

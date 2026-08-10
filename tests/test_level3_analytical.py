@@ -32,8 +32,21 @@ def test_step_load_undamped_accuracy():
     exact_sd = 2.0 * A0 / (w**2)
     
     # 2. Hitung Solusi Numerik Menggunakan Kedua Solver
-    sd_newmark, _, _ = solve_newmark(acc_step, dt, T, damping)
-    sd_nigam, _, _ = solve_nigam_jennings(acc_step, dt, T, damping)
+    sd_newmark, _, _ = solve_newmark(
+        acc_step,
+        dt,
+        np.array([T], dtype=np.float64),
+        damping,
+    )
+    sd_nigam, _, _ = solve_nigam_jennings(
+        acc_step,
+        dt,
+        np.array([T], dtype=np.float64),
+        damping,
+    )
+
+    sd_newmark = sd_newmark[0]
+    sd_nigam = sd_nigam[0]
     
     # 3. Hitung Error Relatif
     err_newmark = abs(sd_newmark - exact_sd) / exact_sd

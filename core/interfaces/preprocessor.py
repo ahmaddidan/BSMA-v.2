@@ -1,33 +1,42 @@
 """
 BMKG Strong Motion Analyzer (BSMA)
 
-Plugin Interface
-================
+Module
+------
+core/interfaces/preprocessor.py
 
-Defines the abstract contract for every preprocessing plugin used by
-the BSMA processing pipeline.
+Description
+-----------
+Abstract interface for processing plugins used by the BSMA
+signal-processing pipeline.
 
-Every processing algorithm (baseline correction, filtering,
-tapering, integration, parameter extraction, response spectrum,
-etc.) MUST inherit from PreprocessorPlugin.
+Every processing algorithm operating on waveform data must
+implement ``PreprocessorPlugin``.
 
 Design Principles
 -----------------
 - Single Responsibility Principle
 - Open/Closed Principle
 - Immutable ProcessingContext
-- Production-grade type hints
-- Independent plugin execution
+- Strict domain contracts
+- Explicit waveform validation
+- Deterministic plugin behavior
+- Production-grade error handling
 - Compatible with PipelineOrchestrator
 """
 
 from __future__ import annotations
 
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
-from core.types.context import ProcessingContext
-from utils.exceptions import ProcessingError
+import numpy as np
+
+from core.types.context import ProcessingContext, WaveformData
+from utils.exceptions import (
+    ErrorCode,
+    ProcessingError,
+    SeverityLevel,
+)
 
 __all__ = [
     "PreprocessorPlugin",
@@ -36,104 +45,322 @@ __all__ = [
 
 class PreprocessorPlugin(ABC):
     """
-    Base class for every preprocessing plugin.
+    Abstract base class for BSMA processing plugins.
 
-    A plugin receives a ProcessingContext and MUST return a new
-    ProcessingContext.
+    Contract
+    --------
+    A plugin:
 
-    Plugins must never modify the input context in-place.
+    1. receives a ``ProcessingContext``;
+    2. validates the required waveform;
+    3. performs one well-defined processing operation;
+    4. returns a new ``ProcessingContext``;
+    5. must not mutate the input context;
+    6. must preserve the physical unit unless the algorithm
+       explicitly changes it;
+    7. must preserve waveform sampling rate;
+    8. must not overwrite ``raw_waveform``.
+
+    Notes
+    -----
+    ``raw_waveform`` represents the original waveform and is part
+    of the provenance chain. Preprocessing plugins operate on the
+    processed representation, normally ``context.acceleration``.
     """
 
-    # ------------------------------------------------------------
+    # ==========================================================
     # Plugin Metadata
-    # ------------------------------------------------------------
+    # ==========================================================
 
     @property
     @abstractmethod
     def plugin_name(self) -> str:
-        """Human-readable plugin name."""
+        """
+        Return the unique human-readable plugin name.
+        """
         raise NotImplementedError
 
     @property
     def plugin_version(self) -> str:
-        """Plugin semantic version."""
+        """
+        Return the semantic version of the plugin.
+        """
         return "1.0.0"
 
     @property
     def plugin_description(self) -> str:
-        """Human-readable description."""
+        """
+        Return a concise description of the algorithm.
+        """
         return ""
 
-    # ------------------------------------------------------------
-    # Validation
-    # ------------------------------------------------------------
+    # ==========================================================
+    # Input Validation
+    # ==========================================================
 
-    def validate_input(self, context: ProcessingContext) -> None:
-        """Validate input context before processing safely."""
-        # Ambil data gelombang secara aman dari berbagai alternatif atribut
-        wf = getattr(context, "waveform", None)
-        if wf is None:
-            wf = getattr(context, "raw_waveform", None)
-        if wf is None:
-            wf = getattr(context, "acceleration", None)
+    def validate_input(
+        self,
+        context: ProcessingContext,
+    ) -> WaveformData:
+        """
+        Validate and return the active processed waveform.
 
-        if wf is None:
-            raise ProcessingError("ProcessingContext tidak memiliki data gelombang yang valid.")
+        Parameters
+        ----------
+        context
+            Current immutable processing context.
 
-        # Ekstrak array numpy (mendukung objek WaveformData maupun numpy array langsung)
-        data_arr = wf.data if hasattr(wf, "data") else wf
+        Returns
+        -------
+        WaveformData
+            Validated acceleration/waveform object.
 
-        if data_arr is None:
-            raise ProcessingError("Array data gelombang bernilai None.")
+        Raises
+        ------
+        ProcessingError
+            If the context or waveform is invalid.
 
-        if hasattr(data_arr, "size") and data_arr.size == 0:
-            raise ProcessingError("Array data gelombang kosong (size == 0).")
-        elif not hasattr(data_arr, "size") and len(data_arr) == 0:
-            raise ProcessingError("Array data gelombang kosong (len == 0).")
+        Notes
+        -----
+        The active processing waveform is deliberately restricted
+        to ``context.acceleration`` when available, with
+        ``context.waveform`` retained as a compatibility fallback.
 
-        # Validasi sampling rate jika tersedia di konteks
-        sr = getattr(context, "sampling_rate", None)
-        if sr is None and hasattr(wf, "sampling_rate"):
-            sr = wf.sampling_rate
+        ``raw_waveform`` is never selected as a fallback because
+        raw data must not silently enter a preprocessing stage.
+        """
 
-        if sr is not None and sr <= 0:
-            raise ValueError("Sampling rate must be positive.")
+        if context is None:
+            raise ProcessingError(
+                message="ProcessingContext cannot be None.",
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": self.plugin_name,
+                    "validation": "context",
+                },
+            )
 
-    # ------------------------------------------------------------
+        waveform = getattr(context, "acceleration", None)
+
+        if waveform is None:
+            waveform = getattr(context, "waveform", None)
+
+        if waveform is None:
+            raise ProcessingError(
+                message=(
+                    "No active processed waveform is available "
+                    "for this processing stage."
+                ),
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": self.plugin_name,
+                    "validation": "waveform",
+                },
+            )
+
+        if not isinstance(waveform, WaveformData):
+            raise ProcessingError(
+                message=(
+                    "Active waveform must be an instance of "
+                    "WaveformData."
+                ),
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": self.plugin_name,
+                    "validation": "waveform_type",
+                    "received_type": type(waveform).__name__,
+                },
+            )
+
+        data = np.asarray(waveform.data)
+
+        # ------------------------------------------------------
+        # Shape validation
+        # ------------------------------------------------------
+
+        if data.ndim != 1:
+            raise ProcessingError(
+                message=(
+                    "Waveform must be one-dimensional. "
+                    "BSMA preprocessing operates on one seismic "
+                    "channel per processing context."
+                ),
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": self.plugin_name,
+                    "validation": "shape",
+                    "shape": data.shape,
+                    "ndim": data.ndim,
+                },
+            )
+
+        if data.size == 0:
+            raise ProcessingError(
+                message="Waveform contains zero samples.",
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": self.plugin_name,
+                    "validation": "empty_waveform",
+                },
+            )
+
+        # ------------------------------------------------------
+        # Numerical validation
+        # ------------------------------------------------------
+
+        if not np.issubdtype(data.dtype, np.number):
+            raise ProcessingError(
+                message="Waveform data must contain numerical values.",
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": self.plugin_name,
+                    "validation": "dtype",
+                    "dtype": str(data.dtype),
+                },
+            )
+
+        if not np.all(np.isfinite(data)):
+            raise ProcessingError(
+                message=(
+                    "Waveform contains NaN or infinite values. "
+                    "Numerical preprocessing is unsafe."
+                ),
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": self.plugin_name,
+                    "validation": "finite_values",
+                },
+            )
+
+        # ------------------------------------------------------
+        # Sampling-rate validation
+        # ------------------------------------------------------
+
+        sampling_rate = float(waveform.sampling_rate)
+
+        if not np.isfinite(sampling_rate):
+            raise ProcessingError(
+                message="Sampling rate must be finite.",
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": self.plugin_name,
+                    "validation": "sampling_rate",
+                    "sampling_rate": sampling_rate,
+                },
+            )
+
+        if sampling_rate <= 0.0:
+            raise ProcessingError(
+                message="Sampling rate must be greater than zero.",
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": self.plugin_name,
+                    "validation": "sampling_rate",
+                    "sampling_rate": sampling_rate,
+                },
+            )
+
+        # ------------------------------------------------------
+        # Physical consistency
+        # ------------------------------------------------------
+
+        if not isinstance(waveform.unit, str) or not waveform.unit.strip():
+            raise ProcessingError(
+                message="Waveform physical unit is missing or invalid.",
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": self.plugin_name,
+                    "validation": "unit",
+                },
+            )
+
+        return waveform
+
+    # ==========================================================
     # Processing
-    # ------------------------------------------------------------
+    # ==========================================================
 
     @abstractmethod
     def process(
         self,
         context: ProcessingContext,
     ) -> ProcessingContext:
-        """Execute the processing algorithm."""
+        """
+        Execute the processing algorithm.
+
+        Parameters
+        ----------
+        context
+            Input processing context.
+
+        Returns
+        -------
+        ProcessingContext
+            New processing context containing the processed result.
+
+        Notes
+        -----
+        Implementations must not mutate ``context`` in-place.
+        """
         raise NotImplementedError
 
-    # ------------------------------------------------------------
-    # Optional lifecycle hooks
-    # ------------------------------------------------------------
+    # ==========================================================
+    # Lifecycle Hooks
+    # ==========================================================
 
     def initialize(self) -> None:
+        """
+        Initialize plugin resources before pipeline execution.
+
+        Default implementation performs no operation.
+        """
         return None
 
     def finalize(self) -> None:
+        """
+        Release plugin resources after pipeline execution.
+
+        Default implementation performs no operation.
+        """
         return None
-
-    # ------------------------------------------------------------
-    # Helper methods
-    # ------------------------------------------------------------
-
-    def supports_parallel(self) -> bool:
-        return True
 
     def reset(self) -> None:
+        """
+        Reset plugin runtime state.
+
+        Stateless plugins may keep the default implementation.
+        """
         return None
 
-    # ------------------------------------------------------------
+    # ==========================================================
+    # Execution Characteristics
+    # ==========================================================
+
+    def supports_parallel(self) -> bool:
+        """
+        Indicate whether the plugin can safely execute in parallel.
+
+        Returns
+        -------
+        bool
+            ``True`` when the plugin is stateless and independent
+            across waveform contexts.
+        """
+        return True
+
+    # ==========================================================
     # Representation
-    # ------------------------------------------------------------
+    # ==========================================================
 
     def __repr__(self) -> str:
         return (

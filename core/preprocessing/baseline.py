@@ -1,138 +1,430 @@
 """
 BMKG Strong Motion Analyzer (BSMA)
-Module: core/preprocessing/baseline.py
-Description: Pre-event baseline correction plugin.
-Removes the DC offset (constant) or linear drift from the waveform 
-to center the signal and prevent parabolic integration drift.
+
+Module
+------
+core.preprocessing.baseline
+
+Description
+-----------
+Baseline correction plugin for strong-motion acceleration records.
+
+The plugin removes either:
+
+1. Constant baseline offset (DC component), or
+2. Linear baseline drift.
+
+The correction is performed on the waveform stored in
+``ProcessingContext.waveform``.
+
+Scientific note
+---------------
+Baseline correction is applied to the acceleration record before
+numerical integration. Residual baseline errors in acceleration can
+produce severe artificial drift in velocity and displacement.
+
+A linear correction is therefore useful for removing a first-order
+instrumental/processing trend. However, it must not be interpreted as
+a universal substitute for physically based strong-motion baseline
+correction, especially for records containing permanent ground
+displacement or significant low-frequency content.
+
+Design principles
+-----------------
+- Immutable ProcessingContext
+- No ObsPy dependency
+- NumPy/SciPy numerical implementation
+- Explicit input validation
+- Preservation of waveform units
+- Production-grade exception handling
+- Pipeline-compatible processing state
+- Processing provenance through context history
 """
 
 from __future__ import annotations
 
 from dataclasses import replace
+
 import numpy as np
+from numpy.typing import NDArray
 from scipy.signal import detrend
 
 from core.interfaces.preprocessor import PreprocessorPlugin
 from core.types.context import ProcessingContext, WaveformData
 from core.types.processing_state import StageStatus
-from utils.exceptions import ErrorCode, ProcessingError, SeverityLevel
+from utils.exceptions import (
+    ErrorCode,
+    ProcessingError,
+    SeverityLevel,
+)
 
-__all__ = ["BaselineCorrectionPlugin"]
+__all__ = [
+    "BaselineCorrectionPlugin",
+]
+
+
+FloatArray = NDArray[np.float64]
 
 
 class BaselineCorrectionPlugin(PreprocessorPlugin):
     """
-    Koreksi baseline tingkat produksi (Tanpa dependensi ObsPy).
-    Secara matematis mereduksi DC offset dan linear drift menggunakan 
-    Least Squares fitting untuk mencegah anomali integrasi ganda.
+    Remove constant or linear baseline drift from an acceleration record.
+
+    Parameters
+    ----------
+    method
+        Baseline correction method.
+
+        ``"constant"``
+            Remove the arithmetic mean of the complete waveform.
+
+        ``"linear"``
+            Remove the least-squares linear trend from the complete
+            waveform.
+
+    Notes
+    -----
+    The input ``ProcessingContext`` is never modified in place.
+
+    The corrected waveform is returned through a new
+    ``ProcessingContext`` instance.
+
+    Examples
+    --------
+    >>> plugin = BaselineCorrectionPlugin(method="linear")
+    >>> new_context = plugin.process(context)
     """
 
-    def __init__(self, method: str = "linear") -> None:
+    _VALID_METHODS = {
+        "constant",
+        "linear",
+    }
+
+    def __init__(
+        self,
+        method: str = "linear",
+    ) -> None:
         """
+        Initialize the baseline correction plugin.
+
         Parameters
         ----------
-        method : str
-            'linear' : Menghilangkan tren linear (y = mx + c) - Standard Seismologi.
-            'constant': Hanya menghilangkan mean (y = c).
+        method
+            ``"constant"`` or ``"linear"``.
         """
-        if method not in ("constant", "linear"):
-            raise ValueError("Baseline method must be strictly 'constant' or 'linear'.")
-        self.method = method
+
+        method = str(method).strip().lower()
+
+        if method not in self._VALID_METHODS:
+            raise ValueError(
+                "Baseline method must be either "
+                "'constant' or 'linear'."
+            )
+
+        self._method = method
+
+    # ------------------------------------------------------------------
+    # Plugin information
+    # ------------------------------------------------------------------
 
     @property
     def plugin_name(self) -> str:
+        """Return the canonical plugin name."""
         return "BaselineCorrection"
 
     @property
     def plugin_description(self) -> str:
-        return f"Removes {self.method} drift from the waveform using SciPy C-optimized detrend."
-
-    def process(self, context: ProcessingContext) -> ProcessingContext:
-        """
-        Mengeksekusi koreksi baseline pada matriks numpy secara fungsional murni.
-        """
-        self.validate_input(context)
-
-        # Ambil data gelombang secara aman dari berbagai alternatif atribut konteks
-        wf_container = getattr(context, "waveform", None)
-        if wf_container is None:
-            wf_container = getattr(context, "raw_waveform", None)
-        if wf_container is None:
-            wf_container = getattr(context, "acceleration", None)
-
-        if wf_container is None:
-            raise ProcessingError(
-                message="Cannot perform baseline correction: no waveform found in context.",
-                error_code=ErrorCode.PR001,
-                severity=SeverityLevel.ERROR,
-                context={"module": "baseline"}
-            )
-
-        # Ekstrak array numpy mentah
-        if isinstance(wf_container, WaveformData):
-            data_array = wf_container.data
-            sr = wf_container.sampling_rate
-            unit = wf_container.unit
-        elif hasattr(wf_container, "data"):
-            data_array = wf_container.data
-            sr = getattr(wf_container, "sampling_rate", 100.0)
-            unit = getattr(wf_container, "unit", "m/s^2")
-        else:
-            data_array = np.asarray(wf_container)
-            sr = getattr(context, "sampling_rate", 100.0)
-            unit = "m/s^2"
-
-        if data_array is None or data_array.size == 0:
-            raise ProcessingError(
-                message="Cannot perform baseline correction on an empty array.",
-                error_code=ErrorCode.PR001,
-                severity=SeverityLevel.ERROR,
-                context={"module": "baseline"}
-            )
-
-        # Eksekusi Vektorisasi Matematis (Menggunakan SciPy murni)
-        try:
-            corrected_data = detrend(data_array, type=self.method).astype(np.float64)
-        except Exception as e:
-            raise ProcessingError(
-                message=f"Baseline correction ({self.method}) failed mathematically.",
-                error_code=ErrorCode.PR001,
-                severity=SeverityLevel.ERROR,
-                context={"module": "baseline", "shape": data_array.shape},
-                cause=e
-            ) from e
-
-        # Buat kembali wadah WaveformData yang diperbarui
-        if isinstance(wf_container, WaveformData):
-            updated_waveform = replace(wf_container, data=corrected_data)
-        else:
-            updated_waveform = WaveformData(data=corrected_data, sampling_rate=sr, unit=unit)
-
-        # Transisi State Immutable
-        state = replace(
-            context.processing_state,
-            baseline=StageStatus.SUCCESS
+        """Return a concise plugin description."""
+        return (
+            "Removes constant or linear baseline drift "
+            "from the acceleration waveform."
         )
 
-        history_msg = f"BaselineCorrection(method='{self.method}')"
+    @property
+    def method(self) -> str:
+        """Return the selected baseline correction method."""
+        return self._method
 
-        # Siapkan argumen pembaruan konteks
-        update_kwargs = {
-            "processing_state": state,
-            "acceleration": updated_waveform,
-        }
-        if hasattr(context, "waveform"):
-            update_kwargs["waveform"] = updated_waveform
-        if hasattr(context, "raw_waveform"):
-            update_kwargs["raw_waveform"] = updated_waveform
+    # ------------------------------------------------------------------
+    # Validation
+    # ------------------------------------------------------------------
 
-        # Gunakan replace() langsung pada context karena ProcessingContext berupa dataclass
-        new_context = replace(context, **update_kwargs)
-        
-        # Tambahkan history jika method-nya tersedia, atau kembalikan langsung
-        if hasattr(new_context, "add_history"):
-            return new_context.add_history(
-                step_name="BaselineCorrection",
-                details={"status": "SUCCESS", "method": self.method}
+    @staticmethod
+    def _validate_waveform(
+        waveform: FloatArray,
+    ) -> None:
+        """
+        Validate waveform numerical integrity.
+
+        Raises
+        ------
+        ProcessingError
+            If the waveform is empty, non-finite, or has an
+            unsupported dimensionality.
+        """
+
+        if waveform.ndim != 1:
+            raise ProcessingError(
+                message=(
+                    "Baseline correction requires a "
+                    "one-dimensional waveform."
+                ),
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "baseline",
+                    "shape": waveform.shape,
+                },
             )
-        return new_context
+
+        if waveform.size < 2:
+            raise ProcessingError(
+                message=(
+                    "Baseline correction requires at least "
+                    "two waveform samples."
+                ),
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "baseline",
+                    "npts": int(waveform.size),
+                },
+            )
+
+        if not np.isfinite(waveform).all():
+            raise ProcessingError(
+                message=(
+                    "Waveform contains NaN or infinite values."
+                ),
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "baseline",
+                },
+            )
+
+    # ------------------------------------------------------------------
+    # Numerical correction
+    # ------------------------------------------------------------------
+
+    def _correct(
+        self,
+        waveform: FloatArray,
+    ) -> FloatArray:
+        """
+        Apply the selected baseline correction.
+
+        Parameters
+        ----------
+        waveform
+            Input acceleration waveform.
+
+        Returns
+        -------
+        numpy.ndarray
+            Corrected acceleration waveform.
+        """
+
+        # Always work on a float64 copy.
+        signal = np.asarray(
+            waveform,
+            dtype=np.float64,
+        ).copy()
+
+        if self._method == "constant":
+            corrected = signal - np.mean(signal)
+
+        elif self._method == "linear":
+            corrected = detrend(
+                signal,
+                axis=-1,
+                type="linear",
+            )
+
+        else:
+            # Protected by __init__, but retained as a defensive guard.
+            raise ProcessingError(
+                message=(
+                    f"Unsupported baseline method: "
+                    f"{self._method!r}."
+                ),
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "baseline",
+                    "method": self._method,
+                },
+            )
+
+        corrected = np.asarray(
+            corrected,
+            dtype=np.float64,
+        )
+
+        if not np.isfinite(corrected).all():
+            raise ProcessingError(
+                message=(
+                    "Baseline correction produced "
+                    "non-finite values."
+                ),
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "baseline",
+                    "method": self._method,
+                },
+            )
+
+        return corrected
+
+    # ------------------------------------------------------------------
+    # Processing
+    # ------------------------------------------------------------------
+
+    def process(
+        self,
+        context: ProcessingContext,
+    ) -> ProcessingContext:
+        """
+        Apply baseline correction to the processing context.
+
+        Parameters
+        ----------
+        context
+            Current BSMA processing context.
+
+        Returns
+        -------
+        ProcessingContext
+            New context containing the corrected waveform.
+
+        Raises
+        ------
+        ProcessingError
+            If waveform validation or numerical processing fails.
+        """
+
+        # --------------------------------------------------------------
+        # Common interface validation
+        # --------------------------------------------------------------
+
+        self.validate_input(context)
+
+        # --------------------------------------------------------------
+        # Obtain waveform
+        # --------------------------------------------------------------
+
+        if context.waveform is None:
+            raise ProcessingError(
+                message=(
+                    "Cannot perform baseline correction: "
+                    "waveform is not available."
+                ),
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "baseline",
+                },
+            )
+
+        active_waveform = context.waveform
+
+        waveform = np.asarray(
+            active_waveform.data,
+            dtype=np.float64,
+        )
+
+        # --------------------------------------------------------------
+        # Validate numerical input
+        # --------------------------------------------------------------
+
+        self._validate_waveform(
+            waveform,
+        )
+
+        # --------------------------------------------------------------
+        # Apply correction
+        # --------------------------------------------------------------
+
+        try:
+            corrected_waveform = self._correct(
+                waveform,
+            )
+
+        except ProcessingError:
+            raise
+
+        except Exception as exc:
+            raise ProcessingError(
+                message=(
+                    "Baseline correction failed "
+                    "during numerical processing."
+                ),
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "baseline",
+                    "method": self._method,
+                    "npts": int(waveform.size),
+                    "sampling_rate": (
+                        float(context.sampling_rate)
+                    ),
+                },
+                cause=exc,
+            ) from exc
+
+        # --------------------------------------------------------------
+        # Update processing state
+        # --------------------------------------------------------------
+
+        state = replace(
+            context.processing_state,
+            baseline=StageStatus.SUCCESS,
+        )
+
+        # --------------------------------------------------------------
+        # Immutable context update
+        # --------------------------------------------------------------
+
+        # A preprocessing operation changes acceleration, so all
+        # kinematic, spectral, and scalar products derived from the prior
+        # acceleration must be invalidated.  ``with_acceleration`` performs
+        # that immutable transition; ``ProcessingContext`` deliberately has
+        # no mutable ``waveform`` field or ``copy`` method.
+        new_context = context.with_acceleration(
+            WaveformData(
+                data=corrected_waveform,
+                sampling_rate=active_waveform.sampling_rate,
+                unit=active_waveform.unit,
+            ),
+            clear_derived=True,
+        ).with_state(
+            processing_state=state,
+        )
+
+        # --------------------------------------------------------------
+        # Processing provenance
+        # --------------------------------------------------------------
+
+        history_message = (
+            "BaselineCorrection("
+            f"method={self._method}, "
+            f"npts={waveform.size}, "
+            f"sampling_rate={context.sampling_rate:.6g} Hz"
+            ")"
+        )
+
+        return new_context.add_history(
+            history_message,
+        )
+
+    # ------------------------------------------------------------------
+    # Representation
+    # ------------------------------------------------------------------
+
+    def __repr__(self) -> str:
+        """Return an unambiguous developer representation."""
+        return (
+            f"{self.__class__.__name__}("
+            f"method={self._method!r})"
+        )

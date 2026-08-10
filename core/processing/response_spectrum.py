@@ -2,159 +2,756 @@
 BMKG Strong Motion Analyzer (BSMA)
 Module: core/processing/response_spectrum.py
 
-Description: Concrete ProcessingStep for Response Spectrum Computation.
-Orchestrates SDOF solvers (Nigam-Jennings exact method or Newmark-Beta) 
-to compute PSA, PSV, and SD curves. Fully vectorized and immutable.
+Description
+-----------
+Response Spectrum computation for generic strong-motion waveform data.
+
+This module is instrument-agnostic and network-agnostic. It operates on
+the acceleration waveform contained in ProcessingContext and computes
+SDOF response spectra using either:
+
+- Nigam-Jennings exact recurrence method
+- Newmark-Beta numerical integration
+
+The module computes:
+
+- SD  : Spectral Displacement
+- PSV : Pseudo-Spectral Velocity
+- PSA : Pseudo-Spectral Acceleration
+- SA  : Absolute Spectral Acceleration
+
+All processing is performed without modifying the input
+ProcessingContext in-place.
+
+Expected acceleration unit
+--------------------------
+The acceleration waveform is expected to be expressed in SI units:
+
+    m/s²
+
+Therefore:
+
+    SD  -> m
+    PSV -> m/s
+    PSA -> m/s²
+    SA  -> m/s²
+
+The module does not contain any station-, network-, sensor-, or
+manufacturer-specific logic.
 """
+
 from __future__ import annotations
+
 from dataclasses import dataclass, field, replace
 from typing import Literal
 
 import numpy as np
 
 from core.orchestrator import ProcessingStep
+from core.sdof.newmark import solve_newmark
+from core.sdof.nigam_jennings import solve_nigam_jennings
 from core.types.context import ProcessingContext
 from core.types.processing_state import StageStatus
-from utils.exceptions import ErrorCode, ProcessingError, SeverityLevel
+from utils.exceptions import (
+    ErrorCode,
+    ProcessingError,
+    SeverityLevel,
+)
 
-# Mengimpor mesin SDOF yang sudah kita buat sebelumnya
-from core.sdof.nigam_jennings import solve_nigam_jennings
-from core.sdof.newmark import solve_newmark
+__all__ = [
+    "ResponseSpectrumConfig",
+    "ResponseSpectrumPlugin",
+]
 
-__all__ = ["ResponseSpectrumConfig", "ResponseSpectrumPlugin"]
+
+SolverName = Literal[
+    "nigam_jennings",
+    "newmark",
+]
 
 
 @dataclass(slots=True, frozen=True)
 class ResponseSpectrumConfig:
     """
-    Konfigurasi untuk kalkulasi Spektrum Respons.
+    Immutable configuration for response-spectrum computation.
+
+    Parameters
+    ----------
+    periods:
+        Oscillator periods in seconds.
+
+    damping:
+        Fractional critical damping ratio.
+
+        Example:
+            0.05 = 5% damping.
+
+    solver:
+        SDOF solution method.
+
+        Supported values:
+            "nigam_jennings"
+            "newmark"
     """
-    # Menggunakan tuple agar tipe data tetap immutable (frozen)
+
     periods: tuple[float, ...] = field(
-        default_factory=lambda: tuple(np.linspace(0.01, 4.0, 100).tolist())
+        default_factory=lambda: tuple(
+            np.linspace(0.01, 4.0, 100, dtype=np.float64)
+        )
     )
+
     damping: float = 0.05
-    solver: Literal["nigam_jennings", "newmark"] = "nigam_jennings"
+
+    solver: SolverName = "nigam_jennings"
 
     def __post_init__(self) -> None:
-        if self.damping <= 0.0 or self.damping >= 1.0:
-            raise ValueError(f"Redaman (damping) harus berada di antara (0, 1). Menerima: {self.damping}")
+        """
+        Validate response-spectrum configuration.
+        """
+
         if not self.periods:
-            raise ValueError("Array periode tidak boleh kosong.")
-        if any(p <= 0.0 for p in self.periods):
-            raise ValueError("Seluruh nilai periode harus lebih besar dari 0.")
+            raise ValueError(
+                "Response-spectrum period array must not be empty."
+            )
+
+        periods = np.asarray(self.periods, dtype=np.float64)
+
+        if periods.ndim != 1:
+            raise ValueError(
+                "Response-spectrum periods must be one-dimensional."
+            )
+
+        if not np.all(np.isfinite(periods)):
+            raise ValueError(
+                "Response-spectrum periods must contain only finite values."
+            )
+
+        if np.any(periods <= 0.0):
+            raise ValueError(
+                "All response-spectrum periods must be > 0 seconds."
+            )
+
+        if self.damping <= 0.0 or self.damping >= 1.0:
+            raise ValueError(
+                "Damping ratio must satisfy 0 < damping < 1."
+            )
+
+        if self.solver not in {
+            "nigam_jennings",
+            "newmark",
+        }:
+            raise ValueError(
+                f"Unsupported response-spectrum solver: {self.solver}"
+            )
 
 
 class ResponseSpectrumPlugin(ProcessingStep):
     """
-    Mengeksekusi komputasi spektrum respons secara fungsional murni.
-    Menerapkan relasi Pseudo-Spectral secara matematis (PSA = w^2 * SD).
+    Compute elastic SDOF response spectra.
+
+    The plugin is completely generic and does not depend on:
+
+    - station name,
+    - network code,
+    - sensor manufacturer,
+    - acquisition system,
+    - SBSSI,
+    - specific BMKG instrument.
+
+    Input
+    -----
+    ProcessingContext.acceleration
+
+    Output
+    ------
+    ProcessingContext.spectral_data containing:
+
+        periods
+        SD
+        PSV
+        PSA
+        SA
+        damping
+        solver
+        omega
+
+    Notes
+    -----
+    PSA and PSV are pseudo-spectral quantities derived from SD:
+
+        PSV = omega * SD
+
+        PSA = omega² * SD
+
+    SA is obtained directly from the absolute acceleration response
+    returned by the selected SDOF solver.
     """
 
-    def __init__(self, config: ResponseSpectrumConfig | None = None) -> None:
+    def __init__(
+        self,
+        config: ResponseSpectrumConfig | None = None,
+    ) -> None:
         self._config = config or ResponseSpectrumConfig()
 
     @property
     def name(self) -> str:
-        return f"Response_Spectrum_{self._config.solver.capitalize()}"
+        """Canonical processing-step name."""
+        return "Response_Spectrum"
 
-    def process(self, context: ProcessingContext) -> ProcessingContext:
-        """
-        Eksekusi kalkulasi spektrum respons terhadap osilator SDOF.
-        """
-        if context.acceleration is None:
-            raise ProcessingError(
-                message="Data akselerasi tidak ditemukan. Pastikan baseline/tapering telah berjalan.",
-                error_code=ErrorCode.PR001,
-                severity=SeverityLevel.ERROR,
-                context={"module": "response_spectrum", "trace_id": context.trace_id}
-            )
+    @property
+    def plugin_version(self) -> str:
+        """Processing-step semantic version."""
+        return "1.0.0"
 
-        acc_data = context.acceleration.data
-        if acc_data.size < 2:
+    # ------------------------------------------------------------------
+    # Public processing interface
+    # ------------------------------------------------------------------
+
+    def process(
+        self,
+        context: ProcessingContext,
+    ) -> ProcessingContext:
+        """
+        Compute the response spectrum from acceleration data.
+
+        Parameters
+        ----------
+        context:
+            Immutable BSMA processing context.
+
+        Returns
+        -------
+        ProcessingContext
+            New context containing the calculated response spectrum.
+
+        Raises
+        ------
+        ProcessingError
+            If acceleration data or sampling information is invalid,
+            or if the SDOF solver fails.
+        """
+
+        self._validate_context(context)
+
+        acceleration = context.acceleration
+
+        if acceleration is None:
+            # Defensive check; _validate_context already handles this.
             raise ProcessingError(
-                message="Ukuran array akselerasi terlalu kecil untuk simulasi SDOF.",
+                message=(
+                    "Acceleration waveform is unavailable for "
+                    "response-spectrum computation."
+                ),
                 error_code=ErrorCode.RS001,
                 severity=SeverityLevel.ERROR,
-                context={"module": "response_spectrum", "npts": acc_data.size}
+                context={
+                    "module": "response_spectrum",
+                    "trace_id": context.trace_id,
+                },
             )
 
-        dt = 1.0 / context.sampling_rate
-        periods_array = np.array(self._config.periods, dtype=np.float64)
+        acc_data = np.asarray(
+            acceleration.data,
+            dtype=np.float64,
+        )
+
+        sampling_rate = float(
+            acceleration.sampling_rate
+        )
+
+        dt = 1.0 / sampling_rate
+
+        periods = np.asarray(
+            self._config.periods,
+            dtype=np.float64,
+        )
 
         try:
-            # 1. Injeksi Dinamis Mesin SDOF
-            if self._config.solver == "nigam_jennings":
-                u, v, a_abs = solve_nigam_jennings(
-                    acceleration=acc_data,
-                    dt=dt,
-                    periods=periods_array,
-                    damping=self._config.damping
-                )
-            elif self._config.solver == "newmark":
-                u, v, a_abs = solve_newmark(
-                    acceleration=acc_data,
-                    dt=dt,
-                    periods=periods_array,
-                    damping=self._config.damping
-                )
-            else:
-                raise ValueError(f"Solver tidak dikenal: {self._config.solver}")
+            (
+                sd,
+                psv,
+                psa,
+                sa,
+                omega,
+            ) = self._compute_response_spectrum(
+                acceleration=acc_data,
+                dt=dt,
+                periods=periods,
+            )
 
-            # 2. Ekstraksi Spectral Displacement (SD) absolut maksimum
-            # u memiliki shape (n_periods, n_samples)
-            sd = np.max(np.abs(u), axis=1)
+        except ProcessingError:
+            raise
 
-            # 3. Kalkulus Fundamental (Relasi Pseudo-Spectral)
-            # w = 2*pi / T
-            omega = 2.0 * np.pi / periods_array
-            omega_sq = omega ** 2
-
-            psv = omega * sd
-            psa = omega_sq * sd
-
-            # Ekstraksi Spectral Acceleration Aktual (Absolute Acceleration)
-            sa = np.max(np.abs(a_abs), axis=1)
-
-        except Exception as e:
+        except Exception as exc:
             raise ProcessingError(
-                message=f"Kegagalan komputasi SDOF ({self._config.solver}).",
+                message=(
+                    "Response-spectrum computation failed."
+                ),
                 error_code=ErrorCode.RS001,
                 severity=SeverityLevel.ERROR,
-                context={"module": "response_spectrum", "solver": self._config.solver},
-                cause=e
-            ) from e
+                context={
+                    "module": "response_spectrum",
+                    "trace_id": context.trace_id,
+                    "solver": self._config.solver,
+                    "damping": self._config.damping,
+                    "npts": int(acc_data.size),
+                    "sampling_rate": sampling_rate,
+                },
+                cause=exc,
+            ) from exc
 
-        # 4. Immutability Transition: Merangkai State Akhir
-        new_spectral_data = dict(context.spectral_data)
-        new_spectral_data.update({
-            "periods": periods_array,
+        # --------------------------------------------------------------
+        # Build immutable spectral-data transition
+        # --------------------------------------------------------------
+
+        spectral_data = dict(context.spectral_data)
+
+        spectral_data.update(
+            {
+                "periods": periods.copy(),
+                "omega": omega.copy(),
+                "SD": sd.copy(),
+                "PSV": psv.copy(),
+                "PSA": psa.copy(),
+                "SA": sa.copy(),
+                "damping": float(self._config.damping),
+                "solver": self._config.solver,
+            }
+        )
+
+        # --------------------------------------------------------------
+        # Processing state transition
+        # --------------------------------------------------------------
+
+        state = replace(
+            context.processing_state,
+            response_spectrum=StageStatus.SUCCESS,
+        )
+
+        # --------------------------------------------------------------
+        # Audit metadata
+        # --------------------------------------------------------------
+
+        dominant_index = int(
+            np.argmax(psa)
+        )
+
+        history_details = {
+            "status": "SUCCESS",
+            "solver": self._config.solver,
+            "damping": float(self._config.damping),
+            "period_count": int(periods.size),
+            "period_min": float(np.min(periods)),
+            "period_max": float(np.max(periods)),
+            "max_psa": float(np.max(psa)),
+            "max_sa": float(np.max(sa)),
+            "max_sd": float(np.max(sd)),
+            "max_psv": float(np.max(psv)),
+            "dominant_period": float(
+                periods[dominant_index]
+            ),
+        }
+
+        return context.with_state(
+            spectral_data=spectral_data,
+            processing_state=state,
+        ).add_history(
+            step_name=self.name,
+            details=history_details,
+        )
+
+    # ------------------------------------------------------------------
+    # Validation
+    # ------------------------------------------------------------------
+
+    def _validate_context(
+        self,
+        context: ProcessingContext,
+    ) -> None:
+        """
+        Validate all input conditions required by the SDOF solver.
+        """
+
+        if context is None:
+            raise ProcessingError(
+                message=(
+                    "ProcessingContext must not be None."
+                ),
+                error_code=ErrorCode.RS001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "response_spectrum",
+                },
+            )
+
+        if context.acceleration is None:
+            raise ProcessingError(
+                message=(
+                    "Acceleration waveform is unavailable. "
+                    "Run the required preprocessing stages first."
+                ),
+                error_code=ErrorCode.RS001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "response_spectrum",
+                    "trace_id": context.trace_id,
+                },
+            )
+
+        data = np.asarray(
+            context.acceleration.data,
+        )
+
+        if data.ndim != 1:
+            raise ProcessingError(
+                message=(
+                    "Response-spectrum input must be a "
+                    "one-dimensional acceleration waveform."
+                ),
+                error_code=ErrorCode.RS001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "response_spectrum",
+                    "trace_id": context.trace_id,
+                    "shape": tuple(data.shape),
+                },
+            )
+
+        if data.size < 2:
+            raise ProcessingError(
+                message=(
+                    "Acceleration waveform contains fewer than "
+                    "two samples."
+                ),
+                error_code=ErrorCode.RS001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "response_spectrum",
+                    "trace_id": context.trace_id,
+                    "npts": int(data.size),
+                },
+            )
+
+        if not np.all(np.isfinite(data)):
+            raise ProcessingError(
+                message=(
+                    "Acceleration waveform contains NaN or Inf values."
+                ),
+                error_code=ErrorCode.RS001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "response_spectrum",
+                    "trace_id": context.trace_id,
+                },
+            )
+
+        sampling_rate = float(
+            context.acceleration.sampling_rate
+        )
+
+        if not np.isfinite(sampling_rate) or sampling_rate <= 0.0:
+            raise ProcessingError(
+                message=(
+                    "Acceleration sampling rate must be finite "
+                    "and greater than zero."
+                ),
+                error_code=ErrorCode.RS001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "response_spectrum",
+                    "trace_id": context.trace_id,
+                    "sampling_rate": sampling_rate,
+                },
+            )
+
+        periods = np.asarray(
+            self._config.periods,
+            dtype=np.float64,
+        )
+
+        if periods.ndim != 1 or periods.size == 0:
+            raise ProcessingError(
+                message=(
+                    "Response-spectrum period array is invalid."
+                ),
+                error_code=ErrorCode.RS001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "response_spectrum",
+                },
+            )
+
+        if not np.all(np.isfinite(periods)):
+            raise ProcessingError(
+                message=(
+                    "Response-spectrum periods contain NaN or Inf."
+                ),
+                error_code=ErrorCode.RS001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "response_spectrum",
+                },
+            )
+
+        if np.any(periods <= 0.0):
+            raise ProcessingError(
+                message=(
+                    "Response-spectrum periods must be greater "
+                    "than zero."
+                ),
+                error_code=ErrorCode.RS001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "response_spectrum",
+                },
+            )
+
+    # ------------------------------------------------------------------
+    # SDOF calculation
+    # ------------------------------------------------------------------
+
+    def _compute_response_spectrum(
+        self,
+        acceleration: np.ndarray,
+        dt: float,
+        periods: np.ndarray,
+    ) -> tuple[
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+    ]:
+        """
+        Execute the selected SDOF solver and derive spectral parameters.
+
+        Returns
+        -------
+        tuple
+            SD, PSV, PSA, SA, omega
+        """
+
+        if not np.isfinite(dt) or dt <= 0.0:
+            raise ProcessingError(
+                message=(
+                    "Invalid integration time step."
+                ),
+                error_code=ErrorCode.RS001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "response_spectrum",
+                    "dt": dt,
+                },
+            )
+
+        # --------------------------------------------------------------
+        # Select SDOF solver
+        # --------------------------------------------------------------
+
+        if self._config.solver == "nigam_jennings":
+
+            displacement, velocity, absolute_acceleration = (
+                solve_nigam_jennings(
+                    acceleration=acceleration,
+                    dt=dt,
+                    periods=periods,
+                    damping=self._config.damping,
+                )
+            )
+
+        elif self._config.solver == "newmark":
+
+            displacement, velocity, absolute_acceleration = (
+                solve_newmark(
+                    acceleration=acceleration,
+                    dt=dt,
+                    periods=periods,
+                    damping=self._config.damping,
+                )
+            )
+
+        else:
+            raise ProcessingError(
+                message=(
+                    f"Unsupported SDOF solver: "
+                    f"{self._config.solver}"
+                ),
+                error_code=ErrorCode.RS001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "response_spectrum",
+                    "solver": self._config.solver,
+                },
+            )
+
+        # --------------------------------------------------------------
+        # Validate solver outputs
+        # --------------------------------------------------------------
+
+        displacement = np.asarray(
+            displacement,
+            dtype=np.float64,
+        )
+
+        velocity = np.asarray(
+            velocity,
+            dtype=np.float64,
+        )
+
+        absolute_acceleration = np.asarray(
+            absolute_acceleration,
+            dtype=np.float64,
+        )
+
+        expected_shape = (
+            periods.size,
+            acceleration.size,
+        )
+
+        if displacement.shape != expected_shape:
+            raise ProcessingError(
+                message=(
+                    "SDOF displacement output has an unexpected "
+                    f"shape: {displacement.shape}; "
+                    f"expected {expected_shape}."
+                ),
+                error_code=ErrorCode.RS001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "response_spectrum",
+                    "solver": self._config.solver,
+                },
+            )
+
+        if velocity.shape != expected_shape:
+            raise ProcessingError(
+                message=(
+                    "SDOF velocity output has an unexpected shape."
+                ),
+                error_code=ErrorCode.RS001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "response_spectrum",
+                    "solver": self._config.solver,
+                },
+            )
+
+        if absolute_acceleration.shape != expected_shape:
+            raise ProcessingError(
+                message=(
+                    "SDOF absolute-acceleration output has an "
+                    "unexpected shape."
+                ),
+                error_code=ErrorCode.RS001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "response_spectrum",
+                    "solver": self._config.solver,
+                },
+            )
+
+        if not np.all(np.isfinite(displacement)):
+            raise ProcessingError(
+                message=(
+                    "SDOF displacement response contains "
+                    "non-finite values."
+                ),
+                error_code=ErrorCode.RS001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "response_spectrum",
+                    "solver": self._config.solver,
+                },
+            )
+
+        if not np.all(np.isfinite(velocity)):
+            raise ProcessingError(
+                message=(
+                    "SDOF velocity response contains "
+                    "non-finite values."
+                ),
+                error_code=ErrorCode.RS001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "response_spectrum",
+                    "solver": self._config.solver,
+                },
+            )
+
+        if not np.all(np.isfinite(absolute_acceleration)):
+            raise ProcessingError(
+                message=(
+                    "SDOF absolute acceleration response contains "
+                    "non-finite values."
+                ),
+                error_code=ErrorCode.RS001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "response_spectrum",
+                    "solver": self._config.solver,
+                },
+            )
+
+        # --------------------------------------------------------------
+        # Spectral extraction
+        # --------------------------------------------------------------
+
+        sd = np.max(
+            np.abs(displacement),
+            axis=1,
+        )
+
+        omega = (
+            2.0
+            * np.pi
+            / periods
+        )
+
+        psv = omega * sd
+
+        psa = (
+            omega
+            * omega
+            * sd
+        )
+
+        sa = np.max(
+            np.abs(absolute_acceleration),
+            axis=1,
+        )
+
+        # --------------------------------------------------------------
+        # Final numerical validation
+        # --------------------------------------------------------------
+
+        outputs = {
             "SD": sd,
             "PSV": psv,
             "PSA": psa,
             "SA": sa,
-            "damping": self._config.damping
-        })
+            "omega": omega,
+        }
 
-        # Update processing state secara aman jika field-nya ada, abaikan jika tidak
-        try:
-            state = replace(context.processing_state, response_spectrum=StageStatus.SUCCESS)
-        except TypeError:
-            try:
-                state = replace(context.processing_state, spectrum=StageStatus.SUCCESS)
-            except TypeError:
-                state = context.processing_state
+        for name, values in outputs.items():
+            if not np.all(np.isfinite(values)):
+                raise ProcessingError(
+                    message=(
+                        f"Computed {name} spectrum contains "
+                        "non-finite values."
+                    ),
+                    error_code=ErrorCode.RS001,
+                    severity=SeverityLevel.ERROR,
+                    context={
+                        "module": "response_spectrum",
+                        "solver": self._config.solver,
+                        "quantity": name,
+                    },
+                )
 
-        return context.with_state(
-            spectral_data=new_spectral_data,
-            processing_state=state
-        ).add_history(
-            step_name=self.name,
-            details={
-                "status": "SUCCESS",
-                "solver": self._config.solver,
-                "damping": self._config.damping,
-                "max_psa": float(np.max(psa)),
-                "dominant_period": float(periods_array[np.argmax(psa)])
-            }
+        return (
+            sd,
+            psv,
+            psa,
+            sa,
+            omega,
         )

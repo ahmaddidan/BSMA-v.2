@@ -2,14 +2,28 @@
 BMKG Strong Motion Analyzer (BSMA)
 Module: core/processing/integration.py
 
-Description: Concrete ProcessingStep for Kinematic Integration.
-Numerically integrates acceleration into velocity and displacement
-with strict C-backend anti-drift conditioning.
+Description
+-----------
+Numerical integration of corrected acceleration into velocity and
+displacement using cumulative trapezoidal integration.
+
+Scientific policy
+-----------------
+Baseline correction is intentionally NOT performed on velocity or
+displacement inside this module. Baseline correction must be handled
+by the dedicated preprocessing stage before integration.
+
+This prevents undocumented modification of the physical kinematic
+relationship between acceleration, velocity, and displacement.
 """
+
 from __future__ import annotations
+
 from dataclasses import dataclass, replace
 from enum import Enum
+
 import numpy as np
+from numpy.typing import NDArray
 from scipy.integrate import cumulative_trapezoid
 from scipy.signal import detrend
 
@@ -24,108 +38,298 @@ __all__ = [
     "KinematicIntegrationPlugin",
 ]
 
+FloatArray = NDArray[np.float64]
+
 
 class IntegrationMethod(str, Enum):
+    """Numerical integration methods supported by BSMA."""
+
     CUMULATIVE_TRAPEZOID = "cumulative_trapezoid"
 
 
 @dataclass(slots=True, frozen=True)
 class IntegrationConfig:
+    """
+    Configuration for kinematic integration.
+
+    Parameters
+    ----------
+    method
+        Numerical integration method.
+
+    condition_acceleration
+        Optional conditioning of acceleration immediately before
+        integration. Disabled by default because baseline correction
+        should normally be performed by the dedicated preprocessing
+        pipeline.
+
+    acceleration_detrend
+        Conditioning method when ``condition_acceleration=True``.
+        Supported values are ``"constant"`` and ``"linear"``.
+    """
+
     method: IntegrationMethod = IntegrationMethod.CUMULATIVE_TRAPEZOID
-    remove_mean: bool = True
-    remove_linear_trend: bool = True
+    condition_acceleration: bool = False
+    acceleration_detrend: str = "linear"
 
 
 class KinematicIntegrationPlugin(ProcessingStep):
     """
-    Velocity and displacement integration plugin.
-    Operates strictly on immutable WaveformData to prevent memory bloat.
+    Numerically integrate acceleration into velocity and displacement.
+
+    The plugin assumes that the input acceleration has already undergone
+    the required instrument-response correction, QC, baseline correction,
+    tapering, and filtering upstream in the processing pipeline.
+
+    No post-integration detrending is performed.
     """
 
-    def __init__(self, config: IntegrationConfig | None = None) -> None:
+    def __init__(
+        self,
+        config: IntegrationConfig | None = None,
+    ) -> None:
         self._config = config or IntegrationConfig()
+
+        if self._config.acceleration_detrend not in {
+            "constant",
+            "linear",
+        }:
+            raise ValueError(
+                "acceleration_detrend must be 'constant' or 'linear'."
+            )
 
     @property
     def name(self) -> str:
-        return "Kinematic_Integration"
+        """Canonical processing-step name."""
+        return "KinematicIntegration"
 
-    def _condition_signal(self, signal: np.ndarray) -> np.ndarray:
-        """Applies demean and/or linear detrending using SciPy C-backend."""
-        # Salin array agar tidak memutasi data asli secara in-place
-        conditioned = signal.astype(np.float64, copy=True)
-        
-        if self._config.remove_mean:
-            conditioned -= np.mean(conditioned)
-            
-        if self._config.remove_linear_trend:
-            conditioned = detrend(conditioned, type='linear', overwrite_data=True)
-            
-        return conditioned
+    @staticmethod
+    def _validate_waveform(
+        acceleration: WaveformData,
+    ) -> tuple[FloatArray, float]:
+        """
+        Validate acceleration data and sampling rate.
 
-    def process(self, context: ProcessingContext) -> ProcessingContext:
+        Returns
+        -------
+        tuple
+            Validated acceleration array and sampling rate.
+        """
+
+        data = np.asarray(acceleration.data, dtype=np.float64)
+
+        if data.ndim != 1:
+            raise ProcessingError(
+                message="Acceleration waveform must be one-dimensional.",
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={"module": "integration"},
+            )
+
+        if data.size < 2:
+            raise ProcessingError(
+                message=(
+                    "Acceleration waveform must contain at least "
+                    "two samples for numerical integration."
+                ),
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={"module": "integration"},
+            )
+
+        if not np.all(np.isfinite(data)):
+            raise ProcessingError(
+                message="Acceleration waveform contains NaN or infinite values.",
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={"module": "integration"},
+            )
+
+        sampling_rate = float(acceleration.sampling_rate)
+
+        if not np.isfinite(sampling_rate) or sampling_rate <= 0.0:
+            raise ProcessingError(
+                message="Sampling rate must be finite and greater than zero.",
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={
+                    "module": "integration",
+                    "sampling_rate": sampling_rate,
+                },
+            )
+
+        return data, sampling_rate
+
+    def _condition_acceleration(
+        self,
+        acceleration: FloatArray,
+    ) -> FloatArray:
+        """
+        Optionally condition acceleration before integration.
+
+        This operation is intentionally applied only to acceleration,
+        never to velocity or displacement.
+        """
+
+        if not self._config.condition_acceleration:
+            return acceleration.copy()
+
+        return detrend(
+            acceleration,
+            type=self._config.acceleration_detrend,
+        ).astype(np.float64, copy=False)
+
+    def process(
+        self,
+        context: ProcessingContext,
+    ) -> ProcessingContext:
         """Integrate acceleration into velocity and displacement."""
-        
-        if context.acceleration is None:
+
+        if not isinstance(context, ProcessingContext):
             raise ProcessingError(
-                message="Akselerasi tidak ditemukan. Pastikan baseline/filter telah berjalan.",
+                message="context must be a ProcessingContext instance.",
                 error_code=ErrorCode.PR001,
                 severity=SeverityLevel.ERROR,
-                context={"module": "integration", "trace_id": context.trace_id}
+                context={"module": "integration"},
             )
 
-        acc_data = context.acceleration.data
-        sampling_rate = context.sampling_rate
+        acceleration = context.acceleration
 
-        if acc_data.size < 2:
+        if acceleration is None:
             raise ProcessingError(
-                message="Ukuran waveform terlalu kecil untuk integrasi.",
+                message=(
+                    "Acceleration waveform is unavailable. "
+                    "Ensure preprocessing stages completed successfully."
+                ),
                 error_code=ErrorCode.PR001,
                 severity=SeverityLevel.ERROR,
-                context={"module": "integration"}
+                context={
+                    "module": "integration",
+                    "trace_id": context.trace_id,
+                },
             )
+
+        acc_data, sampling_rate = self._validate_waveform(acceleration)
+
+        # ----------------------------------------------------------
+        # 1. Optional acceleration conditioning
+        # ----------------------------------------------------------
+
+        conditioned_acc = self._condition_acceleration(acc_data)
 
         dt = 1.0 / sampling_rate
 
         try:
-            # 1. Acceleration Conditioning
-            acc_conditioned = self._condition_signal(acc_data)
+            # ------------------------------------------------------
+            # 2. Acceleration -> Velocity
+            # ------------------------------------------------------
 
-            # 2. Velocity Integration & Anti-Drift
-            vel_data = cumulative_trapezoid(acc_conditioned, dx=dt, initial=0.0)
-            vel_conditioned = self._condition_signal(vel_data)
+            velocity = cumulative_trapezoid(
+                conditioned_acc,
+                dx=dt,
+                initial=0.0,
+            )
 
-            # 3. Displacement Integration & Anti-Drift
-            disp_data = cumulative_trapezoid(vel_conditioned, dx=dt, initial=0.0)
-            disp_conditioned = self._condition_signal(disp_data)
+            # ------------------------------------------------------
+            # 3. Velocity -> Displacement
+            # ------------------------------------------------------
 
-        except Exception as e:
+            displacement = cumulative_trapezoid(
+                velocity,
+                dx=dt,
+                initial=0.0,
+            )
+
+        except Exception as exc:
             raise ProcessingError(
-                message="Kalkulus integrasi kinematika gagal.",
+                message="Numerical kinematic integration failed.",
                 error_code=ErrorCode.PR001,
                 severity=SeverityLevel.ERROR,
-                context={"module": "integration", "trace_id": context.trace_id},
-                cause=e
-            ) from e
+                context={
+                    "module": "integration",
+                    "trace_id": context.trace_id,
+                    "sampling_rate": sampling_rate,
+                    "sample_count": acc_data.size,
+                    "method": self._config.method.value,
+                },
+                cause=exc,
+            ) from exc
 
-        # 4. Konstruksi WaveformData Baru
-        new_vel = WaveformData(data=vel_conditioned, sampling_rate=sampling_rate, unit="m/s")
-        new_disp = WaveformData(data=disp_conditioned, sampling_rate=sampling_rate, unit="m")
+        # ----------------------------------------------------------
+        # 4. Numerical validation
+        # ----------------------------------------------------------
 
-        # 5. Immutability Transition
-        state = replace(context.processing_state, integration=StageStatus.SUCCESS)
+        if not np.all(np.isfinite(velocity)):
+            raise ProcessingError(
+                message="Integration produced non-finite velocity values.",
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={"module": "integration"},
+            )
 
-        history_msg = (
-            f"KinematicIntegration("
-            f"method={self._config.method.value}, "
-            f"remove_mean={self._config.remove_mean}, "
-            f"remove_trend={self._config.remove_linear_trend})"
+        if not np.all(np.isfinite(displacement)):
+            raise ProcessingError(
+                message=(
+                    "Integration produced non-finite displacement values."
+                ),
+                error_code=ErrorCode.PR001,
+                severity=SeverityLevel.ERROR,
+                context={"module": "integration"},
+            )
+
+        # ----------------------------------------------------------
+        # 5. Construct domain objects
+        # ----------------------------------------------------------
+
+        velocity_waveform = WaveformData(
+            data=velocity,
+            sampling_rate=sampling_rate,
+            unit="m/s",
         )
 
-        return context.with_state(
-            velocity=new_vel,
-            displacement=new_disp,
-            processing_state=state
-        ).add_history(
-            step_name=self.name,
-            details={"status": "SUCCESS", "config": history_msg}
+        displacement_waveform = WaveformData(
+            data=displacement,
+            sampling_rate=sampling_rate,
+            unit="m",
+        )
+
+        # ----------------------------------------------------------
+        # 6. Processing state
+        # ----------------------------------------------------------
+
+        state = replace(
+            context.processing_state,
+            integration=StageStatus.SUCCESS,
+        )
+
+        # ----------------------------------------------------------
+        # 7. Audit history
+        # ----------------------------------------------------------
+
+        history_details = {
+            "status": "SUCCESS",
+            "method": self._config.method.value,
+            "sampling_rate_hz": sampling_rate,
+            "sample_count": int(acc_data.size),
+            "dt_s": dt,
+            "condition_acceleration": (
+                self._config.condition_acceleration
+            ),
+            "acceleration_detrend": (
+                self._config.acceleration_detrend
+                if self._config.condition_acceleration
+                else "none"
+            ),
+        }
+
+        return (
+            context.with_state(
+                velocity=velocity_waveform,
+                displacement=displacement_waveform,
+                processing_state=state,
+            )
+            .add_history(
+                step_name=self.name,
+                details=history_details,
+            )
         )

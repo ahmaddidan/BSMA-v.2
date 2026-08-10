@@ -1,0 +1,53 @@
+{
+    "trace_id": "IA.WGJR.00.HNZ",
+    "export_time": "20260806_042309",
+    "metrics": {
+        "PGA": 0.030074748384479533,
+        "PGV": 0.0004906147342033073,
+        "PGD": 2.3987122601446715e-05,
+        "Arias_Intensity": 9.60972005199539e-05,
+        "CAV": 0.10469440552194142,
+        "Significant_Duration_D5_75": 13.89,
+        "Significant_Duration_D5_95": 19.43,
+        "Mean_Acceleration": 3.510486168907186e-13,
+        "Std_Acceleration": 0.0011951739594250812,
+        "RMS_Acceleration": 0.0011951739594250812
+    },
+    "processing_history": [
+        {
+            "step": "BaselineCorrection",
+            "status": "SUCCESS",
+            "method": "linear"
+        },
+        {
+            "step": "Taper",
+            "status": "SUCCESS",
+            "alpha": 0.05
+        },
+        {
+            "step": "ButterworthFilter",
+            "status": "SUCCESS",
+            "type": "bandpass"
+        },
+        {
+            "step": "Kinematic_Integration",
+            "status": "SUCCESS",
+            "config": "KinematicIntegration(method=cumulative_trapezoid, remove_mean=True, remove_trend=True)"
+        },
+        {
+            "step": "Parameter_Extraction",
+            "status": "SUCCESS",
+            "PGA": 0.030074748384479533,
+            "PGV": 0.0004906147342033073,
+            "PGD": 2.3987122601446715e-05
+        },
+        {
+            "step": "Response_Spectrum_Nigam_jennings",
+            "status": "SUCCESS",
+            "solver": "nigam_jennings",
+            "damping": 0.05,
+            "max_psa": 0.09608288187763823,
+            "dominant_period": 0.13090909090909092
+        }
+    ]
+}
