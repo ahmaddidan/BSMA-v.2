@@ -111,44 +111,26 @@ def configure_logging() -> logging.Logger:
 
 
 def estimate_sig_bmkg(pga_gal: float) -> str:
-    """
-    Mengklasifikasikan PGA berdasarkan kategori SIG BMKG.
+    """Mengklasifikasikan PGA berdasarkan skala instrumen BMKG yang disediakan dalam tabel proyek."""
+    gravity = 9.80665
+    thresholds = (
+        (0.05 * gravity, "I - TIDAK DIRASAKAN (< 0.05%g)"),
+        (0.30 * gravity, "II - DIRASAKAN (0.05-0.30%g)"),
+        (2.8 * gravity, "III - RINGAN (0.30-2.8%g)"),
+        (6.2 * gravity, "IV - SEDANG (2.8-6.2%g)"),
+        (12.0 * gravity, "V - KUAT (6.2-12%g)"),
+        (22.0 * gravity, "VI - SANGAT KUAT (12-22%g)"),
+        (40.0 * gravity, "VII - PARAH (22-40%g)"),
+        (75.0 * gravity, "VIII - KERUSAKAN BERAT (40-75%g)"),
+        (139.0 * gravity, "IX - EKSTREM (75-139%g)"),
+    )
 
-    Parameters
-    ----------
-    pga_gal
-        Peak Ground Acceleration dalam Gal.
-
-    Returns
-    -------
-    str
-        Klasifikasi SIG BMKG.
-
-    Notes
-    -----
-    Batas klasifikasi mengikuti tabel yang digunakan pada
-    implementasi BSMA sebelumnya:
-
-        < 2.9 Gal
-        2.9 - <89 Gal
-        89 - <167 Gal
-        167 - <564 Gal
-        >=564 Gal
-    """
-
-    if pga_gal < 2.9:
-        return "I - TIDAK DIRASAKAN (< 2.9 gal)"
-
-    if pga_gal < 89.0:
-        return "II - DIRASAKAN (2.9 - 88 gal)"
-
-    if pga_gal < 167.0:
-        return "III - KERUSAKAN RINGAN (89 - 167 gal)"
-
-    if pga_gal < 564.0:
-        return "IV - KERUSAKAN SEDANG (168 - 563 gal)"
-
-    return "V - KERUSAKAN BERAT (>= 564 gal)"
+    if not np.isfinite(pga_gal):
+        return "I - TIDAK DIRASAKAN"
+    for threshold, label in thresholds:
+        if pga_gal < threshold:
+            return label
+    return "X+ - EKSTREM (> 139%g)"
 
 
 # ============================================================================

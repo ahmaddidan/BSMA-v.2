@@ -103,74 +103,33 @@ def get_sig_bmkg(
     if not math.isfinite(pga_gal):
         pga_gal = 0.0
 
-    if pga_gal < 2.9:
-        return (
-            "I",
-            "Putih",
-            (255, 255, 255),
-            "TIDAK DIRASAKAN",
-            "I-II",
-            (
-                "Tidak dirasakan atau dirasakan hanya oleh beberapa orang "
-                "tetapi terekam oleh alat."
-            ),
-        )
+    gravity = 9.80665
+    thresholds = (
+        (0.05 * gravity, ("I", "Putih", (255, 255, 255), "TIDAK DIRASAKAN", "I-II", "Tidak dirasakan atau dirasakan hanya oleh beberapa orang tetapi terekam oleh alat.")),
+        (0.30 * gravity, ("II", "Hijau", (146, 208, 80), "DIRASAKAN", "III-V", "Dirasakan oleh orang banyak tetapi tidak menimbulkan kerusakan. Benda-benda ringan yang digantung bergoyang dan jendela kaca bergetar.")),
+        (2.8 * gravity, ("III", "Kuning", (255, 255, 0), "KERUSAKAN RINGAN", "VI", "Bagian nonstruktur bangunan mengalami kerusakan ringan, seperti retak rambut pada dinding, atap bergeser ke bawah dan sebagian berjatuhan.")),
+        (6.2 * gravity, ("IV", "Jingga", (255, 192, 0), "KERUSAKAN SEDANG", "VII-VIII", "Banyak retakan terjadi pada dinding bangunan sederhana, sebagian roboh, kaca pecah. Sebagian plester dinding lepas.")),
+        (12.0 * gravity, ("V", "Merah", (255, 0, 0), "KERUSAKAN BERAT", "IX-XII", "Sebagian besar dinding bangunan permanen roboh. Struktur bangunan mengalami kerusakan berat.")),
+        (22.0 * gravity, ("VI", "Merah tua", (192, 0, 0), "KERUSAKAN PARAH", "X", "Kerusakan berat pada struktur umum dan sebagian bangunan mengalami kehancuran signifikan.")),
+        (40.0 * gravity, ("VII", "Merah tua", (128, 0, 0), "KERUSAKAN PARAH", "X-XI", "Bangunan umum mengalami kerusakan besar dan banyak struktur tidak layak pakai.")),
+        (75.0 * gravity, ("VIII", "Cokelat", (128, 64, 0), "KERUSAKAN SANGAT PARAH", "XI-XII", "Kerusakan besar, banyak bangunan runtuh, potensi korban dan gangguan sistem utilitas tinggi.")),
+        (139.0 * gravity, ("IX", "Hitam", (0, 0, 0), "KERUSAKAN EKSTREM", "XII+", "Kerusakan menyeluruh pada infrastruktur dan bangunan utama, dengan konsekuensi sangat berat.")),
+    )
 
-    if pga_gal <= 88.0:
-        return (
-            "II",
-            "Hijau",
-            (146, 208, 80),
-            "DIRASAKAN",
-            "III-V",
-            (
-                "Dirasakan oleh orang banyak tetapi tidak menimbulkan "
-                "kerusakan. Benda-benda ringan yang digantung bergoyang "
-                "dan jendela kaca bergetar."
-            ),
-        )
+    if not math.isfinite(pga_gal):
+        pga_gal = 0.0
 
-    if pga_gal <= 167.0:
-        return (
-            "III",
-            "Kuning",
-            (255, 255, 0),
-            "KERUSAKAN RINGAN",
-            "VI",
-            (
-                "Bagian nonstruktur bangunan mengalami kerusakan ringan, "
-                "seperti retak rambut pada dinding, atap bergeser ke bawah "
-                "dan sebagian berjatuhan."
-            ),
-        )
-
-    if pga_gal <= 564.0:
-        return (
-            "IV",
-            "Jingga",
-            (255, 192, 0),
-            "KERUSAKAN SEDANG",
-            "VII-VIII",
-            (
-                "Banyak retakan terjadi pada dinding bangunan sederhana, "
-                "sebagian roboh, kaca pecah. Sebagian plester dinding "
-                "lepas. Hampir sebagian besar atap bergeser ke bawah "
-                "atau jatuh. Struktur bangunan mengalami kerusakan "
-                "ringan sampai sedang."
-            ),
-        )
+    for threshold, value in thresholds:
+        if pga_gal < threshold:
+            return value
 
     return (
-        "V",
-        "Merah",
-        (255, 0, 0),
-        "KERUSAKAN BERAT",
-        "IX-XII",
-        (
-            "Sebagian besar dinding bangunan permanen roboh. Struktur "
-            "bangunan mengalami kerusakan berat. Rel kereta api "
-            "melengkung."
-        ),
+        "X+",
+        "Hitam",
+        (0, 0, 0),
+        "KERUSAKAN EKSTREM",
+        "XII+",
+        "Kerusakan total dan konsekuensi sangat berat pada bangunan dan infrastruktur.",
     )
 
 

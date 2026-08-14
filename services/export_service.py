@@ -119,16 +119,25 @@ class ExportService:
 
     @staticmethod
     def _sig_label(pga_gal: float) -> str:
-        """Classify PGA using the SIG-BMKG ranges used by this project."""
-        if not np.isfinite(pga_gal) or pga_gal < 2.9:
+        """Classify PGA using the BMKG instrumental-intensity scale provided by the project table."""
+        gravity = 9.80665
+        thresholds = (
+            (0.05 * gravity, "SIG I"),
+            (0.30 * gravity, "SIG II"),
+            (2.8 * gravity, "SIG III"),
+            (6.2 * gravity, "SIG IV"),
+            (12.0 * gravity, "SIG V"),
+            (22.0 * gravity, "SIG VI"),
+            (40.0 * gravity, "SIG VII"),
+            (75.0 * gravity, "SIG VIII"),
+            (139.0 * gravity, "SIG IX"),
+        )
+        if not np.isfinite(pga_gal):
             return "SIG I"
-        if pga_gal <= 88.0:
-            return "SIG II"
-        if pga_gal <= 167.0:
-            return "SIG III"
-        if pga_gal <= 564.0:
-            return "SIG IV"
-        return "SIG V"
+        for threshold, label in thresholds:
+            if pga_gal < threshold:
+                return label
+        return "SIG X+"
 
     @staticmethod
     def _render_plots(

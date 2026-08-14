@@ -48,9 +48,15 @@ def test_export_service_generates_csv_and_personally_neutral_pdf(tmp_path):
 
 def test_sig_bmkg_thresholds_are_complete_and_ordered():
     exporter = ExportService()
+    gravity = 9.80665
 
     assert exporter._sig_label(0.0) == "SIG I"
-    assert exporter._sig_label(2.9) == "SIG II"
-    assert exporter._sig_label(88.1) == "SIG III"
-    assert exporter._sig_label(167.1) == "SIG IV"
-    assert exporter._sig_label(564.1) == "SIG V"
+    assert exporter._sig_label(0.05 * gravity) == "SIG II"
+    assert exporter._sig_label(0.30 * gravity) == "SIG III"
+    assert exporter._sig_label(2.8 * gravity) == "SIG IV"
+    assert exporter._sig_label(6.2 * gravity) == "SIG V"
+    assert exporter._sig_label(12.0 * gravity) == "SIG VI"
+    assert exporter._sig_label(22.0 * gravity) == "SIG VII"
+    assert exporter._sig_label(40.0 * gravity) == "SIG VIII"
+    assert exporter._sig_label(75.0 * gravity) == "SIG IX"
+    assert exporter._sig_label(139.0 * gravity) == "SIG X+"

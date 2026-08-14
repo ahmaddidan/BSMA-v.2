@@ -271,9 +271,129 @@ def _display_metrics(contexts: dict[str, Any]) -> None:
         "SIG III": (st.warning, "Skala III - Kuning: kerusakan ringan (MMI VI)."),
         "SIG IV": (st.warning, "Skala IV - Jingga: kerusakan sedang (MMI VII-VIII)."),
         "SIG V": (st.error, "Skala V - Merah: kerusakan berat (MMI IX-XII)."),
+        "SIG VI": (st.error, "Skala VI - Merah tua: kerusakan parah."),
+        "SIG VII": (st.error, "Skala VII - Merah tua: kerusakan besar pada banyak bangunan."),
+        "SIG VIII": (st.error, "Skala VIII - Cokelat: kerusakan sangat parah."),
+        "SIG IX": (st.error, "Skala IX - Hitam: kerusakan ekstrem."),
+        "SIG X+": (st.error, "Skala X+ - Hitam: kerusakan total / sangat ekstrem."),
     }
-    render_message, message = sig_messages[sig]
+    render_message, message = sig_messages.get(sig, (st.error, "Skala intensitas di luar rentang tabel yang terdefinisi."))
     render_message(message, icon=":material/vibration:")
+
+
+def _station_quality_summary(contexts: dict[str, Any]) -> dict[str, Any]:
+    """Map a station's QC state to the BSMA station-quality classes in the provided reference table."""
+    if not contexts:
+        return {
+            "class_id": 7,
+            "label": "Mati",
+            "description": "Tidak ada data.",
+            "reasons": ["Tidak ada data yang diproses pada stasiun ini."],
+            "quality_score": 0,
+        }
+
+    total_score = 0.0
+    reasons: list[str] = []
+    has_missing_data = False
+    critical_signal_issue = False
+    noise_issue = False
+    availability_issue = False
+
+    for channel, context in contexts.items():
+        qc = context.qc
+        if qc is None:
+            has_missing_data = True
+            reasons.append(f"{channel}: QC tidak tersedia.")
+            continue
+
+        total_score += float(qc.quality_score)
+
+        if qc.quality_score < 60:
+            critical_signal_issue = True
+            reasons.append(f"{channel}: kualitas sinyal rendah (skor {qc.quality_score}/100).")
+
+        if qc.has_clipping or qc.has_adc_saturation:
+            critical_signal_issue = True
+            reasons.append(f"{channel}: clipping atau saturasi ADC terdeteksi.")
+
+        if qc.has_spikes:
+            reasons.append(f"{channel}: spike impulsif terdeteksi.")
+
+        if qc.has_flatline:
+            reasons.append(f"{channel}: flatline atau sinyal tidak aktif terdeteksi.")
+
+        if qc.has_offset or qc.has_drift:
+            reasons.append(f"{channel}: offset atau drift baseline melebihi ambang validasi.")
+
+        if qc.snr_estimate_db is not None and qc.snr_estimate_db < 3.0:
+            noise_issue = True
+            reasons.append(f"{channel}: SNR rendah (< 3 dB), menunjukkan noise yang tinggi.")
+
+    average_score = total_score / max(len(contexts), 1)
+    if average_score >= 80 and not reasons:
+        return {
+            "class_id": 1,
+            "label": "Baik",
+            "description": "Noise berada dalam batasan noise model dan bentuk grafik PSD tidak lurus.",
+            "reasons": ["Kualitas data secara umum baik. Tidak ada indikator serius pada QC."],
+            "quality_score": int(round(average_score)),
+        }
+
+    if average_score >= 70 and not critical_signal_issue and not noise_issue and not has_missing_data:
+        return {
+            "class_id": 2,
+            "label": "Cukup Baik",
+            "description": "Noise cukup tinggi di atas batas AHNM atau jumlah gaps di bawah 100 dan availability data antara 70-90%.",
+            "reasons": ["Sinyal masih dapat dipakai, namun ada beberapa tanda penurunan kualitas yang perlu diperhatikan."],
+            "quality_score": int(round(average_score)),
+        }
+
+    if critical_signal_issue and any(
+        context.qc is not None and (context.qc.has_clipping or context.qc.has_adc_saturation)
+        for context in contexts.values()
+    ):
+        return {
+            "class_id": 3,
+            "label": "Masalah pada digitizer atau sensor",
+            "description": "Masalah pada digitizer atau sensor.",
+            "reasons": reasons or ["Digitizer atau sensor menunjukkan anomali yang serius pada rekaman."],
+            "quality_score": int(round(average_score)),
+        }
+
+    if has_missing_data:
+        return {
+            "class_id": 4,
+            "label": "Kesalahan data / metadata",
+            "description": "Kesalahan pada dataset/metatadata.",
+            "reasons": reasons or ["Dataset atau metadata tidak lengkap atau tidak dapat diproses dengan benar."],
+            "quality_score": int(round(average_score)),
+        }
+
+    if noise_issue:
+        return {
+            "class_id": 5,
+            "label": "Buruk",
+            "description": "Tingginya noise (apabila perbedaan PSD dengan AHNM terlalu jauh).",
+            "reasons": reasons or ["Noise dominan dan SNR rendah pada sebagian besar data."],
+            "quality_score": int(round(average_score)),
+        }
+
+    if availability_issue or any(context.qc is not None and context.qc.quality_score < 70 for context in contexts.values()):
+        return {
+            "class_id": 6,
+            "label": "Masalah ketersediaan data / komunikasi",
+            "description": "Masalah ketersediaan data dan komunikasi.",
+            "reasons": reasons or ["Data yang tersedia tidak cukup stabil untuk pengolahan yang handal."],
+            "quality_score": int(round(average_score)),
+        }
+
+    return {
+        "class_id": 7,
+        "label": "Mati",
+        "description": "Tidak ada data.",
+        "reasons": reasons or ["Tidak ada data yang valid pada stasiun ini."],
+        "quality_score": int(round(average_score)),
+    }
 
 
 def _display_benchmark(record_id: str, contexts: dict[str, Any]) -> None:
@@ -343,7 +463,19 @@ def _display_analysis(station: str, contexts: dict[str, Any], event_info: dict[s
         pga_gal = pga * 100.0
         percent_g = pga / 9.80665 * 100.0
         sig = ExportService._sig_label(pga_gal)
-        descriptions = {"SIG I": "TIDAK DIRASAKAN", "SIG II": "DIRASAKAN", "SIG III": "KERUSAKAN RINGAN", "SIG IV": "KERUSAKAN SEDANG", "SIG V": "KERUSAKAN BERAT"}
+        descriptions = {
+            "SIG I": "TIDAK DIRASAKAN",
+            "SIG II": "DIRASAKAN",
+            "SIG III": "KERUSAKAN RINGAN",
+            "SIG IV": "KERUSAKAN SEDANG",
+            "SIG V": "KERUSAKAN BERAT",
+            "SIG VI": "KERUSAKAN PARAH",
+            "SIG VII": "KERUSAKAN SANGAT PARAH",
+            "SIG VIII": "KERUSAKAN EKSTREM",
+            "SIG IX": "KERUSAKAN SANGAT EKSTREM",
+            "SIG X+": "KERUSAKAN TOTAL / SANGAT EKSTREM",
+        }
+        intensity_label = descriptions.get(sig, "KELAS INTENSITAS TIDAK DIDEFINISIKAN")
         qc = strongest.qc
         calibration = "terkalibrasi dengan StationXML" if strongest.processing_state.response_correction.value == "SUCCESS" else "tanpa kalibrasi respons instrumen"
         clipping = "tidak terdeteksi clipping" if qc is None or not qc.has_clipping else "terdeteksi indikasi clipping"
@@ -351,7 +483,7 @@ def _display_analysis(station: str, contexts: dict[str, Any], event_info: dict[s
             f"### Interpretasi hasil\n"
             f"**Percepatan tanah maksimum (PGA):** {pga_gal:.3f} Gal ({percent_g:.3f} %g).  \n"
             f"**Guncangan dominan:** komponen **{strongest_channel}**.  \n"
-            f"**Klasifikasi intensitas:** **{sig} — {descriptions[sig]}**.  \n"
+            f"**Klasifikasi intensitas:** **{sig} — {intensity_label}**.  \n"
             f"**Durasi signifikan (D5–D95):** {duration:.2f} detik.  \n"
             f"**Status data:** {calibration}; {clipping}; pemrosesan selesai."
         )
@@ -390,18 +522,52 @@ def _display_analysis(station: str, contexts: dict[str, Any], event_info: dict[s
             figure.update_layout(height=700, showlegend=False, margin=dict(l=10, r=10, t=20, b=10))
             st.plotly_chart(figure, width="stretch")
     with spectrum:
+        period_step = st.selectbox("Skala period (s)", options=[0.5, 1.0], index=1, help="Pilih langkah interval sumbu period, 0.5 detik atau 1 detik.")
+        min_period, max_period = st.slider(
+            "Rentang period (s)",
+            min_value=0.05,
+            max_value=10.0,
+            value=(0.05, 10.0),
+            step=0.05,
+            format="%.2f",
+            help="Geser untuk memperlebar atau memperkecil rentang period yang ditampilkan.",
+        )
+
         figure = go.Figure()
         for channel, context in contexts.items():
-            periods = context.spectral_data.get("periods")
-            psa = context.spectral_data.get("PSA")
-            if periods is not None and psa is not None:
-                figure.add_trace(
-                    go.Scatter(x=periods, y=np.asarray(psa) / 9.80665, mode="lines", name=channel)
-                )
-        figure.update_xaxes(type="log", title="Period (s)")
-        figure.update_yaxes(title="PSA (g)")
-        figure.update_layout(height=450, margin=dict(l=10, r=10, t=20, b=10))
-        st.plotly_chart(figure, width="stretch")
+            periods = np.asarray(context.spectral_data.get("periods", []), dtype=float)
+            psa = np.asarray(context.spectral_data.get("PSA", []), dtype=float)
+            if periods.size and psa.size:
+                mask = (periods >= min_period) & (periods <= max_period)
+                if mask.any():
+                    figure.add_trace(
+                        go.Scatter(
+                            x=periods[mask],
+                            y=psa[mask] / 9.80665,
+                            mode="lines",
+                            name=channel,
+                            line=dict(shape="spline", smoothing=0.7),
+                        )
+                    )
+        if not figure.data:
+            st.info("Tidak ada kurva respons spektrum yang dapat ditampilkan untuk rentang period yang dipilih.")
+        else:
+            figure.update_xaxes(
+                type="linear",
+                title="Period (s)",
+                range=[min_period, max_period],
+                tickmode="linear",
+                dtick=period_step,
+                rangeselector={"visible": False},
+                rangeslider={"visible": True, "thickness": 0.10},
+            )
+            figure.update_yaxes(title="PSA (g)")
+            figure.update_layout(
+                height=450,
+                margin=dict(l=10, r=10, t=20, b=10),
+                xaxis=dict(rangeslider=dict(visible=True, thickness=0.10)),
+            )
+            st.plotly_chart(figure, width="stretch")
     with husid_tab:
         st.caption("Husid plot menunjukkan persentase kumulatif energi Arias; D5 dan D95 membatasi durasi energi utama.")
         figure = go.Figure()
@@ -409,7 +575,15 @@ def _display_analysis(station: str, contexts: dict[str, Any], event_info: dict[s
             curve = context.cache.husid_curve
             if curve is not None:
                 time = np.arange(curve.size) / context.sampling_rate
-                figure.add_trace(go.Scatter(x=time, y=np.asarray(curve) * 100, mode="lines", name=channel))
+                figure.add_trace(
+                    go.Scatter(
+                        x=time,
+                        y=np.asarray(curve) * 100,
+                        mode="lines",
+                        name=channel,
+                        line=dict(shape="spline", smoothing=0.7),
+                    )
+                )
         figure.update_layout(height=450, xaxis_title="Time (s)", yaxis_title="Cumulative Arias energy (%)")
         st.plotly_chart(figure, width="stretch")
     with fas:
@@ -419,11 +593,45 @@ def _display_analysis(station: str, contexts: dict[str, Any], event_info: dict[s
             data = context.acceleration.data
             frequency = np.fft.rfftfreq(data.size, d=context.dt)
             amplitude = np.abs(np.fft.rfft(data)) / data.size
-            figure.add_trace(go.Scatter(x=frequency[1:], y=amplitude[1:], mode="lines", name=channel))
+            figure.add_trace(
+                go.Scatter(
+                    x=frequency[1:],
+                    y=amplitude[1:],
+                    mode="lines",
+                    name=channel,
+                    line=dict(shape="spline", smoothing=0.7),
+                )
+            )
         figure.update_layout(height=450, xaxis_type="log", yaxis_type="log", xaxis_title="Frequency (Hz)", yaxis_title="Amplitude (m/s2)")
         st.plotly_chart(figure, width="stretch")
     with audit:
         st.caption("Audit trail berikut menyimpan keputusan ilmiah dan setiap tahap pemrosesan yang benar-benar dijalankan untuk tiap komponen.")
+        quality_summary = _station_quality_summary(contexts)
+        st.subheader("Klasifikasi Kualitas Stasiun")
+        st.markdown(
+            """
+            | Kelas | Keterangan | Kualitas |
+            | --- | --- | --- |
+            | 1 | Noise berada dalam batasan noise model dan bentuk grafik PSD tidak lurus. | Baik |
+            | 2 | Noise cukup tinggi di atas batas AHNM atau jumlah gaps di bawah 100 dan availability data antara 70-90%. | Cukup Baik |
+            | 3 | Masalah pada digitizer atau sensor. |  |
+            | 4 | Kesalahan pada dataset/metatadata. |  |
+            | 5 | Tingginya noise (apabila perbedaan PSD dengan AHNM terlalu jauh). | Buruk |
+            | 6 | Masalah ketersediaan data dan komunikasi. |  |
+            | 7 | Tidak ada data. | Mati |
+            """
+        )
+
+        st.info(
+            f"Status stasiun saat ini: Kelas {quality_summary['class_id']} - {quality_summary['label']} | Skor rata-rata QC: {quality_summary['quality_score']}/100"
+        )
+        st.caption(quality_summary["description"])
+
+        if quality_summary["class_id"] in {3, 4, 5, 6, 7}:
+            st.warning("Data memiliki kualitas kurang baik karena:")
+            for reason in quality_summary["reasons"]:
+                st.markdown(f"- {reason}")
+
         narratives = {
             "ScientificProvenance": "Mencatat sumber, checksum, satuan, versi engine, dan waktu proses.",
             "RawQC": "Memeriksa integritas sampel, clipping, flatline, drift, dan indikator SNR.",
