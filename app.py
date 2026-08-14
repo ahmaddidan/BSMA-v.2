@@ -202,6 +202,14 @@ def _configuration_from_sidebar() -> tuple[AnalysisConfiguration, dict[str, Any]
     )
 
 
+def _clear_uploaded_data() -> None:
+    """Remove stale waveform and inventory files before replacing the current dataset."""
+    for directory in (WAVEFORM_DIRECTORY, INVENTORY_DIRECTORY):
+        for child in directory.iterdir():
+            if child.is_file() or child.is_symlink():
+                child.unlink()
+
+
 def _upload_data() -> None:
     with st.sidebar:
         with st.expander("Input data", expanded=False):
@@ -214,6 +222,12 @@ def _upload_data() -> None:
                 )
                 submitted = st.form_submit_button("Store input data", icon=":material/upload:")
             if submitted:
+                if waveforms or inventories:
+                    _clear_uploaded_data()
+                    st.session_state.pop("contexts_by_station", None)
+                    st.session_state["contexts_by_station"] = {}
+                    st.session_state.pop("batch_failures", None)
+                    st.session_state["batch_failures"] = {}
                 for upload, target in ((upload, WAVEFORM_DIRECTORY) for upload in waveforms or []):
                     (target / Path(upload.name).name).write_bytes(upload.getvalue())
                 for upload, target in ((upload, INVENTORY_DIRECTORY) for upload in inventories or []):
@@ -741,48 +755,14 @@ def _export_batch(event_info: dict[str, Any]) -> None:
             st.error("Select at least one station.")
             return
         exporter = ExportService()
-        with io.BytesIO() as buffer:
-            with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
-                selected_contexts = {station: contexts[station] for station in selected}
-                csv_path = exporter.export_batch_csv(
-                    selected_contexts, REPORT_DIRECTORY / "BSMA_Summary.csv"
-                )
-                archive.write(csv_path, arcname="BSMA_Summary.csv")
-                provenance = {
-                    station: {
-                        channel: {
-                            "trace_id": context.trace_id,
-                            "raw_waveform_sha256": hashlib.sha256(context.raw_waveform.data.tobytes()).hexdigest(),
-                            "raw_unit": context.raw_waveform.unit,
-                            "acceleration_unit": context.acceleration.unit if context.acceleration is not None else None,
-                            "metadata": dict(context.metadata),
-                            "metrics": dict(context.metrics),
-                            "processing_state": context.processing_state.to_dict(),
-                            "configuration": dict(context.config),
-                            "history": list(context.history),
-                            "qc": context.qc.to_dict() if context.qc is not None else None,
-                        }
-                        for channel, context in station_contexts.items()
-                    }
-                    for station, station_contexts in selected_contexts.items()
-                }
-                archive.writestr("provenance.json", json.dumps(provenance, indent=2, default=str))
-                for station, station_contexts in selected_contexts.items():
-                    pdf_path = exporter.export_station_pdf(
-                        station,
-                        station_contexts,
-                        REPORT_DIRECTORY / f"BSMA_Report_{station}.pdf",
-                        event_info=event_info or None,
-                    )
-                    archive.write(pdf_path, arcname=f"reports/{pdf_path.name}")
-                    for png_path in exporter.export_station_waveform_pngs(
-                        station,
-                        station_contexts,
-                        REPORT_DIRECTORY / "waveforms",
-                    ):
-                        archive.write(png_path, arcname=f"waveforms/{png_path.name}")
-            st.session_state["export_archive"] = buffer.getvalue()
-        st.session_state["export_archive_name"] = "BSMA_Operational_Exports.zip"
+        selected_contexts = {station: contexts[station] for station in selected}
+        archive_bytes, archive_name = exporter.export_batch_package(
+            selected_contexts,
+            REPORT_DIRECTORY,
+            event_info=event_info or None,
+        )
+        st.session_state["export_archive"] = archive_bytes
+        st.session_state["export_archive_name"] = archive_name
     if st.session_state.get("export_archive"):
         st.download_button(
             "Download export package",
@@ -793,62 +773,67 @@ def _export_batch(event_info: dict[str, Any]) -> None:
         )
 
 
-_initialise_state()
-_ensure_directories()
-_upload_data()
-configuration, event_info = _configuration_from_sidebar()
+def main() -> None:
+    _initialise_state()
+    _ensure_directories()
+    _upload_data()
+    configuration, event_info = _configuration_from_sidebar()
 
-if LOGO_PATH.is_file():
-    st.image(str(LOGO_PATH), width=180)
-st.title("BMKG Strong Motion Analyzer")
-st.caption("Scientific processing and engineering review of strong-motion records with traceable quality control and exports.")
+    if LOGO_PATH.is_file():
+        st.image(str(LOGO_PATH), width=180)
+    st.title("BMKG Strong Motion Analyzer")
+    st.caption("Scientific processing and engineering review of strong-motion records with traceable quality control and exports.")
 
-files = _waveform_files()
-if not files:
-    st.info("Upload MiniSEED/SAC waveforms and optional StationXML from the sidebar to begin.")
-    st.stop()
+    files = _waveform_files()
+    if not files:
+        st.info("Upload MiniSEED/SAC waveforms and optional StationXML from the sidebar to begin.")
+        st.stop()
 
-master_stream = _load_master_stream(files)
-records = _record_windows(master_stream)
-if not records:
-    st.error("No usable station traces were found in the input files.")
-    st.stop()
+    master_stream = _load_master_stream(files)
+    records = _record_windows(master_stream)
+    if not records:
+        st.error("No usable station traces were found in the input files.")
+        st.stop()
 
-mode = st.segmented_control(
-    "Workflow",
-    options=["Single-station review", "Multi-station processing", "Export results"],
-    default="Single-station review",
-    key="app_mode",
-)
+    mode = st.segmented_control(
+        "Workflow",
+        options=["Single-station review", "Multi-station processing", "Export results"],
+        default="Single-station review",
+        key="app_mode",
+    )
 
-if mode == "Single-station review":
-    record_id = st.selectbox("Recording window", list(records))
-    station_stream = records[record_id]
-    station = str(station_stream[0].stats.station)
-    inventory_path = _find_inventory_path(station)
-    inventory = _find_inventory(station) if st.session_state.get("apply_instrument_response", False) else None
-    st.caption(f"StationXML correction enabled: {inventory_path.name}." if inventory is not None and inventory_path else "Using declared physical acceleration; StationXML response correction is disabled.")
-    unknown_provenance = st.session_state.get("input_provenance") == "Unknown - require scientific review"
-    missing_inventory = configuration.input_mode == "raw_counts" and inventory is None
-    if unknown_provenance:
-        st.warning("Processing is blocked until the input data mode is declared.")
-    if missing_inventory:
-        st.error("Raw-count mode requires a readable StationXML matching this station; processing has been blocked to prevent an invalid unit conversion.")
-    if st.button(
-        "Process selected record",
-        type="primary",
-        icon=":material/play_arrow:",
-        disabled=unknown_provenance or missing_inventory,
-    ):
-        try:
-            with st.spinner(f"Processing {station}..."):
-                _process_one_station(record_id, station_stream, configuration)
-        except Exception as exc:
-            st.exception(exc)
-    contexts = st.session_state["contexts_by_station"].get(record_id)
-    if contexts:
-        _display_analysis(record_id, contexts, event_info)
-elif mode == "Multi-station processing":
-    _batch_analysis(records, configuration)
-else:
-    _export_batch(event_info)
+    if mode == "Single-station review":
+        record_id = st.selectbox("Recording window", list(records))
+        station_stream = records[record_id]
+        station = str(station_stream[0].stats.station)
+        inventory_path = _find_inventory_path(station)
+        inventory = _find_inventory(station) if st.session_state.get("apply_instrument_response", False) else None
+        st.caption(f"StationXML correction enabled: {inventory_path.name}." if inventory is not None and inventory_path else "Using declared physical acceleration; StationXML response correction is disabled.")
+        unknown_provenance = st.session_state.get("input_provenance") == "Unknown - require scientific review"
+        missing_inventory = configuration.input_mode == "raw_counts" and inventory is None
+        if unknown_provenance:
+            st.warning("Processing is blocked until the input data mode is declared.")
+        if missing_inventory:
+            st.error("Raw-count mode requires a readable StationXML matching this station; processing has been blocked to prevent an invalid unit conversion.")
+        if st.button(
+            "Process selected record",
+            type="primary",
+            icon=":material/play_arrow:",
+            disabled=unknown_provenance or missing_inventory,
+        ):
+            try:
+                with st.spinner(f"Processing {station}..."):
+                    _process_one_station(record_id, station_stream, configuration)
+            except Exception as exc:
+                st.exception(exc)
+        contexts = st.session_state["contexts_by_station"].get(record_id)
+        if contexts:
+            _display_analysis(record_id, contexts, event_info)
+    elif mode == "Multi-station processing":
+        _batch_analysis(records, configuration)
+    else:
+        _export_batch(event_info)
+
+
+if __name__ == "__main__":
+    main()

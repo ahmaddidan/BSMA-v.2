@@ -6,7 +6,11 @@ it does not perform CSV serialization, chart rendering, or PDF assembly.
 
 from __future__ import annotations
 
+import hashlib
+import io
+import json
 import tempfile
+import zipfile
 import re
 from pathlib import Path
 from typing import Any, Mapping
@@ -116,6 +120,73 @@ class ExportService:
             if generate_4panel_waveform(context, channel, path, safe_station):
                 paths.append(path)
         return paths
+
+    def export_batch_package(
+        self,
+        contexts_by_station: Mapping[str, Mapping[str, ProcessingContext]],
+        output_directory: str | Path,
+        *,
+        event_info: Mapping[str, Any] | None = None,
+    ) -> tuple[bytes, str]:
+        """Create a ZIP package with CSV, provenance JSON, waveform PNGs, and per-station PDFs."""
+        if not contexts_by_station:
+            raise ValueError("contexts_by_station must contain at least one station.")
+
+        destination = Path(output_directory)
+        destination.mkdir(parents=True, exist_ok=True)
+
+        csv_path = self.export_batch_csv(
+            contexts_by_station,
+            destination / "BSMA_Summary.csv",
+        )
+
+        provenance = {
+            station: {
+                channel: {
+                    "trace_id": context.trace_id,
+                    "raw_waveform_sha256": hashlib.sha256(context.raw_waveform.data.tobytes()).hexdigest(),
+                    "raw_unit": context.raw_waveform.unit,
+                    "acceleration_unit": context.acceleration.unit if context.acceleration is not None else None,
+                    "metadata": dict(context.metadata),
+                    "metrics": dict(context.metrics),
+                    "processing_state": context.processing_state.to_dict(),
+                    "configuration": dict(context.config),
+                    "history": list(context.history),
+                    "qc": context.qc.to_dict() if context.qc is not None else None,
+                }
+                for channel, context in station_contexts.items()
+            }
+            for station, station_contexts in contexts_by_station.items()
+        }
+
+        pdf_directory = destination / "reports"
+        waveform_directory = destination / "waveforms"
+        pdf_directory.mkdir(parents=True, exist_ok=True)
+        waveform_directory.mkdir(parents=True, exist_ok=True)
+
+        with io.BytesIO() as buffer:
+            with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+                archive.write(csv_path, arcname="BSMA_Summary.csv")
+                archive.writestr("provenance.json", json.dumps(provenance, indent=2, default=str))
+
+                for station, station_contexts in contexts_by_station.items():
+                    safe_station = re.sub(r'[<>:"/\\|?*]+', "_", station)
+                    pdf_path = self.export_station_pdf(
+                        station,
+                        station_contexts,
+                        pdf_directory / f"BSMA_Report_{safe_station}.pdf",
+                        event_info=event_info or None,
+                    )
+                    archive.write(pdf_path, arcname=f"reports/{pdf_path.name}")
+
+                    for png_path in self.export_station_waveform_pngs(
+                        station,
+                        station_contexts,
+                        waveform_directory,
+                    ):
+                        archive.write(png_path, arcname=f"waveforms/{png_path.name}")
+
+            return buffer.getvalue(), "BSMA_Operational_Exports.zip"
 
     @staticmethod
     def _sig_label(pga_gal: float) -> str:

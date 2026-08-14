@@ -1682,3 +1682,44 @@ services.analysis_service.AnalysisServiceError: StationXML is absent for XX.TEST
 2026-08-14 21:51:41 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
 2026-08-14 21:51:41 | INFO     | root | logger.py:248 |  Backups  : 5
 2026-08-14 21:51:41 | INFO     | root | logger.py:249 | ========================================
+2026-08-14 21:54:47 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-14 21:54:47 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-14 21:54:47 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-14 21:54:48 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-14 21:54:48 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-14 21:54:49 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-14 21:54:49 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-14 21:54:50 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-14 21:56:36 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-14 21:56:36 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-14 21:56:36 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-14 21:56:37 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-14 21:56:37 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-14 21:56:38 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-14 21:56:38 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-14 21:56:39 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 02:28:49 | INFO     | root | logger.py:243 | ========================================
+2026-08-15 02:28:49 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-15 02:28:49 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-15 02:28:49 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-15 02:28:50 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-15 02:28:50 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-15 02:28:50 | INFO     | root | logger.py:249 | ========================================
+2026-08-15 02:29:46 | INFO     | root | logger.py:243 | ========================================
+2026-08-15 02:29:46 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-15 02:29:46 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-15 02:29:46 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-15 02:29:46 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-15 02:29:46 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-15 02:29:46 | INFO     | root | logger.py:249 | ========================================
+2026-08-15 02:34:22 | INFO     | root | logger.py:243 | ========================================
+2026-08-15 02:34:22 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-15 02:34:22 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-15 02:34:22 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-15 02:34:22 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-15 02:34:22 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-15 02:34:22 | INFO     | root | logger.py:249 | ========================================
+2026-08-15 02:34:25 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-15 02:34:25 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-15 02:34:25 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 02:34:25 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
