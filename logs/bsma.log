@@ -1723,3 +1723,147 @@ services.analysis_service.AnalysisServiceError: StationXML is absent for XX.TEST
 2026-08-15 02:34:25 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
 2026-08-15 02:34:25 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
 2026-08-15 02:34:25 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:14:25 | INFO     | root | logger.py:243 | ========================================
+2026-08-15 03:14:25 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-15 03:14:25 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-15 03:14:25 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-15 03:14:25 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-15 03:14:25 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-15 03:14:25 | INFO     | root | logger.py:249 | ========================================
+2026-08-15 03:14:28 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-15 03:14:28 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-15 03:14:28 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:14:28 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:14:28 | INFO     | utils.pdf_exporter | pdf_exporter.py:1332 | Memulai pembuatan PDF stasiun TEST.
+2026-08-15 03:15:22 | INFO     | utils.pdf_exporter | pdf_exporter.py:1839 | Laporan PDF berhasil dibuat: C:\Users\USer\AppData\Local\Temp\pytest-of-USer\pytest-17\test_export_service_generates_0\report.pdf
+2026-08-15 03:17:32 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-15 03:17:32 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-15 03:17:32 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:17:35 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:17:35 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:17:37 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:17:37 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:17:40 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:17:48 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-15 03:17:48 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-15 03:17:48 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:17:50 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-15 03:17:51 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-15 03:17:51 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:17:51 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:17:51 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:17:54 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:17:54 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:17:55 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-15 03:17:56 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:17:56 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:17:59 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-15 03:17:59 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:18:00 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:18:00 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:18:03 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:18:08 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:18:08 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:18:08 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:18:10 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:18:10 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:18:13 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:18:38 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-15 03:18:38 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-15 03:18:38 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:18:40 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:18:40 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:18:43 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:18:43 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:18:45 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:20:09 | INFO     | utils.pdf_exporter | pdf_exporter.py:1330 | Memulai pembuatan PDF stasiun PPJR _ 2026-02-05 18_04_27 UTC.
+2026-08-15 03:22:37 | INFO     | utils.pdf_exporter | pdf_exporter.py:1818 | Laporan PDF berhasil dibuat: D:\Perkuliahan\Cadangan project\Project BSMA\outputs\reports\BSMA_Report_PPJR _ 2026-02-05 18_04_27 UTC.pdf
+2026-08-15 03:24:10 | INFO     | root | logger.py:243 | ========================================
+2026-08-15 03:24:10 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-15 03:24:10 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-15 03:24:10 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-15 03:24:10 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-15 03:24:10 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-15 03:24:10 | INFO     | root | logger.py:249 | ========================================
+2026-08-15 03:24:10 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-15 03:24:10 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-15 03:24:10 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:24:10 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:24:10 | INFO     | utils.pdf_exporter | pdf_exporter.py:1332 | Memulai pembuatan PDF stasiun TEST.
+2026-08-15 03:25:14 | INFO     | utils.pdf_exporter | pdf_exporter.py:1839 | Laporan PDF berhasil dibuat: C:\Users\USer\AppData\Local\Temp\pytest-of-USer\pytest-18\test_export_service_generates_0\report.pdf
+2026-08-15 03:25:14 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-15 03:25:14 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-15 03:25:14 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:25:14 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:25:14 | INFO     | utils.pdf_exporter | pdf_exporter.py:1332 | Memulai pembuatan PDF stasiun TEST.
+2026-08-15 03:26:18 | INFO     | utils.pdf_exporter | pdf_exporter.py:1839 | Laporan PDF berhasil dibuat: C:\Users\USer\AppData\Local\Temp\pytest-of-USer\pytest-18\test_export_station_pdf_includ0\event_report.pdf
+2026-08-15 03:28:58 | INFO     | utils.pdf_exporter | pdf_exporter.py:1330 | Memulai pembuatan PDF stasiun PPJR _ 2026-02-05 18_04_27 UTC.
+2026-08-15 03:30:31 | INFO     | root | logger.py:243 | ========================================
+2026-08-15 03:30:31 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-15 03:30:31 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-15 03:30:31 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-15 03:30:31 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-15 03:30:31 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-15 03:30:31 | INFO     | root | logger.py:249 | ========================================
+2026-08-15 03:30:35 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-15 03:30:35 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-15 03:30:35 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:30:35 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:30:35 | INFO     | utils.pdf_exporter | pdf_exporter.py:1332 | Memulai pembuatan PDF stasiun TEST.
+2026-08-15 03:31:14 | INFO     | utils.pdf_exporter | pdf_exporter.py:1818 | Laporan PDF berhasil dibuat: D:\Perkuliahan\Cadangan project\Project BSMA\outputs\reports\BSMA_Report_PPJR _ 2026-02-05 18_04_27 UTC.pdf
+2026-08-15 03:31:32 | INFO     | utils.pdf_exporter | pdf_exporter.py:1839 | Laporan PDF berhasil dibuat: C:\Users\USer\AppData\Local\Temp\pytest-of-USer\pytest-19\test_export_service_generates_0\report.pdf
+2026-08-15 03:31:32 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-15 03:31:32 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-15 03:31:32 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:31:32 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:31:32 | INFO     | utils.pdf_exporter | pdf_exporter.py:1332 | Memulai pembuatan PDF stasiun TEST.
+2026-08-15 03:32:20 | INFO     | utils.pdf_exporter | pdf_exporter.py:1839 | Laporan PDF berhasil dibuat: C:\Users\USer\AppData\Local\Temp\pytest-of-USer\pytest-19\test_export_station_pdf_includ0\event_report.pdf
+2026-08-15 03:34:09 | INFO     | root | logger.py:243 | ========================================
+2026-08-15 03:34:09 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-15 03:34:09 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-15 03:34:09 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-15 03:34:09 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-15 03:34:09 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-15 03:34:09 | INFO     | root | logger.py:249 | ========================================
+2026-08-15 03:34:09 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-15 03:34:09 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-15 03:34:09 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:34:09 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:34:09 | INFO     | utils.pdf_exporter | pdf_exporter.py:1332 | Memulai pembuatan PDF stasiun TEST.
+2026-08-15 03:35:12 | INFO     | utils.pdf_exporter | pdf_exporter.py:1839 | Laporan PDF berhasil dibuat: C:\Users\USer\AppData\Local\Temp\tmpdwr6uc7z\x.pdf
+2026-08-15 03:35:43 | INFO     | root | logger.py:243 | ========================================
+2026-08-15 03:35:43 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-15 03:35:43 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-15 03:35:43 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-15 03:35:43 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-15 03:35:43 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-15 03:35:43 | INFO     | root | logger.py:249 | ========================================
+2026-08-15 03:35:46 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-15 03:35:46 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-15 03:35:46 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:35:46 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:35:46 | INFO     | utils.pdf_exporter | pdf_exporter.py:1332 | Memulai pembuatan PDF stasiun TEST.
+2026-08-15 03:36:42 | INFO     | utils.pdf_exporter | pdf_exporter.py:1839 | Laporan PDF berhasil dibuat: C:\Users\USer\AppData\Local\Temp\pytest-of-USer\pytest-20\test_export_service_generates_0\report.pdf
+2026-08-15 03:36:43 | INFO     | services.analysis_service | qc.py:362 | QCAnalyzer initialized.
+2026-08-15 03:36:43 | INFO     | services.analysis_service | qc.py:431 | Stream QC completed.
+2026-08-15 03:36:43 | INFO     | services.analysis_service | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:36:43 | INFO     | services.analysis_service | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:36:43 | INFO     | utils.pdf_exporter | pdf_exporter.py:1332 | Memulai pembuatan PDF stasiun TEST.
+2026-08-15 03:37:39 | INFO     | utils.pdf_exporter | pdf_exporter.py:1839 | Laporan PDF berhasil dibuat: C:\Users\USer\AppData\Local\Temp\pytest-of-USer\pytest-20\test_export_station_pdf_includ0\event_report.pdf
+2026-08-15 03:42:19 | INFO     | root | logger.py:243 | ========================================
+2026-08-15 03:42:19 | INFO     | root | logger.py:244 |  BSMA Logging Initialized
+2026-08-15 03:42:19 | INFO     | root | logger.py:245 |  Log File : logs\bsma.log
+2026-08-15 03:42:19 | INFO     | root | logger.py:246 |  Log Level: INFO
+2026-08-15 03:42:19 | INFO     | root | logger.py:247 |  Max Size : 10485760 bytes
+2026-08-15 03:42:19 | INFO     | root | logger.py:248 |  Backups  : 5
+2026-08-15 03:42:19 | INFO     | root | logger.py:249 | ========================================
+2026-08-15 03:42:25 | INFO     | bsma.dashboard | qc.py:362 | QCAnalyzer initialized.
+2026-08-15 03:42:25 | INFO     | bsma.dashboard | qc.py:431 | Stream QC completed.
+2026-08-15 03:42:25 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:42:27 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:42:27 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:42:29 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:42:29 | INFO     | bsma.dashboard | orchestrator.py:171 | PipelineOrchestrator initialized.
+2026-08-15 03:42:32 | INFO     | bsma.dashboard | pipeline.py:279 | BSMA pipeline completed successfully.
+2026-08-15 03:43:27 | INFO     | utils.pdf_exporter | pdf_exporter.py:1338 | Memulai pembuatan PDF stasiun PPJR _ 2026-02-05 18_04_27 UTC.
+2026-08-15 03:45:14 | INFO     | utils.pdf_exporter | pdf_exporter.py:1845 | Laporan PDF berhasil dibuat: D:\Perkuliahan\Cadangan project\Project BSMA\outputs\reports\BSMA_Report_PPJR _ 2026-02-05 18_04_27 UTC.pdf

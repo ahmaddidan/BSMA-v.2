@@ -76,17 +76,17 @@ class ExportService:
         pga_gal = float(strongest.metrics.get("PGA", 0.0)) * 100.0
         sig_status = self._sig_label(pga_gal)
 
-        # The full operational report includes the executive summary, SIG
-        # interpretation, parameter table, spectrum, and every component's
-        # waveform.  Retain the compact generator only when callers need
-        # custom event metadata or branding.
-        if not event_info and logo_path is None:
+        # Preserve the standard BSMA template for all operational exports.
+        # The only difference when event metadata is supplied is an additional
+        # event-information block; the base layout remains identical.
+        if logo_path is None:
             safe_station_code = re.sub(r'[<>:"/\\|?*]+', "_", station_code)
             return export_station_report(
                 safe_station_code,
                 dict(contexts),
                 Path(output_path).parent,
                 output_path=output_path,
+                event_info=event_info,
             )
 
         with tempfile.TemporaryDirectory(prefix="bsma_pdf_") as directory:

@@ -416,10 +416,16 @@ def _pdf_section_title(
         102,
     )
 
+    section_title = (
+        f"{number}. {title}"
+        if number and str(number).strip()
+        else title
+    )
+
     pdf.cell(
         0,
         7,
-        f"{number}. {title}",
+        section_title,
         border=0,
         ln=1,
     )
@@ -1279,6 +1285,8 @@ def export_station_report(
     contexts: dict[str, ProcessingContext],
     output_dir: str | Path = "outputs/reports",
     output_path: str | Path | None = None,
+    *,
+    event_info: dict[str, Any] | None = None,
 ) -> Path:
     """
     Generate complete station PDF report.
@@ -1472,6 +1480,25 @@ def export_station_report(
     )
 
     pdf.ln(4)
+
+    if event_info:
+        _pdf_section_title(
+            pdf,
+            "",
+            "INFORMASI EVENT",
+        )
+        event_rows = (
+            ("Waktu", event_info.get("time", "-")),
+            ("Koordinat", f"{event_info.get('latitude', '-')} , {event_info.get('longitude', '-')}"),
+            ("Magnitudo", event_info.get("magnitude", "-")),
+            ("Kedalaman", f"{event_info.get('depth_km', '-')} km"),
+            ("Jarak episentral", f"{event_info.get('epicentral_distance_km', '-')} km"),
+        )
+        for label, value in event_rows:
+            if value in (None, "", "- , -"):
+                continue
+            _pdf_label_value(pdf, label, value)
+        pdf.ln(4)
 
     # -------------------------------------------------------------------------
     # SIG classification
