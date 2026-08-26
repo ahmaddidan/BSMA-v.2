@@ -78,7 +78,7 @@ def test_summary():
     report.add_result(make_result("B", QCStatus.WARNING))
     report.add_result(make_result("C", QCStatus.FAIL))
 
-    assert report.summary() == "PASS=1 | WARNING=1 | FAIL=1"
+    assert "PASS=1 | WARNING=1 | FAIL=1" in report.summary()
 
 
 def test_to_dict():

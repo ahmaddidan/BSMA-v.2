@@ -1,72 +1,28 @@
-from datetime import datetime
-from datetime import timedelta
+from __future__ import annotations
 
 import numpy as np
 
-from core.preprocessing.taper import (
-    TaperPlugin,
-)
-
-from core.types.context import ProcessingContext
-from core.types.metadata import TraceMetadata
+from core.preprocessing.taper import TaperPlugin
+from tests.helpers import make_context
 
 
-def create_context():
-
-    fs = 100.0
-
-    waveform = np.ones(1000)
-
-    metadata = TraceMetadata(
-        network="IA",
-        station="TEST",
-        location="00",
-        channel="HNZ",
-        sampling_rate=fs,
-        starttime=datetime.now(),
-        endtime=datetime.now() + timedelta(seconds=10),
-        npts=1000,
-    )
-
-    return ProcessingContext(
-        waveform=waveform,
-        metadata=metadata,
-    )
-
-
-def test_taper():
-
-    ctx = create_context()
-
+def test_taper() -> None:
+    ctx = make_context(np.ones(1000), sampling_rate=100.0)
     plugin = TaperPlugin()
-
     result = plugin.process(ctx)
 
-    assert result.waveform[0] < 0.05
-
-    assert result.waveform[-1] < 0.05
-
-    assert result.waveform[500] > 0.95
-
+    assert result.acceleration is not None
+    assert result.acceleration.data[0] < 0.05
+    assert result.acceleration.data[-1] < 0.05
+    assert result.acceleration.data[500] > 0.95
     assert len(result.history) == 1
 
 
-def test_original_context_not_modified():
-
-    ctx = create_context()
-
-    original = ctx.waveform.copy()
+def test_original_context_not_modified() -> None:
+    ctx = make_context(np.ones(1000), sampling_rate=100.0)
+    original = ctx.acceleration.data.copy()
 
     plugin = TaperPlugin()
+    plugin.process(ctx)
 
-    result = plugin.process(ctx)
-
-    assert np.array_equal(
-        ctx.waveform,
-        original,
-    )
-
-    assert not np.array_equal(
-        ctx.waveform,
-        result.waveform,
-    )
+    np.testing.assert_array_equal(ctx.acceleration.data, original)

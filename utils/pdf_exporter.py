@@ -32,12 +32,33 @@ import matplotlib
 # Required for Streamlit/headless/server environments.
 matplotlib.use("Agg")
 
-import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+from matplotlib.figure import Figure
 import numpy as np
 from fpdf import FPDF
 
 from core.types.context import ProcessingContext
 from utils.logger import setup_logger
+
+
+def _clean_text_latin1(text: str) -> str:
+    """Sanitize Unicode text to Latin-1 compatible characters for FPDF core fonts."""
+    if not text:
+        return ""
+    replacements = {
+        "°": " deg ",
+        "—": "-",
+        "–": "-",
+        "“": '"',
+        "”": '"',
+        "’": "'",
+        "•": "*",
+        "µ": "u",
+        "±": "+/-",
+    }
+    for orig, repl in replacements.items():
+        text = text.replace(orig, repl)
+    return text.encode("latin-1", "replace").decode("latin-1")
 
 
 # =============================================================================
@@ -69,7 +90,7 @@ def get_sig_bmkg(
     pga_gal: float,
 ) -> tuple[str, str, tuple[int, int, int], str, str, str]:
     """
-    Classify earthquake shaking according to the BSMA BMKG SIG scale.
+    Classify earthquake shaking according to the official 5-level BMKG SIG scale.
 
     Parameters
     ----------
@@ -87,50 +108,87 @@ def get_sig_bmkg(
             mmi_range,
             detailed_description,
         )
-
-    Notes
-    -----
-    PGA conversion:
-
-        1 m/s² = 100 Gal
-
-    The thresholds and descriptions are kept consistent with the
-    classification currently used by the BSMA application.
     """
-
     pga_gal = float(pga_gal)
-
     if not math.isfinite(pga_gal):
         pga_gal = 0.0
 
-    gravity = 9.80665
     thresholds = (
-        (0.05 * gravity, ("I", "Putih", (255, 255, 255), "TIDAK DIRASAKAN", "I-II", "Tidak dirasakan atau dirasakan hanya oleh beberapa orang tetapi terekam oleh alat.")),
-        (0.30 * gravity, ("II", "Hijau", (146, 208, 80), "DIRASAKAN", "III-V", "Dirasakan oleh orang banyak tetapi tidak menimbulkan kerusakan. Benda-benda ringan yang digantung bergoyang dan jendela kaca bergetar.")),
-        (2.8 * gravity, ("III", "Kuning", (255, 255, 0), "KERUSAKAN RINGAN", "VI", "Bagian nonstruktur bangunan mengalami kerusakan ringan, seperti retak rambut pada dinding, atap bergeser ke bawah dan sebagian berjatuhan.")),
-        (6.2 * gravity, ("IV", "Jingga", (255, 192, 0), "KERUSAKAN SEDANG", "VII-VIII", "Banyak retakan terjadi pada dinding bangunan sederhana, sebagian roboh, kaca pecah. Sebagian plester dinding lepas.")),
-        (12.0 * gravity, ("V", "Merah", (255, 0, 0), "KERUSAKAN BERAT", "IX-XII", "Sebagian besar dinding bangunan permanen roboh. Struktur bangunan mengalami kerusakan berat.")),
-        (22.0 * gravity, ("VI", "Merah tua", (192, 0, 0), "KERUSAKAN PARAH", "X", "Kerusakan berat pada struktur umum dan sebagian bangunan mengalami kehancuran signifikan.")),
-        (40.0 * gravity, ("VII", "Merah tua", (128, 0, 0), "KERUSAKAN PARAH", "X-XI", "Bangunan umum mengalami kerusakan besar dan banyak struktur tidak layak pakai.")),
-        (75.0 * gravity, ("VIII", "Cokelat", (128, 64, 0), "KERUSAKAN SANGAT PARAH", "XI-XII", "Kerusakan besar, banyak bangunan runtuh, potensi korban dan gangguan sistem utilitas tinggi.")),
-        (139.0 * gravity, ("IX", "Hitam", (0, 0, 0), "KERUSAKAN EKSTREM", "XII+", "Kerusakan menyeluruh pada infrastruktur dan bangunan utama, dengan konsekuensi sangat berat.")),
+        (2.9, ("I", "Putih", (255, 255, 255), "TIDAK DIRASAKAN", "I-II",
+               "Getaran tidak dirasakan oleh manusia; hanya terekam oleh instrumen seismik (accelerograph/seismograph).")),
+        (89.0, ("II", "Hijau", (146, 208, 80), "DIRASAKAN", "III-V",
+                "Getaran dirasakan oleh sebagian besar penghuni bangunan namun tidak menimbulkan kerusakan. "
+                "Benda-benda ringan yang tergantung tampak bergoyang, jendela dan perabot kaca bergetar.")),
+        (168.0, ("III", "Kuning", (255, 255, 0), "KERUSAKAN RINGAN", "VI",
+                 "Kerusakan terjadi pada komponen nonstruktural bangunan: retak rambut (hairline crack) pada dinding, "
+                 "genteng bergeser atau sebagian berjatuhan, dan plesteran dinding mulai terkelupas.")),
+        (565.0, ("IV", "Jingga", (255, 192, 0), "KERUSAKAN SEDANG", "VII-VIII",
+                 "Retakan lebar muncul pada dinding bangunan sederhana (non-engineered), "
+                 "sebagian bangunan mengalami keruntuhan parsial. Kaca jendela pecah dan "
+                 "plesteran dinding lepas secara signifikan.")),
     )
-
-    if not math.isfinite(pga_gal):
-        pga_gal = 0.0
 
     for threshold, value in thresholds:
         if pga_gal < threshold:
             return value
 
     return (
-        "X+",
-        "Hitam",
-        (0, 0, 0),
-        "KERUSAKAN EKSTREM",
-        "XII+",
-        "Kerusakan total dan konsekuensi sangat berat pada bangunan dan infrastruktur.",
+        "V",
+        "Merah",
+        (255, 0, 0),
+        "KERUSAKAN BERAT",
+        "IX-XII",
+        "Sebagian besar dinding bangunan permanen mengalami keruntuhan. "
+        "Elemen struktural utama (kolom, balok, pondasi) mengalami kerusakan berat "
+        "hingga runtuh total (collapse).",
     )
+
+
+def get_mmi_worden(
+    pga_pct_g: float,
+    pgv_cm_s: float,
+) -> dict[str, Any]:
+    """
+    Map Peak Acceleration (%g) and Peak Velocity (cm/s) to the Worden et al. (2011) / BMKG ShakeMap scale.
+    """
+    pga_pct_g = float(pga_pct_g) if math.isfinite(float(pga_pct_g)) else 0.0
+    pgv_cm_s = float(pgv_cm_s) if math.isfinite(float(pgv_cm_s)) else 0.0
+
+    pga_thresholds = [0.05, 0.3, 2.8, 9.075, 17.13, 57.61, 100.0, 150.0]
+    pgv_thresholds = [0.02, 0.1, 1.4, 4.7, 12.0, 30.0, 60.0, 120.0]
+
+    pga_idx = 0
+    for t in pga_thresholds:
+        if pga_pct_g >= t:
+            pga_idx += 1
+        else:
+            break
+
+    pgv_idx = 0
+    for t in pgv_thresholds:
+        if pgv_cm_s >= t:
+            pgv_idx += 1
+        else:
+            break
+
+    # Align with BMKG / USGS ShakeMap classification
+    idx = pga_idx if pga_idx < 3 else (pgv_idx if pgv_idx > pga_idx else pga_idx)
+    idx = min(max(idx, 0), 8)
+
+    columns = [
+        {"mmi": "I", "shaking": "Not felt", "damage": "none", "pga_label": "<0.05", "pgv_label": "<0.02", "color_name": "Putih", "rgb": (255, 255, 255)},
+        {"mmi": "II-III", "shaking": "Weak", "damage": "none", "pga_label": "0.3", "pgv_label": "0.1", "color_name": "Biru Muda", "rgb": (191, 204, 255)},
+        {"mmi": "IV", "shaking": "Light", "damage": "none", "pga_label": "2.8", "pgv_label": "1.4", "color_name": "Cyan", "rgb": (115, 238, 238)},
+        {"mmi": "V", "shaking": "Moderate", "damage": "Very light", "pga_label": "6.2", "pgv_label": "4.7", "color_name": "Hijau", "rgb": (115, 255, 115)},
+        {"mmi": "VI", "shaking": "Strong", "damage": "Light", "pga_label": "12", "pgv_label": "9.6", "color_name": "Kuning", "rgb": (255, 255, 0)},
+        {"mmi": "VII", "shaking": "Very strong", "damage": "Moderate", "pga_label": "22", "pgv_label": "20", "color_name": "Jingga", "rgb": (255, 192, 0)},
+        {"mmi": "VIII", "shaking": "Severe", "damage": "Mod./Heavy", "pga_label": "40", "pgv_label": "41", "color_name": "Merah Jingga", "rgb": (255, 128, 0)},
+        {"mmi": "IX", "shaking": "Violent", "damage": "Heavy", "pga_label": "75", "pgv_label": "86", "color_name": "Merah", "rgb": (255, 0, 0)},
+        {"mmi": "X+", "shaking": "Extreme", "damage": "Very Heavy", "pga_label": ">139", "pgv_label": ">178", "color_name": "Merah Tua", "rgb": (192, 0, 0)},
+    ]
+
+    return columns[idx]
+
 
 
 # =============================================================================
@@ -498,8 +556,11 @@ def _pdf_add_sig_box(
     sig_desc: str,
     mmi: str,
     sig_detail: str,
+    mmi_info: dict[str, Any] | None = None,
+    pga_pct_g: float = 0.0,
+    pgv_cm_s: float = 0.0,
 ) -> None:
-    """Render BMKG SIG classification box."""
+    """Render BMKG SIG classification box and Worden et al. (2011) MMI box."""
 
     pdf.set_fill_color(*rgb)
 
@@ -520,12 +581,12 @@ def _pdf_add_sig_box(
     pdf.set_font(
         "helvetica",
         "B",
-        13,
+        12,
     )
 
     pdf.cell(
         0,
-        11,
+        9,
         (
             f"SKALA {sig_id} SIG-BMKG | "
             f"{sig_desc}"
@@ -539,12 +600,12 @@ def _pdf_add_sig_box(
     pdf.set_font(
         "helvetica",
         "B",
-        9,
+        8.5,
     )
 
     pdf.cell(
         0,
-        6,
+        5,
         (
             f"Warna: {sig_color} | "
             f"Rentang intensitas: {mmi}"
@@ -558,19 +619,87 @@ def _pdf_add_sig_box(
     pdf.set_font(
         "helvetica",
         "",
-        8.5,
+        8,
     )
 
     pdf.multi_cell(
         0,
-        5,
+        4.5,
         f"Dampak: {sig_detail}",
         border="LBR",
         align="L",
         fill=True,
     )
 
-    pdf.ln(5)
+    pdf.ln(3)
+
+    if mmi_info:
+        mmi_rgb = mmi_info["rgb"]
+        pdf.set_fill_color(*mmi_rgb)
+        if mmi_info["mmi"] in {"VIII", "IX", "X+"}:
+            mmi_text_color = (255, 255, 255)
+        else:
+            mmi_text_color = (0, 0, 0)
+
+        pdf.set_text_color(*mmi_text_color)
+        pdf.set_font(
+            "helvetica",
+            "B",
+            10,
+        )
+
+        pdf.cell(
+            0,
+            7,
+            (
+                f"INSTRUMENTAL INTENSITY (MMI): {mmi_info['mmi']} | "
+                f"PERCEIVED SHAKING: {mmi_info['shaking'].upper()}"
+            ),
+            border=1,
+            ln=1,
+            align="C",
+            fill=True,
+        )
+
+        pdf.set_font(
+            "helvetica",
+            "B",
+            8,
+        )
+
+        pdf.cell(
+            0,
+            4.5,
+            (
+                f"Potensi Kerusakan: {mmi_info['damage']} | "
+                f"Peak Acc Baseline: {mmi_info['pga_label']} %g | "
+                f"Peak Vel Baseline: {mmi_info['pgv_label']} cm/s"
+            ),
+            border="LR",
+            ln=1,
+            align="C",
+            fill=True,
+        )
+
+        pdf.set_font(
+            "helvetica",
+            "",
+            7.5,
+        )
+
+        pdf.multi_cell(
+            0,
+            4,
+            (
+                f"Nilai Rekaman Terukur: PGA = {pga_pct_g:.3f} %g | "
+                f"PGV = {pgv_cm_s:.3f} cm/s (Skala USGS ShakeMap / Worden et al., 2011)"
+            ),
+            border="LBR",
+            align="C",
+            fill=True,
+        )
+
+        pdf.ln(3)
 
     pdf.set_text_color(
         0,
@@ -610,10 +739,8 @@ def generate_spectrum_overlay(
 
     output_path = Path(output_path)
 
-    fig, ax = plt.subplots(
-        figsize=(10, 4.8),
-        dpi=160,
-    )
+    fig = Figure(figsize=(10, 4.8), dpi=110)
+    ax = fig.add_subplot(111)
 
     colors = {
         "HNE": "purple",
@@ -708,12 +835,13 @@ def generate_spectrum_overlay(
     )
 
     ax.set_ylabel(
-        "Spectral Acceleration (g)",
+        "Pseudo-Spectral Acceleration, PSa (g)",
         fontsize=9,
     )
 
     if has_data:
         ax.set_xscale("log")
+        ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x:g}"))
 
         ax.grid(
             True,
@@ -746,12 +874,9 @@ def generate_spectrum_overlay(
 
     fig.savefig(
         output_path,
-        dpi=200,
-        bbox_inches="tight",
+        dpi=110,
         facecolor="white",
     )
-
-    plt.close(fig)
 
     return has_data
 
@@ -759,6 +884,72 @@ def generate_spectrum_overlay(
 # =============================================================================
 # WAVEFORM PLOT
 # =============================================================================
+
+def _decimate_minmax(t: np.ndarray, d: np.ndarray, target_points: int = 1500) -> tuple[np.ndarray, np.ndarray]:
+    """Fast MinMax decimation to speed up PDF plot rendering while preserving exact peak values."""
+    n = len(d)
+    if n <= target_points or target_points <= 0:
+        return t, d
+    bin_size = max(1, n // (target_points // 2))
+    num_bins = n // bin_size
+    t_dec = []
+    d_dec = []
+    for i in range(num_bins):
+        start = i * bin_size
+        end = min((i + 1) * bin_size, n)
+        slice_t = t[start:end]
+        slice_d = d[start:end]
+        if len(slice_d) == 0:
+            continue
+        min_idx = int(np.argmin(slice_d))
+        max_idx = int(np.argmax(slice_d))
+        if min_idx < max_idx:
+            t_dec.extend([slice_t[min_idx], slice_t[max_idx]])
+            d_dec.extend([slice_d[min_idx], slice_d[max_idx]])
+        else:
+            t_dec.extend([slice_t[max_idx], slice_t[min_idx]])
+            d_dec.extend([slice_d[max_idx], slice_d[min_idx]])
+    return np.array(t_dec, dtype=float), np.array(d_dec, dtype=float)
+
+
+def _render_husid_fas_plot(contexts: dict[str, ProcessingContext], output_path: str | Path) -> bool:
+    """Render Husid energy and Fourier amplitude spectrum plot concurrently."""
+    try:
+        figure = Figure(figsize=(9, 8), dpi=110)
+        ax0 = figure.add_subplot(2, 1, 1)
+        ax1 = figure.add_subplot(2, 1, 2)
+        axes = [ax0, ax1]
+        has_data = False
+        for channel, context in sorted(contexts.items()):
+            husid = getattr(context.cache, "husid_curve", None)
+            if husid is not None and len(husid) > 0:
+                time = np.arange(len(husid)) / context.sampling_rate
+                t_draw, d_draw = _decimate_minmax(time, np.asarray(husid) * 100.0)
+                axes[0].plot(t_draw, d_draw, label=channel, linewidth=1.2)
+                has_data = True
+            acceleration = context.acceleration
+            if acceleration is not None and acceleration.data is not None and len(acceleration.data) > 0:
+                data = np.asarray(acceleration.data)
+                freq = np.fft.rfftfreq(data.size, d=1.0 / context.sampling_rate)
+                amplitude = np.abs(np.fft.rfft(data)) / data.size
+                f_draw, a_draw = _decimate_minmax(freq[1:], amplitude[1:], target_points=1500)
+                axes[1].loglog(f_draw, a_draw, label=channel, linewidth=1.2)
+                has_data = True
+        if not has_data:
+            return False
+        axes[0].set(title="Husid Energy Curve", xlabel="Time (s)", ylabel="Normalized Cumulative Arias Intensity (%)")
+        axes[1].set(title="Fourier Amplitude Spectrum", xlabel="Frequency (Hz)", ylabel="Fourier Amplitude (m/s² · s)")
+        axes[1].xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x:g}"))
+        for axis in axes:
+            axis.grid(True, which="both", alpha=0.25)
+            axis.legend()
+        figure.tight_layout()
+        figure.savefig(output_path, dpi=110)
+        return True
+    except Exception as exc:
+        logger.exception("Gagal merender HUSID/FAS plot: %s", exc)
+        return False
+
 
 def generate_4panel_waveform(
     context: ProcessingContext,
@@ -837,28 +1028,20 @@ def generate_4panel_waveform(
         )
         return False
 
-    fig, axes = plt.subplots(
-        4,
-        1,
-        figsize=(10, 10.5),
-        sharex=False,
-        dpi=160,
-    )
+    fig = Figure(figsize=(10, 10.5), dpi=110)
+    axes = [fig.add_subplot(4, 1, i + 1) for i in range(4)]
 
     # -------------------------------------------------------------------------
     # RAW
     # -------------------------------------------------------------------------
 
     if raw.size > 0:
-        time_raw = (
-            np.arange(raw.size)
-            / sampling_rate
-        )
-
+        time_raw = np.arange(raw.size) / sampling_rate
+        t_draw, d_draw = _decimate_minmax(time_raw, raw * 100.0)
         axes[0].plot(
-            time_raw,
-            raw * 100.0,
-            linewidth=0.45,
+            t_draw,
+            d_draw,
+            linewidth=0.5,
         )
 
     axes[0].set_title(
@@ -884,15 +1067,12 @@ def generate_4panel_waveform(
     # -------------------------------------------------------------------------
 
     if acc.size > 0:
-        time_acc = (
-            np.arange(acc.size)
-            / sampling_rate
-        )
-
+        time_acc = np.arange(acc.size) / sampling_rate
+        t_draw, d_draw = _decimate_minmax(time_acc, acc)
         axes[1].plot(
-            time_acc,
-            acc,
-            linewidth=0.45,
+            t_draw,
+            d_draw,
+            linewidth=0.5,
         )
 
     axes[1].set_title(
@@ -918,15 +1098,12 @@ def generate_4panel_waveform(
     # -------------------------------------------------------------------------
 
     if vel.size > 0:
-        time_vel = (
-            np.arange(vel.size)
-            / sampling_rate
-        )
-
+        time_vel = np.arange(vel.size) / sampling_rate
+        t_draw, d_draw = _decimate_minmax(time_vel, vel * 100.0)
         axes[2].plot(
-            time_vel,
-            vel * 100.0,
-            linewidth=0.45,
+            t_draw,
+            d_draw,
+            linewidth=0.5,
         )
 
     axes[2].set_title(
@@ -952,15 +1129,12 @@ def generate_4panel_waveform(
     # -------------------------------------------------------------------------
 
     if disp.size > 0:
-        time_disp = (
-            np.arange(disp.size)
-            / sampling_rate
-        )
-
+        time_disp = np.arange(disp.size) / sampling_rate
+        t_draw, d_draw = _decimate_minmax(time_disp, disp * 100.0)
         axes[3].plot(
-            time_disp,
-            disp * 100.0,
-            linewidth=0.45,
+            t_draw,
+            d_draw,
+            linewidth=0.5,
         )
 
     axes[3].set_title(
@@ -1090,12 +1264,9 @@ def generate_4panel_waveform(
 
     fig.savefig(
         output_path,
-        dpi=200,
-        bbox_inches="tight",
+        dpi=110,
         facecolor="white",
     )
-
-    plt.close(fig)
 
     return True
 
@@ -1501,8 +1672,13 @@ def export_station_report(
         pdf.ln(4)
 
     # -------------------------------------------------------------------------
-    # SIG classification
+    # SIG & MMI classification
     # -------------------------------------------------------------------------
+
+    strongest_metrics = _extract_metrics(contexts[strongest_channel])
+    pga_pct_g = (strongest_metrics["PGA"] / 9.80665) * 100.0
+    pgv_cm_s = strongest_metrics["PGV"] * 100.0
+    mmi_info = get_mmi_worden(pga_pct_g, pgv_cm_s)
 
     _pdf_add_sig_box(
         pdf=pdf,
@@ -1512,6 +1688,9 @@ def export_station_report(
         sig_desc=sig_desc,
         mmi=mmi,
         sig_detail=sig_detail,
+        mmi_info=mmi_info,
+        pga_pct_g=pga_pct_g,
+        pgv_cm_s=pgv_cm_s,
     )
 
     # -------------------------------------------------------------------------
@@ -1611,220 +1790,97 @@ def export_station_report(
     # Temporary plot directory
     # -------------------------------------------------------------------------
 
-    with tempfile.TemporaryDirectory(
-        prefix="bsma_pdf_"
-    ) as temp_directory:
+    with tempfile.TemporaryDirectory(prefix="bsma_pdf_") as temp_directory:
+        temp_dir = Path(temp_directory)
+        spectrum_path = temp_dir / "response_spectrum.png"
+        husid_path = temp_dir / "husid.png"
+        waveform_paths = {
+            channel: temp_dir / f"waveform_{channel}.png"
+            for channel in contexts.keys()
+        }
 
-        temp_dir = Path(
-            temp_directory
-        )
-
-        spectrum_path = (
-            temp_dir
-            / "response_spectrum.png"
-        )
+        # Render all Matplotlib figures using threadsafe OO Figure objects
+        try:
+            spectrum_available = generate_spectrum_overlay(
+                contexts=contexts,
+                output_path=spectrum_path,
+                station_code=station_code,
+            )
+        except Exception:
+            logger.exception("Gagal membuat response spectrum untuk stasiun %s.", station_code)
+            spectrum_available = False
 
         try:
-            spectrum_available = (
-                generate_spectrum_overlay(
-                    contexts=contexts,
-                    output_path=spectrum_path,
+            husid_available = _render_husid_fas_plot(
+                contexts=contexts,
+                output_path=husid_path,
+            )
+        except Exception:
+            logger.exception("Gagal membuat HUSID/FAS plot untuk stasiun %s.", station_code)
+            husid_available = False
+
+        waveform_results = {}
+        for channel, context in contexts.items():
+            try:
+                waveform_results[channel] = generate_4panel_waveform(
+                    context=context,
+                    channel=channel,
+                    output_path=waveform_paths[channel],
                     station_code=station_code,
                 )
-            )
+            except Exception:
+                logger.exception("Gagal membuat waveform plot %s/%s.", station_code, channel)
+                waveform_results[channel] = False
 
-            if spectrum_available:
-                pdf.image(
-                    str(spectrum_path),
-                    x=MARGIN_LEFT,
-                    w=CONTENT_WIDTH,
-                )
-
-            else:
-                pdf.set_font(
-                    "helvetica",
-                    "I",
-                    9,
-                )
-
-                pdf.cell(
-                    0,
-                    8,
-                    (
-                        "Data response spectrum "
-                        "tidak tersedia."
-                    ),
-                    ln=1,
-                    align="C",
-                )
-
-        except Exception:
-            logger.exception(
-                (
-                    "Gagal membuat response spectrum "
-                    "untuk stasiun %s.",
-                    station_code,
-                )
-            )
-
-            pdf.set_font(
-                "helvetica",
-                "I",
-                9,
-            )
-
-            pdf.cell(
-                0,
-                8,
-                (
-                    "Response spectrum gagal "
-                    "dirender."
-                ),
-                ln=1,
-                align="C",
-            )
+        if spectrum_available and spectrum_path.is_file():
+            pdf.image(str(spectrum_path), x=MARGIN_LEFT, w=CONTENT_WIDTH)
+        else:
+            pdf.set_font("helvetica", "I", 9)
+            pdf.cell(0, 8, "Data response spectrum tidak tersedia.", ln=1, align="C")
 
         # ---------------------------------------------------------------------
         # SECTION 4 - HUSID AND FOURIER AMPLITUDE SPECTRUM
         # ---------------------------------------------------------------------
         pdf.add_page()
         _pdf_section_title(pdf, "4", "HUSID PLOT DAN FOURIER AMPLITUDE SPECTRUM")
-        husid_path = temp_dir / "husid.png"
-        fas_path = temp_dir / "fas.png"
-        figure, axes = plt.subplots(2, 1, figsize=(9, 8))
-        for channel, context in sorted(contexts.items()):
-            husid = getattr(context.cache, "husid_curve", None)
-            if husid is not None:
-                time = np.arange(len(husid)) / context.sampling_rate
-                axes[0].plot(time, np.asarray(husid) * 100.0, label=channel)
-            acceleration = context.acceleration
-            if acceleration is not None:
-                data = np.asarray(acceleration.data)
-                freq = np.fft.rfftfreq(data.size, d=1.0 / context.sampling_rate)
-                amplitude = np.abs(np.fft.rfft(data)) / data.size
-                axes[1].loglog(freq[1:], amplitude[1:], label=channel)
-        axes[0].set(title="Husid energy curve", xlabel="Time (s)", ylabel="Cumulative Arias energy (%)")
-        axes[1].set(title="Fourier amplitude spectrum", xlabel="Frequency (Hz)", ylabel="Amplitude")
-        for axis in axes:
-            axis.grid(True, which="both", alpha=0.25)
-            axis.legend()
-        figure.tight_layout()
-        figure.savefig(husid_path, dpi=160)
-        plt.close(figure)
-        pdf.image(str(husid_path), x=MARGIN_LEFT, w=CONTENT_WIDTH)
+        if husid_available and husid_path.is_file():
+            pdf.image(str(husid_path), x=MARGIN_LEFT, w=CONTENT_WIDTH)
+        else:
+            pdf.set_font("helvetica", "I", 9)
+            pdf.cell(0, 8, "Data HUSID/FAS tidak tersedia.", ln=1, align="C")
 
         # ---------------------------------------------------------------------
         # SECTION 5 - WAVEFORM PER CHANNEL
         # ---------------------------------------------------------------------
 
-        for channel in sorted(
-            contexts.keys()
-        ):
+        for channel in sorted(contexts.keys()):
             pdf.add_page()
-
-            _pdf_section_title(
-                pdf,
-                "5",
-                f"WAVEFORM ANALYSIS - {channel}",
-            )
+            _pdf_section_title(pdf, "5", f"WAVEFORM ANALYSIS - {channel}")
 
             context = contexts[channel]
+            metrics = _extract_metrics(context)
 
-            metrics = _extract_metrics(
-                context
-            )
-
-            pdf.set_font(
-                "helvetica",
-                "",
-                8,
-            )
-
+            pdf.set_font("helvetica", "", 8)
             pdf.cell(
                 0,
                 5,
                 (
-                    f"PGA: "
-                    f"{metrics['PGA'] * 100.0:.3f} Gal | "
-                    f"PGV: "
-                    f"{metrics['PGV'] * 100.0:.4f} cm/s | "
-                    f"PGD: "
-                    f"{metrics['PGD'] * 100.0:.4f} cm | "
-                    f"D5-95: "
-                    f"{metrics['Significant_Duration_D5_95']:.2f} s"
+                    f"PGA: {metrics['PGA'] * 100.0:.3f} Gal | "
+                    f"PGV: {metrics['PGV'] * 100.0:.4f} cm/s | "
+                    f"PGD: {metrics['PGD'] * 100.0:.4f} cm | "
+                    f"D5-95: {metrics['Significant_Duration_D5_95']:.2f} s"
                 ),
                 ln=1,
             )
 
-            waveform_path = (
-                temp_dir
-                / (
-                    f"waveform_"
-                    f"{channel}.png"
-                )
-            )
+            w_path = waveform_paths[channel]
+            w_avail = waveform_results.get(channel, False)
 
-            try:
-                waveform_available = (
-                    generate_4panel_waveform(
-                        context=context,
-                        channel=channel,
-                        output_path=waveform_path,
-                        station_code=station_code,
-                    )
-                )
-
-                if waveform_available:
-                    pdf.image(
-                        str(waveform_path),
-                        x=MARGIN_LEFT,
-                        w=CONTENT_WIDTH,
-                    )
-
-                else:
-                    pdf.set_font(
-                        "helvetica",
-                        "I",
-                        9,
-                    )
-
-                    pdf.cell(
-                        0,
-                        8,
-                        (
-                            "Data waveform "
-                            "tidak tersedia."
-                        ),
-                        ln=1,
-                        align="C",
-                    )
-
-            except Exception:
-                logger.exception(
-                    (
-                        "Gagal membuat waveform plot "
-                        "%s/%s.",
-                        station_code,
-                        channel,
-                    )
-                )
-
-                pdf.set_font(
-                    "helvetica",
-                    "I",
-                    9,
-                )
-
-                pdf.cell(
-                    0,
-                    8,
-                    (
-                        "Waveform gagal "
-                        "dirender."
-                    ),
-                    ln=1,
-                    align="C",
-                )
+            if w_avail and w_path.is_file():
+                pdf.image(str(w_path), x=MARGIN_LEFT, w=CONTENT_WIDTH)
+            else:
+                pdf.set_font("helvetica", "I", 9)
+                pdf.cell(0, 8, "Waveform gagal dirender.", ln=1, align="C")
 
     # -------------------------------------------------------------------------
     # FINALIZE PDF
