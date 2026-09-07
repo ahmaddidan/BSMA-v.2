@@ -11,7 +11,8 @@ from core.sdof.newmark import solve_newmark
 def _to_spectral_peaks(u, v, a_abs, periods, ground_acc):
     periods = np.asarray(periods, dtype=np.float64)
     sd = np.max(np.abs(u), axis=-1)
-    omega = np.where(periods > 0, 2.0 * np.pi / periods, 0.0)
+    safe_periods = np.where(periods > 0, periods, 1.0)
+    omega = np.where(periods > 0, 2.0 * np.pi / safe_periods, 0.0)
     psv = omega * sd
     psa = (omega ** 2) * sd
     for i, p in enumerate(periods):

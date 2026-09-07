@@ -140,8 +140,10 @@ def inject_bsma_theme() -> None:
     section[data-testid="stSidebar"] {{
         background-color: {sidebar};
         border-right: 1px solid {border};
-        min-width: 280px;
-        width: 280px !important;
+    }}
+
+    section[data-testid="stSidebar"][aria-expanded="false"] {{
+        border-right: none !important;
     }}
 
     section[data-testid="stSidebar"] .stMarkdown h3 {{

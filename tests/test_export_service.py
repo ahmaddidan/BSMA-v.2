@@ -10,10 +10,15 @@ from services import AnalysisConfiguration, AnalysisService, ExportService
 
 
 def _pdf_text(path):
-    if fitz is None:
+    if fitz is not None:
+        doc = fitz.open(path)
+        return "\n".join(page.get_text("text") for page in doc)
+    try:
+        from pypdf import PdfReader
+        reader = PdfReader(path)
+        return "\n".join(page.extract_text() or "" for page in reader.pages)
+    except Exception:
         return ""
-    doc = fitz.open(path)
-    return "\n".join(page.get_text("text") for page in doc)
 
 
 def _contexts():
