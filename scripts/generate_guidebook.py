@@ -8,7 +8,7 @@ Program Studi Teknik Geofisika, Fakultas Teknik Industri, Institut Teknologi Sum
 Pelaksanaan Kerja Praktik: Stasiun Geofisika Kelas I Sleman, BMKG D.I. Yogyakarta
 Periode: 20 Juli 2026 – 20 Agustus 2026
 Aplikasi Cloud Web: https://strong-motion.streamlit.app/
-Repositori Resmi GitHub: https://github.com/ahmaddidan/BSMA-v.2
+Repositori GitHub: https://github.com/ahmaddidan/BSMA-v.2
 """
 
 from __future__ import annotations

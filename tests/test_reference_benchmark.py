@@ -76,12 +76,12 @@ def test_reference_benchmark_kinematic_and_energy(synthetic_canonical_signal):
     pgv_cm_s = pgv_ms * 100.0
     pgd_cm = pgd_m * 100.0
     
-    # Check absolute bounds based on synthetic burst
-    assert 200.0 <= pga_gal <= 600.0, f"PGA out of expected range: {pga_gal:.2f} Gal"
-    assert 5.0 <= pgv_cm_s <= 40.0, f"PGV out of expected range: {pgv_cm_s:.2f} cm/s"
-    assert 0.5 <= pgd_cm <= 20.0, f"PGD out of expected range: {pgd_cm:.2f} cm"
-    assert 0.1 <= ia_total <= 8.0, f"Arias intensity out of expected range: {ia_total:.4f} m/s"
-    assert 3.0 <= d5_95 <= 12.0, f"D5-95 out of expected range: {d5_95:.2f} s"
+    # Deterministic regression validation against canonical ground-truth
+    assert pga_gal == pytest.approx(476.303, rel=1e-3), f"PGA mismatch: {pga_gal:.3f} Gal"
+    assert pgv_cm_s == pytest.approx(29.077, rel=1e-3), f"PGV mismatch: {pgv_cm_s:.3f} cm/s"
+    assert pgd_cm == pytest.approx(2.086, rel=1e-3), f"PGD mismatch: {pgd_cm:.3f} cm"
+    assert ia_total == pytest.approx(5.005, rel=1e-3), f"Arias intensity mismatch: {ia_total:.4f} m/s"
+    assert d5_95 == pytest.approx(5.498, rel=1e-3), f"D5-95 mismatch: {d5_95:.3f} s"
 
 
 def test_reference_benchmark_mmi_worden(synthetic_canonical_signal):
@@ -101,10 +101,10 @@ def test_reference_benchmark_mmi_worden(synthetic_canonical_signal):
     mmi_disc = mmi_res["mmi_discrete"]
     basis = mmi_res["basis"]
     
-    # Given strong shaking PGA ~ 350 Gal and PGV ~ 29 cm/s, intensity is MMI IX - X+
-    assert 7.0 <= mmi_cont <= 10.0, f"Continuous MMI out of range: {mmi_cont:.2f}"
-    assert mmi_disc in ["VIII", "IX", "X+"], f"Discrete MMI out of expected bin: {mmi_disc}"
-    assert basis in ["PGA", "PGV"], f"Basis must be PGA or PGV: {basis}"
+    # Strong shaking PGA ~ 476 Gal and PGV ~ 29 cm/s triggers extreme PGV branch
+    assert mmi_cont == pytest.approx(9.66, abs=0.05), f"Continuous MMI mismatch: {mmi_cont:.2f}"
+    assert mmi_disc == "X+", f"Discrete MMI mismatch: {mmi_disc}"
+    assert basis == "PGV", f"Basis must be PGV: {basis}"
 
 
 def test_reference_benchmark_sdof_and_cross_solver(synthetic_canonical_signal):
@@ -131,5 +131,7 @@ def test_reference_benchmark_sdof_and_cross_solver(synthetic_canonical_signal):
     psa_02 = (omega_02 ** 2) * sd_02
     
     pga = float(np.max(np.abs(acc)))
-    # Amplification factor Sa / PGA at dominant frequency must exceed 1.2
-    assert psa_02 / pga > 1.2, f"Expected resonant amplification at T=0.2s: Sa/PGA={psa_02/pga:.2f}"
+    # Exact deterministic response validation at dominant resonance (5 Hz / T=0.2s)
+    assert psa_02 == pytest.approx(21.740, rel=1e-3), f"PSA @ 0.2s mismatch: {psa_02:.4f} m/s^2"
+    # Dynamic amplification factor Sa / PGA at dominant frequency must exceed 4.0
+    assert psa_02 / pga > 4.0, f"Expected resonant amplification at T=0.2s: Sa/PGA={psa_02/pga:.2f}"

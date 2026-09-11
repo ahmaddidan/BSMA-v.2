@@ -61,11 +61,11 @@ FloatArray: TypeAlias = NDArray[np.float64]
 def solve_nigam_jennings(
     acceleration: FloatArray,
     dt: float,
-    periods: FloatArray | None = None,
+    periods: FloatArray | float | None = None,
     damping: float = 0.05,
     *,
-    T: FloatArray | None = None,
-) -> tuple[FloatArray, FloatArray, FloatArray]:
+    T: FloatArray | float | None = None,
+) -> tuple[FloatArray, FloatArray, FloatArray] | tuple[float, float, float]:
     """
     Solve linear SDOF oscillators using the Nigam-Jennings method.
 
@@ -78,7 +78,7 @@ def solve_nigam_jennings(
         Sampling interval in seconds.
 
     periods
-        One-dimensional oscillator periods in seconds.
+        One-dimensional oscillator periods in seconds, or a scalar period.
 
         T = 0 is permitted and represents the zero-period/PGA anchor.
 
@@ -93,23 +93,20 @@ def solve_nigam_jennings(
 
     Returns
     -------
-    u
-        Relative displacement response.
+    tuple[FloatArray, FloatArray, FloatArray] | tuple[float, float, float]
+        If `periods` (or `T`) is an array or list of periods:
+            (u, v, a_abs)
+            where:
+                u     : Relative displacement response array, shape (n_periods, n_samples)
+                v     : Relative velocity response array, shape (n_periods, n_samples)
+                a_abs : Absolute acceleration response array, shape (n_periods, n_samples)
 
-        Shape:
-            (n_periods, n_samples)
-
-    v
-        Relative velocity response.
-
-        Shape:
-            (n_periods, n_samples)
-
-    a_abs
-        Absolute acceleration response.
-
-        Shape:
-            (n_periods, n_samples)
+        If `periods` (or `T`) is a scalar float:
+            (sd, psv, psa)
+            where:
+                sd    : Spectral displacement (float)
+                psv   : Pseudo-spectral velocity (float)
+                psa   : Pseudo-spectral acceleration (float)
 
     Notes
     -----
@@ -138,8 +135,9 @@ def solve_nigam_jennings(
     which provides the PGA anchor without numerical division by
     T = 0.
 
-    The solver always returns array responses. A scalar period input is
-    preserved as a length-one period array.
+    If `periods` is passed as a scalar float or 0-D array, the solver
+    evaluates the peak spectral response and returns `(sd, psv, psa)` as
+    scalar floats. Otherwise, it returns 2D time-history arrays `(u, v, a_abs)`.
     """
 
     # ==================================================================

@@ -28,3 +28,10 @@ Thumbs.db
 # Runtime outputs
 outputs/reports/
 outputs/temp/
+
+# Local seismic waveform and metadata files (do not commit to git)
+Data/
+*.mseed
+*.miniseed
+*.SAC
+*.sac

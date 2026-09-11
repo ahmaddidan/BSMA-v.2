@@ -15,7 +15,7 @@ Internal calculations are strictly executed in SI units (m/s², m/s, m), and sca
 ```text
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
 │  1. INGESTION   │ ──> │  2. PREPROCESS  │ ──> │ 3. INTEGRATION  │ ──> │  4. KINEMATICS  │ ──> │  5. REPORTING   │
-│ MiniSEED / SAC  │     │ Detrend, Taper  │     │ Acc -> Vel ->   │     │ PGA, PGV, Arias │     │ PDF Resmi, CSV, │
+│ MiniSEED / SAC  │     │ Detrend, Taper  │     │ Acc -> Vel ->   │     │ PGA, PGV, Arias │     │ Laporan PDF/CSV │
 │ + StationXML    │     │ Butterworth 4-P │     │ Disp Mitigation │     │ SDOF PSA (5%)   │     │ ShakeMap MMI    │
 └─────────────────┘     └─────────────────┘     └─────────────────┘     └─────────────────┘     └─────────────────┘
 ```
@@ -41,11 +41,11 @@ Waveform data are audited prior to irreversible transformation:
   - High-frequency upper bound: f_max ≤ 0.80 f_Nyquist = 0.40 f_s to avoid near-Nyquist numerical artifacts.
   - Adaptive low-frequency floor: automatically elevated to 0.20 Hz or 0.40 Hz when record SNR is low (< 20 dB or < 10 dB) to suppress long-period drift.
 
-### Stage 4: Stepwise Numerical Integration & Baseline Mitigation
+### Stage 4: Stepwise Numerical Integration & Scientific Baseline Policy
 - Numerical integration uses the cumulative trapezoidal rule:
   Velocity: v(t) = ∫ a(τ) dτ
   Displacement: d(t) = ∫ v(τ) dτ
-- Baseline correction is enforced prior to and post-integration to remove residual low-frequency drift.
+- **Scientific Baseline Policy**: Baseline correction (linear detrending and mean removal) is applied strictly to acceleration prior to integration. To preserve the physical kinematic derivative relationship (a = dv/dt = d²x/dt²), no artificial post-integration detrending is applied to velocity or displacement.
 - **Scientific Limitation**: PGD computed via bandpass-filtered integration represents **transient dynamic peak displacement**, not static tectonic fling-step or permanent ground deformation.
 
 ### Stage 5: Kinematics, Energy, and Intensity Metrics

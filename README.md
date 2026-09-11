@@ -114,10 +114,10 @@ Sistem BSMA mengimplementasikan pipeline komputasi sekuensial yang ketat guna me
    * **Batas Atas Nyquist 80%**: $f_{\max} \le 0.80 f_{\mathrm{Nyquist}} = 0.40 f_s$ guna mencegah timbulnya artefak numerik frekuensi tinggi.
    * **Floor Adaptif SNR Frekuensi Rendah**: Cutoff $f_{\min}$ dinaikkan secara adaptif ke $0.20\text{ Hz}$ atau $0.40\text{ Hz}$ saat rekaman memiliki rasio sinyal-derau rendah ($< 20\text{ dB}$ atau $< 10\text{ dB}$) guna menekan drift periode panjang.
 
-4. **Integrasi Kinematika & Mitigasi Baseline Drift**:
+4. **Integrasi Kinematika & Kebijakan Garis Dasar (Baseline Policy)**:
    * Integrasi numerik bertahap dari percepatan $a(t)$ ke kecepatan $v(t)$, dilanjutkan ke perpindahan $d(t)$ menggunakan aturan trapesium kumulatif (*cumulative trapezoidal rule*).
-   * Koreksi garis dasar diaplikasikan sebelum dan sesudah integrasi untuk meminimalkan *residual drift*.
-   * **Catatan Metodologis PGD**: Nilai PGD yang dihasilkan merepresentasikan **perpindahan puncak dinamik transien**, bukan deformasi tektonik statis permanen (*static fling-step*).
+   * **Kebijakan Ilmiah Garis Dasar**: Koreksi garis dasar (*detrending*) diaplikasikan secara ketat pada deret waktu percepatan *sebelum* integrasi. Sesuai kaidah kalkulus kinematika murni, BSMA secara sengaja **tidak melakukan modifikasi detrending pasca-integrasi** pada kecepatan atau perpindahan untuk menjaga konsistensi derivatif fisik ($a = \dot{v} = \ddot{d}$).
+   * **Catatan Metodologis PGD**: Nilai PGD yang dihasilkan merepresentasikan **perpindahan puncak dinamik transien** dalam batas pita frekuensi penapis, bukan deformasi tektonik statis permanen (*static fling-step*).
 
 5. **Parameter Kinematika Seismik & Intensitas Instrumental MMI**:
    * Ekstraksi parameter puncak absolut: **PGA**, **PGV**, **PGD**, dan rasio **$V_{\max}/A_{\max}$**.
@@ -165,40 +165,77 @@ Antarmuka BSMA v2.0.0 dibangun di atas pustaka interaktif Streamlit dan visualis
 
 ## 📐 Landasan Formulasi Matematis
 
-Berikut adalah formulasi matematis baku yang diimplementasikan dalam mesin komputasi BSMA. Ditulis dalam blok notasi LaTeX standar agar dapat dirender dengan jelas dan presisi pada pembaca Markdown GitHub:
+Berikut adalah formulasi matematis baku yang diimplementasikan dalam mesin komputasi BSMA. Ditulis dalam blok notasi LaTeX display standar agar dapat dirender dengan jelas, bersih, dan presisi pada GitHub:
 
 ### 1. Batas Numerik Frekuensi Nyquist
-$$f_{\max} \le 0.80 \times f_{\mathrm{Nyquist}} = 0.40 \times f_s \quad [\text{Hz}]$$
+
+$$
+f_{\max} \le 0.80 \times f_{\mathrm{Nyquist}} = 0.40 \times f_s \quad [\text{Hz}]
+$$
 
 ### 2. Rasio Sinyal terhadap Derau (Signal-to-Noise Ratio)
-$$\text{SNR} = 20 \, \log_{10}\left( \frac{\mathrm{RMS}_{\mathrm{signal}}}{\mathrm{RMS}_{\mathrm{noise}}} \right) \quad [\text{dB}]$$
+
+$$
+\text{SNR} = 20 \log_{10}\left( \frac{\mathrm{RMS}_{\mathrm{signal}}}{\mathrm{RMS}_{\mathrm{noise}}} \right) \quad [\text{dB}]
+$$
 
 ### 3. Kinematika Puncak Gerakan Tanah (Peak Ground Motion)
-$$\text{PGA} = \max_{t} |a(t)| \quad [\text{Gal atau cm/s}^2]$$
 
-$$\text{PGV} = \max_{t} |v(t)| = \max_{t} \left| \int_0^t a(\tau) \, d\tau \right| \quad [\text{cm/s}]$$
+$$
+\text{PGA} = \max_{t} |a(t)| \quad [\text{Gal atau cm/s}^2]
+$$
 
-$$\text{PGD} = \max_{t} |d(t)| = \max_{t} \left| \int_0^t v(\tau) \, d\tau \right| \quad [\text{cm}]$$
+$$
+\text{PGV} = \max_{t} |v(t)| = \max_{t} \left| \int_0^t a(\tau) \, d\tau \right| \quad [\text{cm/s}]
+$$
+
+$$
+\text{PGD} = \max_{t} |d(t)| = \max_{t} \left| \int_0^t v(\tau) \, d\tau \right| \quad [\text{cm}]
+$$
 
 ### 4. Intensitas Arias Kumulatif ($I_a$)
-$$I_a = \frac{\pi}{2g} \int_0^{t_{\max}} [a(t)]^2 \, dt \quad [\text{m/s}]$$
+
+$$
+I_a = \frac{\pi}{2g} \int_0^{t_{\max}} [a(t)]^2 \, dt \quad [\text{m/s}]
+$$
 
 ### 5. Durasi Signifikan ($D_{5-95}$)
-$$D_{5-95} = t_{95\%} - t_{5\%} \quad [\text{detik}]$$
-*(Dihitung dari waktu pencapaian 5% hingga 95% integral akumulasi energi Husid)*
+
+$$
+D_{5-95} = t_{95} - t_{5} \quad [\text{detik}]
+$$
+
+*(Dihitung dari selisih waktu antara pencapaian 5% hingga 95% integral akumulasi energi Husid)*
 
 ### 6. Spektrum Respons Pseudo-Percepatan (PSA SDOF Redaman 5%)
-$$\text{PSA}(T, \xi) = \omega^2 S_d(T, \xi) = \omega^2 \max_{t} |u(t)| \quad [g \text{ atau m/s}^2]$$
+
+$$
+\text{PSA}(T, \xi) = \omega^2 S_d(T, \xi) = \omega^2 \max_{t} |u(t)| \quad [g \text{ atau m/s}^2]
+$$
+
 *(dengan frekuensi sudut $\omega = 2\pi/T$ dan rasio redaman kritis $\xi = 0.05$)*
 
 ### 7. Hubungan Intensitas Instrumental Skala MMI (Worden et al., 2012)
+
 Dihitung secara baku dari **Komponen Horizontal Maksimum (Max-H)**:
 
-* **Berdasarkan PGA (Gal)**:
-$$\text{MMI}_{\text{PGA}} = \begin{cases} 1.78 + 1.55 \log_{10}(\text{PGA}), & \log_{10}(\text{PGA}) \le 1.57 \\ -1.60 + 3.70 \log_{10}(\text{PGA}), & \log_{10}(\text{PGA}) > 1.57 \end{cases}$$
+**Formulasi Berdasarkan PGA (Gal):**
 
-* **Berdasarkan PGV (cm/s)**:
-$$\text{MMI}_{\text{PGV}} = \begin{cases} 3.78 + 2.99 \log_{10}(\text{PGV}), & \log_{10}(\text{PGV}) \le 0.53 \\ 2.40 + 4.96 \log_{10}(\text{PGV}), & \log_{10}(\text{PGV}) > 0.53 \end{cases}$$
+$$
+\text{MMI}_{\text{PGA}} = \begin{cases}
+1.78 + 1.55 \log_{10}(\text{PGA}), & \log_{10}(\text{PGA}) \le 1.57 \\
+-1.60 + 3.70 \log_{10}(\text{PGA}), & \log_{10}(\text{PGA}) > 1.57
+\end{cases}
+$$
+
+**Formulasi Berdasarkan PGV (cm/s):**
+
+$$
+\text{MMI}_{\text{PGV}} = \begin{cases}
+3.78 + 2.99 \log_{10}(\text{PGV}), & \log_{10}(\text{PGV}) \le 0.53 \\
+2.40 + 4.96 \log_{10}(\text{PGV}), & \log_{10}(\text{PGV}) > 0.53
+\end{cases}
+$$
 
 Pada intensitas guncangan kuat ($I_{\text{MMI}} \ge 5.0$), perumusan PGV mendominasi penentuan intensitas instrumental sesuai pedoman konvensi USGS ShakeMap.
 
