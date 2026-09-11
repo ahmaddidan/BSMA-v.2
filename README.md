@@ -95,14 +95,14 @@ Antarmuka BSMA v2.0.0 dibangun di atas pustaka interaktif modern Streamlit dan v
 | Parameter | Persamaan Matematis | Satuan | Acuan Standar |
 | :--- | :--- | :---: | :--- |
 | **Batas Nyquist** | $f_{\max} \le 0.80 \times f_{\mathrm{Nyquist}} = 0.40 \times f_s$ | $\text{Hz}$ | Nyquist (1928), Shannon (1949) |
-| **Signal-to-Noise** | $\mathrm{SNR} = 20 \, \log_{10} \left( \frac{\mathrm{RMS}_{\mathrm{signal}}}{\mathrm{RMS}_{\mathrm{noise}}} \right)$ | $\text{dB}$ | Konvensi FDSN / PEER |
-| **PGA** | $\mathrm{PGA} = \max \, |a(t)|$ | $\text{Gal}$ | Seismologi Rekayasa Baku |
-| **PGV** | $\mathrm{PGV} = \max \, |v(t)| = \max \, \left| \int_0^t a(\tau) \, d\tau \right|$ | $\text{cm/s}$ | Kalkulus Integral Tentu Sinyal |
-| **PGD** | $\mathrm{PGD} = \max \, |d(t)| = \max \, \left| \int_0^t v(\tau) \, d\tau \right|$ | $\text{cm}$ | Integrasi Ganda Transien |
-| **Intensitas Arias** | $I_a = \frac{\pi}{2g} \int_0^{t_{\max}} [a(t)]^2 \, dt$ | $\text{m/s}$ | Arias (1970) |
-| **Durasi Signifikan** | $D_{5-95} = t_{95\%} - t_{5\%}$ | $\text{detik}$ | Trifunac & Brady (1975) |
-| **Spektrum Respons** | $\mathrm{PSA}(T, \xi) = \omega^2 S_d(T, \xi) = \omega^2 \max \, |u(t)|$ | $\text{g}$ | Nigam–Jennings (1969), SNI 1726:2019 |
-| **GMICE MMI** | $\text{MMI} = 1.78 + 1.55 \log_{10}(\mathrm{PGA})$ $(\le 1.57)$<br>$\text{MMI} = -1.60 + 3.70 \log_{10}(\mathrm{PGA})$ $(> 1.57)$ | Skala I–IX+ | Worden et al. (2012), USGS ShakeMap |
+| **Signal-to-Noise** | $\text{SNR} = 20 \log_{10}\left( \frac{\mathrm{RMS_{signal}}}{\mathrm{RMS_{noise}}} \right)$ | $\text{dB}$ | Konvensi FDSN / PEER |
+| **PGA** | $\text{PGA} = \max \vert a(t) \vert$ | $\text{Gal}$ | Seismologi Rekayasa Baku |
+| **PGV** | $\text{PGV} = \max \vert v(t) \vert = \max \left\vert \int_0^t a(\tau) d\tau \right\vert$ | $\text{cm/s}$ | Kalkulus Integral Tentu Sinyal |
+| **PGD** | $\text{PGD} = \max \vert d(t) \vert = \max \left\vert \int_0^t v(\tau) d\tau \right\vert$ | $\text{cm}$ | Integrasi Ganda Transien |
+| **Intensitas Arias** | $I_a = \frac{\pi}{2g} \int_0^{t_{\max}} [a(t)]^2 dt$ | $\text{m/s}$ | Arias (1970) |
+| **Durasi Signifikan** | $D_{5-95} = t_{95} - t_{5}$ | $\text{detik}$ | Trifunac & Brady (1975) (akumulasi $I_a$ 5% – 95%) |
+| **Spektrum Respons** | $\text{PSA}(T, \xi) = \omega^2 S_d(T, \xi) = \omega^2 \max \vert u(t) \vert$ | $\text{g}$ | Nigam-Jennings (1969), SNI 1726:2019 |
+| **GMICE MMI** | $\text{MMI} = 1.78 + 1.55 \log_{10}(\text{PGA}) \quad (\log_{10}\text{PGA} \le 1.57)$<br>$\text{MMI} = -1.60 + 3.70 \log_{10}(\text{PGA}) \quad (\log_{10}\text{PGA} > 1.57)$ | Skala I–IX+ | Worden et al. (2012), USGS ShakeMap |
 
 ---
 
