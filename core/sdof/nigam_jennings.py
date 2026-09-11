@@ -4,14 +4,15 @@ Module: core/sdof/nigam_jennings.py
 
 Description
 -----------
-Exact analytical SDOF oscillator solver using the Nigam-Jennings
-piecewise-linear excitation method.
+Analytical SDOF oscillator state-transition solver using the Nigam-Jennings
+(1969) piecewise-linear ground acceleration method.
 
 Reference
 ---------
-Nigam, N. C., & Jennings, P. C. (1968).
+Nigam, N. C., & Jennings, P. C. (1969).
 Calculation of response spectra from strong-motion earthquake records.
-Bulletin of the Seismological Society of America, 58(2), 909-922.
+Bulletin of the Seismological Society of America, 59(2), 909-922.
+https://doi.org/10.1785/BSSA0590020909
 
 Mathematical model
 ------------------

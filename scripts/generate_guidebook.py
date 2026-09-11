@@ -409,7 +409,7 @@ def build_guidebook_pdf() -> Path:
     p1.insert_text((145, 68), "Proyek Kerja Praktik Mahasiswa Program Studi Teknik Geofisika", fontsize=8.4, fontname="f_reg", color=(0.85, 0.92, 1.0))
     p1.insert_text((145, 82), "Fakultas Teknik Industri, Institut Teknologi Sumatera · BMKG Stasiun Geofisika Sleman", fontsize=7.6, fontname="f_it", color=(0.75, 0.85, 0.95))
 
-    p1.insert_text((LEFT_X, 150), "DOKUMEN PANDUAN PENGGUNA RESMI (USER GUIDEBOOK)", fontsize=9.2, fontname="f_bold", color=(0.75, 0.9, 1.0))
+    p1.insert_text((LEFT_X, 150), "DOKUMEN PANDUAN PENGGUNA & REFERENSI TEKNIS (USER GUIDEBOOK)", fontsize=8.8, fontname="f_bold", color=(0.75, 0.9, 1.0))
     p1.insert_text((LEFT_X, 175), "BMKG Strong Motion Analyzer (BSMA v2.0.0)", fontsize=17.5, fontname="f_bold", color=COLOR_WHITE)
     p1.insert_text((LEFT_X, 194), "Platform Komputasi Terpadu Sinyal Akselerograf, Kinematika Seismik, & Spektrum Respons Desain", fontsize=8.0, fontname="f_reg", color=(0.9, 0.95, 1.0))
 
@@ -594,7 +594,7 @@ def build_guidebook_pdf() -> Path:
         pemrosesan sinyal digital (DSP), ekstraksi kinematika seismik, dan pemodelan spektrum respons dalam satu alur kerja terpadu.<br>
         2. <b>Aksesibilitas Ganda</b>: Menyediakan fleksibilitas akses melalui aplikasi komputasi awan (<i>cloud web application</i>) 
         tanpa instalasi lokal di <a href="https://strong-motion.streamlit.app/"><b>https://strong-motion.streamlit.app/</b></a> serta opsi instalasi pada stasiun kerja lokal (<i>workstation</i>).<br>
-        3. <b>Standardisasi Diseminasi</b>: Mengotomatisasi penyusunan laporan teknis (<i>technical report</i>) berformat PDF resmi, lembar data CSV, dan paket arsip ZIP terkompresi.
+        3. <b>Standardisasi Diseminasi</b>: Mengotomatisasi penyusunan laporan teknis (<i>technical report</i>) berformat PDF komprehensif, lembar data CSV, dan paket arsip ZIP terkompresi.
     </p>
     """
     builder.insert_html_safe(p3, pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 90), p3_html_2)
@@ -980,8 +980,8 @@ def build_guidebook_pdf() -> Path:
         <span style="font-size: 7.2pt; color: #334155;">Klik tombol <b>Run Analysis</b>. Pipeline BSMA secara berurutan mengeksekusi validasi format, <i>detrending</i> polinomial, <i>tapering</i> Tukey 5%, penapisan fase nol, integrasi numerik, ekstraksi kinematika, komputasi MMI, dan spektrum respons.</span>
     </div>
     <div style="border-left: 3px solid #6366f1; background: #f8fafc; padding: 6px 10px; margin-bottom: 6px;">
-        <b style="color: #6366f1; font-size: 7.8pt;">LANGKAH 4: INTERPRETASI 7 TAB HASIL & EKSPOR LAPORAN RESMI</b><br>
-        <span style="font-size: 7.2pt; color: #334155;">Telaah hasil pada 7 tab interaktif Plotly. Ekspor laporan resmi komprehensif dalam format PDF siap cetak, tabel CSV metrik kinematik, tabel matriks spektrum respons, atau paket arsip ZIP terkompresi.</span>
+        <b style="color: #6366f1; font-size: 7.8pt;">LANGKAH 4: INTERPRETASI 7 TAB HASIL & EKSPOR LAPORAN TEKNIS</b><br>
+        <span style="font-size: 7.2pt; color: #334155;">Telaah hasil pada 7 tab interaktif Plotly. Ekspor laporan teknis komprehensif dalam format PDF siap cetak, tabel CSV metrik kinematik, tabel matriks spektrum respons, atau paket arsip ZIP terkompresi.</span>
     </div>
     """
     builder.insert_html_safe(p7, pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 215), steps_html)
@@ -1027,7 +1027,7 @@ def build_guidebook_pdf() -> Path:
          "Menyajikan kurva Spektrum Respons Pseudo-Acceleration (<i>S<sub>a</sub></i>) elastis redaman 5% untuk ketiga kanal pada rentang periode "
          "<i>T</i> = 0.01 s hingga 10.0 s. Mendukung komparasi terhadap kurva spektrum desain SNI 1726:2019 (BSN, 2019)."),
         ("TAB 7: REPORT (GENERATOR LAPORAN TEKNIS PDF & CSV)",
-         "Memfasilitasi pratinjau dan pengunduhan dokumen laporan resmi komprehensif berformat PDF siap cetak dengan "
+         "Memfasilitasi pratinjau dan pengunduhan dokumen laporan teknis komprehensif berformat PDF siap cetak dengan "
          "tata letak rapi, tabel CSV ringkasan parameter kinematika, dan lembar CSV matriks spektrum respons diskret.")
     ]
 
@@ -1084,7 +1084,7 @@ def build_guidebook_pdf() -> Path:
     p9_html_zip = """
     <p>
         Pada mode ekspor hasil, BSMA menyediakan utilitas kompresi arsip ZIP (.zip) yang memuat luaran terpadu seluruh stasiun:<br>
-        • Dokumen Laporan Resmi PDF individual untuk setiap stasiun yang berhasil dianalisis.<br>
+        • Dokumen Laporan Teknis PDF individual untuk setiap stasiun yang berhasil dianalisis.<br>
         • Berkas CSV Ringkasan Metrik Kinematik (<i>Summary Metrics Table</i>) memuat PGA, PGV, PGD, <i>I<sub>a</sub></i>, <i>D</i><sub>5-95</sub>, MMI, dan skor QC.<br>
         • Berkas CSV Matriks Spektrum Respons Diskret memuat koordinat Periode <i>T</i> vs <i>S<sub>a</sub></i> untuk setiap stasiun.
     </p>
@@ -1281,7 +1281,7 @@ def build_guidebook_pdf() -> Path:
         "BSMA mengimplementasikan GMICE Worden et al. (2012) berbasis komponen horizontal terbesar (Max-H PGA & PGV): "
         "untuk log<sub>10</sub>(PGA) &le; 1.57 berlaku MMI = 1.78 + 1.55 log<sub>10</sub>(PGA); untuk log<sub>10</sub>(PGA) &gt; 1.57 "
         "berlaku MMI = -1.60 + 3.70 log<sub>10</sub>(PGA). Pada intensitas kuat (MMI &ge; 5.0), evaluasi dipadukan dengan regresi PGV "
-        "(log<sub>10</sub>PGV &le; 0.53: MMI = 3.78 + 2.89 log<sub>10</sub>PGV; log<sub>10</sub>PGV &gt; 0.53: MMI = 2.40 + 4.00 log<sub>10</sub>PGV). "
+        "(log<sub>10</sub>PGV &le; 0.53: MMI = 3.78 + 2.99 log<sub>10</sub>PGV; log<sub>10</sub>PGV &gt; 0.53: MMI = 2.40 + 4.96 log<sub>10</sub>PGV). "
         "Nilai ini adalah estimasi instrumental matematis, bukan pengganti survei makroseismik lapangan.",
         callout_type="info"
     )
@@ -1336,10 +1336,10 @@ def build_guidebook_pdf() -> Path:
             <td style="width: 50%; background-color: #f8fafc; border: 1px solid #0284c7; border-radius: 3px; padding: 5px 8px; vertical-align: top;">
                 <b style="color: #0284c7; font-size: 7.6pt;">1. CLOUD WEB APPLICATION (ONLINE)</b><br>
                 <a href="https://strong-motion.streamlit.app/" style="font-size: 7.1pt; color: #002d62; font-weight: bold; text-decoration: underline;">https://strong-motion.streamlit.app/</a><br>
-                <span style="font-size: 6.8pt; color: #334155; line-height: 1.26;">Aplikasi daring publik siap pakai tanpa instalasi lokal. Mendukung pemrosesan interaktif, visualisasi Plotly 3-kanal, dan ekspor laporan resmi langsung.</span>
+                <span style="font-size: 6.8pt; color: #334155; line-height: 1.26;">Aplikasi daring publik siap pakai tanpa instalasi lokal. Mendukung pemrosesan interaktif, visualisasi Plotly 3-kanal, dan ekspor laporan teknis langsung.</span>
             </td>
             <td style="width: 50%; background-color: #f8fafc; border: 1px solid #002d62; border-radius: 3px; padding: 5px 8px; vertical-align: top;">
-                <b style="color: #002d62; font-size: 7.6pt;">2. REPOSITORI RESMI GITHUB</b><br>
+                <b style="color: #002d62; font-size: 7.6pt;">2. REPOSITORI KODE SUMBER GITHUB</b><br>
                 <a href="https://github.com/ahmaddidan/BSMA-v.2" style="font-size: 7.1pt; color: #002d62; font-weight: bold; text-decoration: underline;">github.com/ahmaddidan/BSMA-v.2</a><br>
                 <span style="font-size: 6.8pt; color: #334155; line-height: 1.26;">Repositori terbuka memuat kode sumber modular, test suite otomatis (pytest), skrip generator panduan, data uji akselerogram, dan dokumentasi rilis.</span>
             </td>

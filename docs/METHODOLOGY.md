@@ -56,8 +56,8 @@ Waveform data are audited prior to irreversible transformation:
 - **Instrumental Intensity (MMI)**: Evaluated using Worden et al. (2012) GMICE relations based strictly on the **Maximum Horizontal Component** (max(PGA_H), max(PGV_H)), excluding vertical Z/U channels:
   - For log10(PGA) ≤ 1.57: MMI = 1.78 + 1.55 log10(PGA)
   - For log10(PGA) > 1.57: MMI = -1.60 + 3.70 log10(PGA)
-  - For log10(PGV) ≤ 0.53: MMI = 3.78 + 2.89 log10(PGV)
-  - For log10(PGV) > 0.53: MMI = 2.40 + 4.00 log10(PGV)
+  - For log10(PGV) <= 0.53: MMI = 3.78 + 2.99 log10(PGV)
+  - For log10(PGV) > 0.53: MMI = 2.40 + 4.96 log10(PGV)
   For strong shaking (MMI ≥ 5.0), PGV provides dominant physical correlation with structural damage according to USGS ShakeMap guidelines.
 
 ### Stage 6: SDOF Response Spectrum & Design Spectrum Overlay
