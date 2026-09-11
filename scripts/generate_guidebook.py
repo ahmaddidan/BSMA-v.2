@@ -30,6 +30,7 @@ OUTPUT_DIR = PROJECT_ROOT / "outputs"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 PDF_OUTPUT_PATH = OUTPUT_DIR / "BSMA_User_Guidebook.pdf"
 LOGO_PATH = PROJECT_ROOT / "Logo_Judul.png"
+LOGO_ITERA_PATH = PROJECT_ROOT / "Logo_ITERA.png"
 
 # Color Palette (RGB 0.0 - 1.0)
 COLOR_NAVY = (0.0, 0.176, 0.384)          # #002D62 (BMKG Navy)
@@ -403,15 +404,17 @@ def build_guidebook_pdf() -> Path:
     p1.draw_rect(pymupdf.Rect(0, 210, PAGE_W, 215), color=COLOR_SKY, fill=COLOR_SKY)
 
     if LOGO_PATH.is_file():
-        p1.insert_image(pymupdf.Rect(LEFT_X, 32, LEFT_X + 80, 126), filename=str(LOGO_PATH))
+        p1.insert_image(pymupdf.Rect(LEFT_X, 32, LEFT_X + 75, 122), filename=str(LOGO_PATH))
+    if LOGO_ITERA_PATH.is_file():
+        p1.insert_image(pymupdf.Rect(RIGHT_X - 75, 32, RIGHT_X, 122), filename=str(LOGO_ITERA_PATH))
 
-    p1.insert_text((145, 52), "BUKU PANDUAN PENGGUNA & REFERENSI TEKNIS SOFTWARE", fontsize=9.5, fontname="f_bold", color=COLOR_WHITE)
-    p1.insert_text((145, 68), "Proyek Kerja Praktik Mahasiswa Program Studi Teknik Geofisika", fontsize=8.4, fontname="f_reg", color=(0.85, 0.92, 1.0))
-    p1.insert_text((145, 82), "Fakultas Teknik Industri, Institut Teknologi Sumatera · BMKG Stasiun Geofisika Sleman", fontsize=7.6, fontname="f_it", color=(0.75, 0.85, 0.95))
+    p1.insert_text((135, 52), "BUKU PANDUAN PENGGUNA & REFERENSI TEKNIS SOFTWARE", fontsize=9.2, fontname="f_bold", color=COLOR_WHITE)
+    p1.insert_text((135, 68), "Proyek Kerja Praktik Mahasiswa Program Studi Teknik Geofisika", fontsize=8.2, fontname="f_reg", color=(0.85, 0.92, 1.0))
+    p1.insert_text((135, 82), "Fakultas Teknik Industri, Institut Teknologi Sumatera · BMKG Stasiun Geofisika Sleman", fontsize=7.4, fontname="f_it", color=(0.75, 0.85, 0.95))
 
     p1.insert_text((LEFT_X, 150), "DOKUMEN PANDUAN PENGGUNA & REFERENSI TEKNIS (USER GUIDEBOOK)", fontsize=8.8, fontname="f_bold", color=(0.75, 0.9, 1.0))
     p1.insert_text((LEFT_X, 175), "BMKG Strong Motion Analyzer (BSMA v2.0.0)", fontsize=17.5, fontname="f_bold", color=COLOR_WHITE)
-    p1.insert_text((LEFT_X, 194), "Platform Komputasi Terpadu Sinyal Akselerograf, Kinematika Seismik, & Spektrum Respons Desain", fontsize=8.0, fontname="f_reg", color=(0.9, 0.95, 1.0))
+    p1.insert_text((LEFT_X, 194), "Platform Komputasi Terpadu Sinyal Akselerograf, Kinematika Seismik, & Spektrum Respons", fontsize=8.0, fontname="f_reg", color=(0.9, 0.95, 1.0))
 
     builder.draw_card(p1, pymupdf.Rect(LEFT_X, 230, RIGHT_X, 715), bg_col=COLOR_WHITE, border_col=COLOR_CARD_BORDER)
     p1.insert_text((70, 258), "RINGKASAN PROYEK & KAPABILITAS SOFTWARE", fontsize=11.5, fontname="f_bold", color=COLOR_NAVY)

@@ -1,12 +1,20 @@
-# 🏛️ BMKG Strong Motion Analyzer (BSMA v2.0.0)
-**Platform Komputasi Sinyal Akselerograf, Kinematika Seismik, & Spektrum Respons Desain SNI 1726:2019**
+<div align="center">
+  <img src="Logo_Judul.png" alt="Logo BMKG" height="90" />
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="Logo_ITERA.png" alt="Logo ITERA" height="90" />
+</div>
 
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![Streamlit App](https://img.shields.io/badge/Streamlit-Live_Cloud_App-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://strong-motion.streamlit.app/)
-[![ObsPy](https://img.shields.io/badge/ObsPy-Seismology_Framework-4A90E2?style=for-the-badge)](https://docs.obspy.org/)
-[![SciPy](https://img.shields.io/badge/SciPy-DSP_%26_Solvers-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white)](https://scipy.org/)
-[![Plotly](https://img.shields.io/badge/Plotly-Interactive_Charts-3F4F75?style=for-the-badge&logo=plotly&logoColor=white)](https://plotly.com/)
-[![Status](https://img.shields.io/badge/Status-Release_v2.0.0-059669?style=for-the-badge)](https://github.com/ahmaddidan/BSMA-v.2)
+<h1 align="center">🏛️ BMKG Strong Motion Analyzer (BSMA v2.0.0)</h1>
+<p align="center"><b>Platform Komputasi Sinyal Akselerograf, Kinematika Seismik, & Spektrum Respons</b></p>
+
+<p align="center">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.10+" /></a>
+  <a href="https://strong-motion.streamlit.app/"><img src="https://img.shields.io/badge/Streamlit-Live_Cloud_App-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Streamlit App" /></a>
+  <a href="https://docs.obspy.org/"><img src="https://img.shields.io/badge/ObsPy-Seismology_Framework-4A90E2?style=for-the-badge" alt="ObsPy" /></a>
+  <a href="https://scipy.org/"><img src="https://img.shields.io/badge/SciPy-DSP_%26_Solvers-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white" alt="SciPy" /></a>
+  <a href="https://plotly.com/"><img src="https://img.shields.io/badge/Plotly-Interactive_Charts-3F4F75?style=for-the-badge&logo=plotly&logoColor=white" alt="Plotly" /></a>
+  <a href="https://github.com/ahmaddidan/BSMA-v.2"><img src="https://img.shields.io/badge/Status-Release_v2.0.0-059669?style=for-the-badge" alt="Status" /></a>
+</p>
 
 ---
 
@@ -210,7 +218,7 @@ $$
 D_{5-95} = t_{95} - t_{5} \quad [\text{detik}]
 $$
 
-*(Dihitung dari selisih waktu antara pencapaian 5% hingga 95% integral akumulasi energi Husid)*
+Keterangan: Dihitung dari selisih waktu antara pencapaian 5% hingga 95% integral akumulasi energi Husid.
 
 ### 6. Spektrum Respons Pseudo-Percepatan (PSA SDOF Redaman 5%)
 
@@ -218,7 +226,7 @@ $$
 \text{PSA}(T, \xi) = \omega^2 S_d(T, \xi) = \omega^2 \max_{t} |u(t)| \quad [g \text{ atau m/s}^2]
 $$
 
-*(dengan frekuensi sudut $\omega = 2\pi/T$ dan rasio redaman kritis $\xi = 0.05$)*
+Keterangan: $\omega = \frac{2\pi}{T}$ adalah frekuensi sudut alami osilator SDOF, $S_d(T, \xi)$ adalah spektrum simpangan relatif maksimum, dan $\xi = 0.05$ (rasio redaman kritis 5% standar rekayasa gempa).
 
 ### 7. Hubungan Intensitas Instrumental Skala MMI (Worden et al., 2012)
 

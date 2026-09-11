@@ -32,6 +32,7 @@ WAVEFORM_DIRECTORY = PROJECT_ROOT / "Data" / "mseed"
 INVENTORY_DIRECTORY = PROJECT_ROOT / "Data" / "stationXML"
 REPORT_DIRECTORY = PROJECT_ROOT / "outputs" / "reports"
 LOGO_PATH = PROJECT_ROOT / "Logo_Judul.png"
+LOGO_ITERA_PATH = PROJECT_ROOT / "Logo_ITERA.png"
 
 st.set_page_config(
     page_title="BMKG Strong Motion Analyzer",
@@ -2257,10 +2258,15 @@ def main() -> None:
     configuration, event_info = _configuration_from_sidebar()
 
     # App Header Banner with Top-Right Theme Toggle
-    col_h1, col_h2, col_h3 = st.columns([0.8, 7.2, 2.0], vertical_alignment="center")
+    col_h1, col_h2, col_h3 = st.columns([1.3, 6.7, 2.0], vertical_alignment="center")
     with col_h1:
-        if LOGO_PATH.is_file():
-            st.image(str(LOGO_PATH), width=85)
+        img_col1, img_col2 = st.columns(2)
+        with img_col1:
+            if LOGO_PATH.is_file():
+                st.image(str(LOGO_PATH), width=54)
+        with img_col2:
+            if LOGO_ITERA_PATH.is_file():
+                st.image(str(LOGO_ITERA_PATH), width=54)
     with col_h2:
         st.markdown(
             f"""
