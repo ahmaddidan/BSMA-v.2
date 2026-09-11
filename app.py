@@ -1069,23 +1069,34 @@ def _configuration_from_sidebar() -> tuple[AnalysisConfiguration, dict[str, Any]
 
         # PROCESSING Section
         st.markdown("### PROCESSING")
-        default_fmin = 0.25
-        default_fmax = 25.0
         is_prefiltered = False
         for p in WAVEFORM_DIRECTORY.glob("*.mseed"):
             stem = p.stem.upper()
             if "BP4_0.05_40" in stem or ("BP4" in stem and "0.05" in stem):
-                default_fmin = 0.05
-                default_fmax = 40.0
                 is_prefiltered = True
                 break
 
+        if uploaded_waveforms:
+            for uf in uploaded_waveforms:
+                stem = Path(uf.name).stem.upper()
+                if "BP4_0.05_40" in stem or ("BP4" in stem and "0.05" in stem):
+                    is_prefiltered = True
+                    break
+
+        default_fmin = 0.05 if is_prefiltered else 0.10
+        default_fmax = 40.0 if is_prefiltered else 25.0
+
+        if "prefiltered_state" not in st.session_state or st.session_state["prefiltered_state"] != is_prefiltered:
+            st.session_state["prefiltered_state"] = is_prefiltered
+            st.session_state["input_freq_min"] = default_fmin
+            st.session_state["input_freq_max"] = default_fmax
+
         if is_prefiltered:
-            st.caption("Auto-detected BMKG Pre-Filtered File (BP4 0.05–40 Hz). Preset corner frequencies applied.")
+            st.info("⚡ **File Akselerograf Operasional BMKG Terdeteksi (BP4 0.05–40 Hz).**\nSudut tapis diselaraskan ke **0.05 – 40.0 Hz**.")
 
         filter_type = st.selectbox("Filter", options=[member.value for member in FilterType], index=0)
-        frequency_min = st.number_input("Low Cutoff (Hz)", min_value=0.001, value=default_fmin, step=0.05)
-        frequency_max = st.number_input("High Cutoff (Hz)", min_value=0.01, value=default_fmax, step=1.0)
+        frequency_min = st.number_input("Low Cutoff (Hz)", min_value=0.001, key="input_freq_min", step=0.05)
+        frequency_max = st.number_input("High Cutoff (Hz)", min_value=0.01, key="input_freq_max", step=1.0)
 
         with st.expander("Advanced settings ▸", expanded=False):
             adaptive_filter = st.checkbox(
@@ -1267,12 +1278,21 @@ def _station_quality_summary(contexts: dict[str, Any]) -> dict[str, Any]:
             reasons.append(f"{channel}: Low SNR (< 3 dB).")
 
     average_score = total_score / max(len(contexts), 1)
-    fatal_anomaly = has_clipping or has_adc_saturation or has_flatline or has_missing_data
+
+    # Fatal anomalies compromise physical amplitudes (clipping/saturation) or cause total data loss
+    channel_statuses = [getattr(ctx.qc, "status", "PASS") for ctx in contexts.values() if ctx.qc is not None]
+    fatal_anomaly = (
+        has_clipping
+        or has_adc_saturation
+        or has_missing_data
+        or any(s == "FAIL" for s in channel_statuses)
+        or average_score < 50
+    )
 
     # Standardized 3-tier status (PASS >= 70, WARNING 50-69, FAIL < 50 or fatal anomaly)
-    if fatal_anomaly or average_score < 50:
+    if fatal_anomaly:
         overall_status = "FAIL"
-    elif average_score < 70 or has_spikes or has_baseline_anomaly or has_low_snr:
+    elif average_score < 70 or any(s == "WARNING" for s in channel_statuses):
         overall_status = "WARNING"
     else:
         overall_status = "PASS"
@@ -1281,11 +1301,11 @@ def _station_quality_summary(contexts: dict[str, Any]) -> dict[str, Any]:
     if overall_status == "PASS":
         class_id = 1
         label = "NOMINAL DATA QUALITY"
-        description = "Background noise within standard boundaries; clean spectral response."
+        description = "Signal quality meets standard scientific threshold (≥70/100); reliable for engineering analysis."
     elif has_clipping or has_adc_saturation:
         class_id = 3
         label = "SENSOR / DIGITIZER ANOMALY"
-        description = "Clipping or ADC saturation present."
+        description = "Clipping or ADC saturation present (fatal for peak parameters)."
     elif has_missing_data:
         class_id = 4
         label = "DATA / METADATA ERROR"
@@ -1297,11 +1317,11 @@ def _station_quality_summary(contexts: dict[str, Any]) -> dict[str, Any]:
     elif overall_status == "WARNING":
         class_id = 2
         label = "ACCEPTABLE QUALITY (WITH WARNINGS)"
-        description = "Slight SNR degradation or minor baseline offset."
+        description = "Usable with caution (50–69/100): pre-event quiet window, spike, or minor baseline drift present."
     else:
         class_id = 6
         label = "SUSPECT / ANOMALY DETECTED"
-        description = "Signal quality below standard scientific threshold."
+        description = "Signal quality below standard scientific threshold (<50/100)."
 
     return {
         "overall_status": overall_status,
@@ -1517,11 +1537,17 @@ def _display_summary_view(
         elif quality['overall_status'] == "WARNING":
             status_badge = '<span style="background-color:#d97706; color:#ffffff; font-weight:700; padding:0.2rem 0.6rem; border-radius:3px; font-size:0.75rem;">WARNING (50–69)</span>'
         else:
-            status_badge = '<span class="badge-fail">FAIL (<50)</span>'
+            status_badge = '<span class="badge-fail">FAIL (<50 / Fatal)</span>'
 
         flags = quality['flags']
-        has_anomalies = flags['clipping'] or flags['adc_saturation'] or flags['spikes'] or flags['flatline']
-        qc_badge = '<span class="badge-fail">ANOMALY DETECTED</span>' if has_anomalies else '<span class="badge-pass">CLEAN</span>'
+        has_fatal = flags['clipping'] or flags['adc_saturation'] or flags['missing_data']
+        has_nonfatal = flags['spikes'] or flags['flatline'] or flags['baseline_anomaly'] or flags['low_snr']
+        if has_fatal:
+            qc_badge = '<span class="badge-fail">FATAL ANOMALY</span>'
+        elif has_nonfatal:
+            qc_badge = '<span style="background-color:#0284c7; color:#ffffff; font-weight:700; padding:0.2rem 0.6rem; border-radius:3px; font-size:0.75rem;">DIAGNOSTIC FLAGS</span>'
+        else:
+            qc_badge = '<span class="badge-pass">CLEAN</span>'
         
         st.markdown(
             f"""
@@ -1680,16 +1706,28 @@ def _display_qc_view(contexts: dict[str, Any]) -> None:
 
     for channel, context in contexts.items():
         st.markdown(f"**CHANNEL:** `{channel}`")
-        qc = context.qc
+        qc = getattr(context, "qc", None)
         if qc is not None:
             col_q1, col_q2, col_q3 = st.columns(3)
+            qc_score = getattr(qc, "quality_score", 100)
+            qc_status = getattr(qc, "status", None)
+            if not qc_status:
+                is_valid = getattr(qc, "is_valid", True)
+                if is_valid and qc_score >= 70:
+                    qc_status = "PASS"
+                elif is_valid and qc_score >= 50:
+                    qc_status = "WARNING"
+                else:
+                    qc_status = "FAIL"
             with col_q1:
-                st.caption(f"QC Score: **{qc.quality_score} / 100** ({qc.status})")
+                st.caption(f"QC Score: **{qc_score} / 100** ({qc_status})")
             with col_q2:
-                snr_val = f"{qc.snr_estimate_db:.1f} dB" if qc.snr_estimate_db is not None else "N/A"
+                snr = getattr(qc, "snr_estimate_db", None)
+                snr_val = f"{snr:.1f} dB" if snr is not None else "N/A"
                 st.caption(f"Estimated SNR: **{snr_val}**")
             with col_q3:
-                clipping_txt = "Detected" if qc.has_clipping else "Clean"
+                has_clip = getattr(qc, "has_clipping", False)
+                clipping_txt = "Detected" if has_clip else "Clean"
                 st.caption(f"Clipping Flag: **{clipping_txt}**")
 
         with st.expander(f"Inspect Processing History & Provenance ({channel})", expanded=False):

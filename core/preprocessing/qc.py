@@ -132,6 +132,7 @@ class TraceQCMetrics:
 
     is_valid: bool = True
     quality_score: int = 100
+    status: str = "PASS"
 
     # ---------------------------------------------------------
     # Anomaly flags
@@ -201,19 +202,12 @@ class TraceQCMetrics:
         has_fatal_anomaly = self.has_clipping or self.has_adc_saturation
         self.is_valid = (self.quality_score >= 50) and not has_fatal_anomaly
 
-    @property
-    def status(self) -> str:
-        """
-        Overall scientific validation status:
-        - PASS    : score >= 70 and is_valid
-        - WARNING : 50 <= score < 70 and is_valid
-        - FAIL    : score < 50 or not is_valid
-        """
         if not self.is_valid or self.quality_score < 50:
-            return "FAIL"
-        if self.quality_score < 70:
-            return "WARNING"
-        return "PASS"
+            self.status = "FAIL"
+        elif self.quality_score < 70:
+            self.status = "WARNING"
+        else:
+            self.status = "PASS"
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize QC metrics."""
@@ -277,9 +271,9 @@ class StreamQCReport:
     @property
     def overall_status(self) -> str:
         """Overall Stream QC status: FAIL > WARNING > PASS."""
-        if not self.is_passed or any(m.status == "FAIL" for m in self.trace_metrics.values()):
+        if not self.is_passed or any(getattr(m, "status", "FAIL" if not m.is_valid else "PASS") == "FAIL" for m in self.trace_metrics.values()):
             return "FAIL"
-        if any(m.status == "WARNING" for m in self.trace_metrics.values()):
+        if any(getattr(m, "status", "PASS") == "WARNING" for m in self.trace_metrics.values()):
             return "WARNING"
         return "PASS"
 

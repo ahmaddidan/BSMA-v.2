@@ -285,13 +285,7 @@ Pada intensitas guncangan kuat ($I_{\text{MMI}} \ge 5.0$), perumusan PGV mendomi
    ```
    Aplikasi akan terbuka otomatis di peramban pada alamat `http://localhost:8501`.
 
-5. **(Opsional) Mengompilasi Ulang Buku Panduan PDF (11 Halaman):**
-   ```bash
-   python scripts/generate_guidebook.py
-   ```
-   Berkas PDF akan diperbarui di `outputs/BSMA_User_Guidebook.pdf`.
-
-6. **(Opsional) Menjalankan Test Suite Otomatis:**
+5. **(Opsional) Menjalankan Test Suite Otomatis:**
    ```bash
    pytest tests/
    ```
@@ -300,12 +294,13 @@ Pada intensitas guncangan kuat ($I_{\text{MMI}} \ge 5.0$), perumusan PGV mendomi
 
 ## 🧪 Validasi Ilmiah & Suite Pengujian Otomatis
 
-BSMA dilengkapi dengan test suite otomatis berbasis `pytest` (73 butir pengujian unit dan regresi referensi) yang mencakup:
+BSMA dilengkapi dengan test suite otomatis berbasis `pytest` (83 butir pengujian unit, regresi referensi, dan validasi rekaman riil) yang mencakup:
 * **Pengujian Sintetik Analitik ([tests/test_integration.py](tests/test_integration.py))**: Verifikasi integrasi trapesium kumulatif terhadap solusi analitik eksak gelombang sinusoidal $a(t) = A\sin(\omega t)$ dengan toleransi galat relatif $< 0.1\%$.
 * **Benchmark Regresi Dataset Referensi ([tests/test_reference_benchmark.py](tests/test_reference_benchmark.py))**: Uji coba *end-to-end* sinyal gempa sintetik kanonikal untuk verifikasi konvergensi deterministik nilai puncak kinematika (PGA/PGV/PGD), energi Arias ($I_a$), durasi $D_{5-95}$, MMI Worden et al. (2012), dan spektrum respons PSA.
 * **Uji Keselarasan Solver SDOF ([tests/test_response_spectrum.py](tests/test_response_spectrum.py))**: Verifikasi komparasi antara formulasi analitik rekursif Nigam-Jennings (1969) dan integrasi implisit Newmark-Beta (1959) dengan rata-rata deviasi relatif $< 5\%$, serta pembuktian batas kaku (*rigid limit anchor*) $\lim_{T \to 0} \text{PSA}(T) = \text{PGA}$.
 * **Uji Intensitas MMI & ShakeMap ([tests/test_mmi.py](tests/test_mmi.py))**: Validasi percabangan formulasi Worden et al. (2012), sifat monotonitas kurva intensitas, dominansi PGV pada guncangan tinggi, dan penanganan nilai non-finit.
 * **Uji Ambang Batas QC ([tests/test_qc.py](tests/test_qc.py))**: Pengujian ketepatan keputusan status kelayakan (PASS $\ge 70$, WARNING $50-69$, FAIL $< 50$), serta diskualifikasi otomatis pada sinyal yang mengalami *sensor clipping* atau *ADC saturation*.
+* **Uji Validasi Rekaman Riil BMKG ([tests/test_level4_real_data.py](tests/test_level4_real_data.py))**: Pengujian *end-to-end* pada rekaman multi-stasiun gempa nyata BMKG (PPJR, PCJI, PRJI) untuk memverifikasi keselarasan penuh ekstraksi parameter akselerogram (PGA 100% konsisten terhadap standar operasional BMKG).
 
 ---
 
@@ -337,6 +332,7 @@ Project BSMA/
 ├── tests/                           # Pengujian unit & benchmark regresi otomatis (pytest)
 │   ├── test_analysis_service.py     # Pengujian integrasi service stasiun tunggal
 │   ├── test_integration.py          # Pengujian integrasi analitik sintetik (sinusoidal exact)
+│   ├── test_level4_real_data.py     # Pengujian validasi rekaman riil multi-stasiun BMKG
 │   ├── test_mmi.py                  # Pengujian formulasi GMICE Worden et al. (2012)
 │   ├── test_parameters.py           # Pengujian ekstraksi parameter kinematika & energi
 │   ├── test_qc.py                   # Pengujian sistem Quality Control 3-tingkat terharmonisasi
@@ -353,8 +349,6 @@ Project BSMA/
 ---
 
 ## 📚 Daftar Pustaka & Rujukan Ilmiah
-
-Format sitasi disusun berdasarkan kaidah **APA Style 7th Edition**:
 
 1. **Arias, A.** (1970). A measure of earthquake intensity. Dalam R. J. Hansen (Ed.), *Seismic design for nuclear power plants* (hlm. 438–483). MIT Press.
 2. **Badan Standardisasi Nasional.** (2019). *SNI 1726:2019: Tata cara perencanaan ketahanan gempa untuk struktur bangunan gedung dan non gedung*. BSN.
@@ -380,5 +374,5 @@ Format sitasi disusun berdasarkan kaidah **APA Style 7th Edition**:
 ---
 
 <div align="center">
-  <sub>Didan Putra © 2026 · Karya Kerja Praktik Mahasiswa Teknik Geofisika ITERA di Stasiun Geofisika Sleman BMKG</sub>
+  <sub>Ahmad Didane Setyawan Putra © 2026 · Karya Kerja Praktik Mahasiswa Teknik Geofisika ITERA di Stasiun Geofisika Sleman BMKG</sub>
 </div>

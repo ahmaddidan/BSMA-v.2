@@ -15,7 +15,7 @@ PROJECT_ROOT = Path(__file__).parent.parent
 MSEED_DIR = PROJECT_ROOT / "Data" / "mseed"
 
 # Target stations specified for real earthquake validation
-TARGET_STATIONS = ["PPJR", "PCJI", "PCJR"]
+TARGET_STATIONS = ["PPJR", "PCJI", "PRJI"]
 
 
 def _get_station_files():
