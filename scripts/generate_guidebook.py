@@ -404,15 +404,16 @@ def build_guidebook_pdf() -> Path:
     p1.draw_rect(pymupdf.Rect(0, 0, PAGE_W, 215), color=COLOR_NAVY, fill=COLOR_NAVY)
     p1.draw_rect(pymupdf.Rect(0, 210, PAGE_W, 215), color=COLOR_SKY, fill=COLOR_SKY)
 
+    # Left logo: BMKG
     if LOGO_PATH.is_file():
-        p1.insert_image(pymupdf.Rect(LEFT_X, 32, LEFT_X + 75, 122), filename=str(LOGO_PATH))
-    if LOGO_HEADER_PATH.is_file():
-        # White card behind combined header logo for visibility on navy background
-        p1.draw_rect(pymupdf.Rect(RIGHT_X - 115, 30, RIGHT_X + 2, 127), color=(1, 1, 1), fill=(1, 1, 1))
-        p1.insert_image(pymupdf.Rect(RIGHT_X - 112, 33, RIGHT_X - 1, 124), filename=str(LOGO_HEADER_PATH))
-    elif LOGO_ITERA_PATH.is_file():
-        p1.draw_rect(pymupdf.Rect(RIGHT_X - 82, 26, RIGHT_X + 2, 129), color=(1, 1, 1), fill=(1, 1, 1))
-        p1.insert_image(pymupdf.Rect(RIGHT_X - 78, 30, RIGHT_X - 2, 125), filename=str(LOGO_ITERA_PATH))
+        p1.draw_rect(pymupdf.Rect(LEFT_X - 4, 26, LEFT_X + 81, 130), color=(1, 1, 1), fill=(1, 1, 1))
+        p1.insert_image(pymupdf.Rect(LEFT_X, 30, LEFT_X + 76, 126), filename=str(LOGO_PATH))
+
+    # Right logo: ITERA — white card so logo is legible on navy background
+    if LOGO_ITERA_PATH.is_file():
+        p1.draw_rect(pymupdf.Rect(RIGHT_X - 82, 26, RIGHT_X + 4, 130), color=(1, 1, 1), fill=(1, 1, 1))
+        p1.insert_image(pymupdf.Rect(RIGHT_X - 76, 30, RIGHT_X - 2, 126), filename=str(LOGO_ITERA_PATH))
+
 
     p1.insert_text((135, 52), "BUKU PANDUAN PENGGUNA & REFERENSI TEKNIS SOFTWARE", fontsize=9.2, fontname="f_bold", color=COLOR_WHITE)
     p1.insert_text((135, 68), "Proyek Kerja Praktik Mahasiswa Program Studi Teknik Geofisika", fontsize=8.2, fontname="f_reg", color=(0.85, 0.92, 1.0))
