@@ -31,6 +31,7 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 PDF_OUTPUT_PATH = OUTPUT_DIR / "BSMA_User_Guidebook.pdf"
 LOGO_PATH = PROJECT_ROOT / "Logo_Judul.png"
 LOGO_ITERA_PATH = PROJECT_ROOT / "Logo_ITERA.png"
+LOGO_HEADER_PATH = PROJECT_ROOT / "Logo_Header.png"
 
 # Color Palette (RGB 0.0 - 1.0)
 COLOR_NAVY = (0.0, 0.176, 0.384)          # #002D62 (BMKG Navy)
@@ -405,8 +406,13 @@ def build_guidebook_pdf() -> Path:
 
     if LOGO_PATH.is_file():
         p1.insert_image(pymupdf.Rect(LEFT_X, 32, LEFT_X + 75, 122), filename=str(LOGO_PATH))
-    if LOGO_ITERA_PATH.is_file():
-        p1.insert_image(pymupdf.Rect(RIGHT_X - 75, 32, RIGHT_X, 122), filename=str(LOGO_ITERA_PATH))
+    if LOGO_HEADER_PATH.is_file():
+        # White card behind combined header logo for visibility on navy background
+        p1.draw_rect(pymupdf.Rect(RIGHT_X - 115, 30, RIGHT_X + 2, 127), color=(1, 1, 1), fill=(1, 1, 1))
+        p1.insert_image(pymupdf.Rect(RIGHT_X - 112, 33, RIGHT_X - 1, 124), filename=str(LOGO_HEADER_PATH))
+    elif LOGO_ITERA_PATH.is_file():
+        p1.draw_rect(pymupdf.Rect(RIGHT_X - 82, 26, RIGHT_X + 2, 129), color=(1, 1, 1), fill=(1, 1, 1))
+        p1.insert_image(pymupdf.Rect(RIGHT_X - 78, 30, RIGHT_X - 2, 125), filename=str(LOGO_ITERA_PATH))
 
     p1.insert_text((135, 52), "BUKU PANDUAN PENGGUNA & REFERENSI TEKNIS SOFTWARE", fontsize=9.2, fontname="f_bold", color=COLOR_WHITE)
     p1.insert_text((135, 68), "Proyek Kerja Praktik Mahasiswa Program Studi Teknik Geofisika", fontsize=8.2, fontname="f_reg", color=(0.85, 0.92, 1.0))

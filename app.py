@@ -33,6 +33,7 @@ INVENTORY_DIRECTORY = PROJECT_ROOT / "Data" / "stationXML"
 REPORT_DIRECTORY = PROJECT_ROOT / "outputs" / "reports"
 LOGO_PATH = PROJECT_ROOT / "Logo_Judul.png"
 LOGO_ITERA_PATH = PROJECT_ROOT / "Logo_ITERA.png"
+LOGO_HEADER_PATH = PROJECT_ROOT / "Logo_Header.png"
 
 st.set_page_config(
     page_title="BMKG Strong Motion Analyzer",
@@ -2258,15 +2259,11 @@ def main() -> None:
     configuration, event_info = _configuration_from_sidebar()
 
     # App Header Banner with Top-Right Theme Toggle
-    col_h1, col_h2, col_h3 = st.columns([1.3, 6.7, 2.0], vertical_alignment="center")
+    col_h1, col_h2, col_h3 = st.columns([1.4, 6.6, 2.0], vertical_alignment="center")
     with col_h1:
-        img_col1, img_col2 = st.columns(2)
-        with img_col1:
-            if LOGO_PATH.is_file():
-                st.image(str(LOGO_PATH), width=54)
-        with img_col2:
-            if LOGO_ITERA_PATH.is_file():
-                st.image(str(LOGO_ITERA_PATH), width=54)
+        logo_display = LOGO_HEADER_PATH if LOGO_HEADER_PATH.is_file() else LOGO_PATH
+        if logo_display.is_file():
+            st.image(str(logo_display), width=148)
     with col_h2:
         st.markdown(
             f"""
