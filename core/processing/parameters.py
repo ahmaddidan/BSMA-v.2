@@ -54,7 +54,7 @@ Design principles
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import Final
+from typing import Any, Final
 
 import numpy as np
 from numpy.typing import NDArray
@@ -73,6 +73,7 @@ from utils.exceptions import (
 __all__ = [
     "ParameterConfig",
     "ParameterExtractionPlugin",
+    "compute_worden_mmi",
 ]
 
 
@@ -1020,3 +1021,105 @@ class ParameterExtractionPlugin(PreprocessorPlugin):
                 "npts": int(acceleration.size),
             },
         )
+
+
+def compute_worden_mmi(
+    pga_gal: float,
+    pgv_cm_s: float | None = None,
+) -> dict[str, Any]:
+    """
+    Compute Instrumental Modified Mercalli Intensity (MMI) based on
+    Worden et al. (2012) GMICE and USGS ShakeMap standards.
+
+    Parameters
+    ----------
+    pga_gal : float
+        Peak Ground Acceleration in Gal (cm/s^2).
+    pgv_cm_s : float or None, optional
+        Peak Ground Velocity in cm/s.
+
+    Returns
+    -------
+    dict
+        - mmi_continuous : float, continuous MMI value
+        - mmi_discrete : str, Roman numeral ("I" to "X+")
+        - shaking : str, perceived shaking description
+        - damage : str, potential damage description
+        - basis : str, parameter that determined intensity ("PGA" or "PGV")
+    """
+    pga_val = max(float(pga_gal), 1e-4) if np.isfinite(pga_gal) else 1e-4
+    log_pga = np.log10(pga_val)
+
+    # Worden et al. (2012) Table 3 / Equation for PGA
+    if log_pga <= 1.57:
+        mmi_pga = 1.78 + 1.55 * log_pga
+    else:
+        mmi_pga = -1.60 + 3.70 * log_pga
+
+    mmi_pga = float(np.clip(mmi_pga, 1.0, 10.0))
+    basis = "PGA"
+    mmi_continuous = mmi_pga
+
+    if pgv_cm_s is not None and np.isfinite(pgv_cm_s) and pgv_cm_s > 0:
+        pgv_val = max(float(pgv_cm_s), 1e-4)
+        log_pgv = np.log10(pgv_val)
+        if log_pgv <= 0.53:
+            mmi_pgv = 3.78 + 2.99 * log_pgv
+        else:
+            mmi_pgv = 2.40 + 4.96 * log_pgv
+        mmi_pgv = float(np.clip(mmi_pgv, 1.0, 10.0))
+
+        # USGS ShakeMap convention: PGA dominates for low intensities (< 5.0),
+        # PGV dominates for high intensities (>= 5.0)
+        if mmi_pga >= 5.0 or mmi_pgv >= 5.0:
+            if mmi_pgv > mmi_pga:
+                mmi_continuous = mmi_pgv
+                basis = "PGV"
+
+    # Discrete USGS ShakeMap binning
+    if mmi_continuous < 1.5:
+        mmi_discrete = "I"
+        shaking = "Not felt"
+        damage = "None"
+    elif mmi_continuous < 3.5:
+        mmi_discrete = "II-III"
+        shaking = "Weak"
+        damage = "None"
+    elif mmi_continuous < 4.5:
+        mmi_discrete = "IV"
+        shaking = "Light"
+        damage = "None"
+    elif mmi_continuous < 5.5:
+        mmi_discrete = "V"
+        shaking = "Moderate"
+        damage = "Very light"
+    elif mmi_continuous < 6.5:
+        mmi_discrete = "VI"
+        shaking = "Strong"
+        damage = "Light"
+    elif mmi_continuous < 7.5:
+        mmi_discrete = "VII"
+        shaking = "Very strong"
+        damage = "Moderate"
+    elif mmi_continuous < 8.5:
+        mmi_discrete = "VIII"
+        shaking = "Severe"
+        damage = "Moderate/Heavy"
+    elif mmi_continuous < 9.5:
+        mmi_discrete = "IX"
+        shaking = "Violent"
+        damage = "Heavy"
+    else:
+        mmi_discrete = "X+"
+        shaking = "Extreme"
+        damage = "Very Heavy"
+
+    return {
+        "mmi_continuous": round(mmi_continuous, 2),
+        "mmi_discrete": mmi_discrete,
+        "shaking": shaking,
+        "damage": damage,
+        "basis": basis,
+        "pga_gal": pga_val,
+        "pgv_cm_s": pgv_cm_s,
+    }

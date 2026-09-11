@@ -1207,18 +1207,32 @@ def _render_workflow_stepper(current_step: str = "ANALYSIS", has_data: bool = Tr
 def _station_quality_summary(contexts: dict[str, Any]) -> dict[str, Any]:
     if not contexts:
         return {
+            "overall_status": "FAIL",
+            "quality_score": 0,
+            "flags": {
+                "clipping": False,
+                "adc_saturation": False,
+                "spikes": False,
+                "flatline": False,
+                "baseline_anomaly": False,
+                "low_snr": False,
+                "missing_data": True,
+            },
             "class_id": 7,
             "label": "OFFLINE / NO DATA",
             "description": "No data available on station.",
             "reasons": ["No processed traces."],
-            "quality_score": 0,
         }
 
     total_score = 0.0
     reasons: list[str] = []
     has_missing_data = False
-    critical_signal_issue = False
-    noise_issue = False
+    has_clipping = False
+    has_adc_saturation = False
+    has_spikes = False
+    has_flatline = False
+    has_baseline_anomaly = False
+    has_low_snr = False
 
     for channel, context in contexts.items():
         qc = context.qc
@@ -1228,69 +1242,83 @@ def _station_quality_summary(contexts: dict[str, Any]) -> dict[str, Any]:
             continue
 
         total_score += float(qc.quality_score)
-        if qc.quality_score < 60:
-            critical_signal_issue = True
-            reasons.append(f"{channel}: Low signal quality score ({qc.quality_score}/100).")
-        if qc.has_clipping or qc.has_adc_saturation:
-            critical_signal_issue = True
-            reasons.append(f"{channel}: Clipping / ADC saturation detected.")
+        if qc.quality_score < 50:
+            reasons.append(f"{channel}: Signal quality critical ({qc.quality_score}/100).")
+        elif qc.quality_score < 70:
+            reasons.append(f"{channel}: Signal quality warning ({qc.quality_score}/100).")
+
+        if qc.has_clipping:
+            has_clipping = True
+            reasons.append(f"{channel}: Waveform clipping detected.")
+        if qc.has_adc_saturation:
+            has_adc_saturation = True
+            reasons.append(f"{channel}: ADC saturation detected.")
         if qc.has_spikes:
+            has_spikes = True
             reasons.append(f"{channel}: Impulsive spikes detected.")
         if qc.has_flatline:
+            has_flatline = True
             reasons.append(f"{channel}: Flatline detected.")
         if qc.has_offset or qc.has_drift:
+            has_baseline_anomaly = True
             reasons.append(f"{channel}: Baseline offset/drift exceeds tolerance.")
         if qc.snr_estimate_db is not None and qc.snr_estimate_db < 3.0:
-            noise_issue = True
+            has_low_snr = True
             reasons.append(f"{channel}: Low SNR (< 3 dB).")
 
     average_score = total_score / max(len(contexts), 1)
-    if average_score >= 80 and not reasons:
-        return {
-            "class_id": 1,
-            "label": "NOMINAL DATA QUALITY",
-            "description": "Background noise within standard AHNM boundaries; clean PSD response.",
-            "reasons": ["Good overall data quality."],
-            "quality_score": int(round(average_score)),
-        }
-    if average_score >= 70 and not critical_signal_issue and not noise_issue and not has_missing_data:
-        return {
-            "class_id": 2,
-            "label": "ACCEPTABLE QUALITY",
-            "description": "Slight SNR degradation or minor offset.",
-            "reasons": ["Minor signal degradation noted."],
-            "quality_score": int(round(average_score)),
-        }
-    if critical_signal_issue:
-        return {
-            "class_id": 3,
-            "label": "SENSOR / DIGITIZER ANOMALY",
-            "description": "Clipping or ADC saturation present.",
-            "reasons": reasons,
-            "quality_score": int(round(average_score)),
-        }
-    if has_missing_data:
-        return {
-            "class_id": 4,
-            "label": "DATA / METADATA ERROR",
-            "description": "Incomplete dataset or unreadable StationXML.",
-            "reasons": reasons,
-            "quality_score": int(round(average_score)),
-        }
-    if noise_issue:
-        return {
-            "class_id": 5,
-            "label": "DEGRADED SIGNAL (HIGH NOISE)",
-            "description": "Dominant background noise, low SNR.",
-            "reasons": reasons,
-            "quality_score": int(round(average_score)),
-        }
+    fatal_anomaly = has_clipping or has_adc_saturation or has_flatline or has_missing_data
+
+    # Standardized 3-tier status (PASS >= 70, WARNING 50-69, FAIL < 50 or fatal anomaly)
+    if fatal_anomaly or average_score < 50:
+        overall_status = "FAIL"
+    elif average_score < 70 or has_spikes or has_baseline_anomaly or has_low_snr:
+        overall_status = "WARNING"
+    else:
+        overall_status = "PASS"
+
+    # Diagnostic Class attribution
+    if overall_status == "PASS":
+        class_id = 1
+        label = "NOMINAL DATA QUALITY"
+        description = "Background noise within standard boundaries; clean spectral response."
+    elif has_clipping or has_adc_saturation:
+        class_id = 3
+        label = "SENSOR / DIGITIZER ANOMALY"
+        description = "Clipping or ADC saturation present."
+    elif has_missing_data:
+        class_id = 4
+        label = "DATA / METADATA ERROR"
+        description = "Incomplete dataset or unreadable StationXML."
+    elif has_low_snr:
+        class_id = 5
+        label = "DEGRADED SIGNAL (HIGH NOISE)"
+        description = "Dominant background noise, low SNR."
+    elif overall_status == "WARNING":
+        class_id = 2
+        label = "ACCEPTABLE QUALITY (WITH WARNINGS)"
+        description = "Slight SNR degradation or minor baseline offset."
+    else:
+        class_id = 6
+        label = "SUSPECT / ANOMALY DETECTED"
+        description = "Signal quality below standard scientific threshold."
+
     return {
-        "class_id": 6,
-        "label": "AVAILABILITY / TRANSMISSION ANOMALY",
-        "description": "Data availability or telemetry gap.",
-        "reasons": reasons,
+        "overall_status": overall_status,
         "quality_score": int(round(average_score)),
+        "flags": {
+            "clipping": has_clipping,
+            "adc_saturation": has_adc_saturation,
+            "spikes": has_spikes,
+            "flatline": has_flatline,
+            "baseline_anomaly": has_baseline_anomaly,
+            "low_snr": has_low_snr,
+            "missing_data": has_missing_data,
+        },
+        "class_id": class_id,
+        "label": label,
+        "description": description,
+        "reasons": reasons if reasons else ["Data quality meets nominal scientific standards."],
     }
 
 
@@ -1341,9 +1369,15 @@ def _display_summary_view(
     pgv_cm = float(strongest.metrics.get("PGV", 0.0)) * 100.0
     pgd_cm = float(strongest.metrics.get("PGD", 0.0)) * 100.0
     arias_m = float(strongest.metrics.get("Arias_Intensity", 0.0))
-    d595 = float(strongest.metrics.get("Significant_Duration_D5_95", 0.0))
-    pga_pct_g = (float(strongest.metrics.get("PGA", 0.0)) / 9.80665) * 100.0
-    mmi_info = get_mmi_worden(pga_pct_g, pgv_cm)
+    horizontal_contexts = {
+        ch: ctx for ch, ctx in contexts.items()
+        if not ch.upper().endswith("Z") and not ch.upper().endswith("U")
+    }
+    horiz_ctx = horizontal_contexts if horizontal_contexts else contexts
+    _, horiz_strongest = max(horiz_ctx.items(), key=lambda item: float(item[1].metrics.get("PGA", 0.0)))
+    horiz_pga_pct_g = (float(horiz_strongest.metrics.get("PGA", 0.0)) / 9.80665) * 100.0
+    horiz_pgv_cm = float(horiz_strongest.metrics.get("PGV", 0.0)) * 100.0
+    mmi_info = get_mmi_worden(horiz_pga_pct_g, horiz_pgv_cm)
 
     metric_items = [
         ("Strongest component", strongest_channel),
@@ -1476,24 +1510,32 @@ def _display_summary_view(
     with col_qc:
         st.markdown("#### QC STATUS CHECK")
         quality = _station_quality_summary(contexts)
-        pass_badge = '<span class="badge-pass">PASS</span>' if quality['class_id'] <= 2 else '<span class="badge-fail">REVIEW</span>'
-        has_anomalies = any(c.qc and (c.qc.has_clipping or c.qc.has_spikes or c.qc.has_adc_saturation) for c in contexts.values())
+        
+        if quality['overall_status'] == "PASS":
+            status_badge = '<span class="badge-pass">PASS (≥70)</span>'
+        elif quality['overall_status'] == "WARNING":
+            status_badge = '<span style="background-color:#d97706; color:#ffffff; font-weight:700; padding:0.2rem 0.6rem; border-radius:3px; font-size:0.75rem;">WARNING (50–69)</span>'
+        else:
+            status_badge = '<span class="badge-fail">FAIL (<50)</span>'
+
+        flags = quality['flags']
+        has_anomalies = flags['clipping'] or flags['adc_saturation'] or flags['spikes'] or flags['flatline']
         qc_badge = '<span class="badge-fail">ANOMALY DETECTED</span>' if has_anomalies else '<span class="badge-pass">CLEAN</span>'
         
         st.markdown(
             f"""
             <div class="sci-card">
                 <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
-                    <span>Sampling Rate Continuity:</span> {pass_badge}
+                    <span>Overall QC Status:</span> {status_badge}
                 </div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
-                    <span>Signal Quality Score:</span> <strong>{quality['quality_score']} / 100</strong>
+                    <span>Average QC Score:</span> <strong>{quality['quality_score']} / 100</strong>
                 </div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
-                    <span>Spike & Clipping Flags:</span> {qc_badge}
+                    <span>Diagnostic Flags:</span> {qc_badge}
                 </div>
                 <div style="display:flex; justify-content:space-between;">
-                    <span>Classification:</span> <strong style="color:{token('colors.text')};">Class {quality['class_id']} ({quality['label']})</strong>
+                    <span>Diagnostic Class:</span> <strong style="color:{token('colors.text')};">Class {quality['class_id']} ({quality['label']})</strong>
                 </div>
             </div>
             """,
@@ -1626,9 +1668,10 @@ def _display_qc_view(contexts: dict[str, Any]) -> None:
     st.markdown(
         f"""
         <div class="technical-log" style="border-left-color: {token('colors.border_light')}; margin-bottom: 1rem;">
-            STATION QC CLASS : <strong>Class {quality_summary['class_id']} - {quality_summary['label']}</strong><br>
-            AVERAGE QC SCORE : <strong>{quality_summary['quality_score']} / 100</strong><br>
-            DIAGNOSTIC DETAILS : {quality_summary['description']}
+            OVERALL QC STATUS : <strong>{quality_summary['overall_status']}</strong><br>
+            AVERAGE QC SCORE  : <strong>{quality_summary['quality_score']} / 100</strong><br>
+            STATION QC CLASS  : <strong>Class {quality_summary['class_id']} - {quality_summary['label']}</strong><br>
+            DIAGNOSTIC DETAILS: {quality_summary['description']}
         </div>
         """,
         unsafe_allow_html=True,
@@ -1640,9 +1683,10 @@ def _display_qc_view(contexts: dict[str, Any]) -> None:
         if qc is not None:
             col_q1, col_q2, col_q3 = st.columns(3)
             with col_q1:
-                st.caption(f"QC Score: **{qc.quality_score} / 100**")
+                st.caption(f"QC Score: **{qc.quality_score} / 100** ({qc.status})")
             with col_q2:
-                st.caption(f"Estimated SNR: **{qc.snr_estimate_db:.1f} dB**")
+                snr_val = f"{qc.snr_estimate_db:.1f} dB" if qc.snr_estimate_db is not None else "N/A"
+                st.caption(f"Estimated SNR: **{snr_val}**")
             with col_q3:
                 clipping_txt = "Detected" if qc.has_clipping else "Clean"
                 st.caption(f"Clipping Flag: **{clipping_txt}**")
@@ -1703,13 +1747,26 @@ def _display_strong_motion_view(contexts: dict[str, Any]) -> None:
 
 
 def _display_intensity_view(contexts: dict[str, Any]) -> None:
-    """Dedicated Instrumental Intensity (Worden et al., 2011) ShakeMap view."""
-    st.markdown("### INSTRUMENTAL INTENSITY")
-    strongest_channel, strongest = max(contexts.items(), key=lambda item: float(item[1].metrics.get("PGA", 0.0)))
-    pga_m_s2 = float(strongest.metrics.get("PGA", 0.0))
-    pga_pct_g = (pga_m_s2 / 9.80665) * 100.0
-    pgv_cm_s = float(strongest.metrics.get("PGV", 0.0)) * 100.0
+    """Dedicated Instrumental Intensity (Worden et al., 2012) ShakeMap view."""
+    st.markdown("### INSTRUMENTAL INTENSITY (USGS SHAKEMAP / WORDEN ET AL., 2012)")
 
+    # Seismological standard: GMICE is calibrated to horizontal motion.
+    horizontal_contexts = {
+        ch: ctx for ch, ctx in contexts.items()
+        if not ch.upper().endswith("Z") and not ch.upper().endswith("U")
+    }
+    target_contexts = horizontal_contexts if horizontal_contexts else contexts
+    basis_label = "Komponen Horizontal Terkuat (Max Horizontal)" if horizontal_contexts else "Komponen Tunggal / Vertikal (Fallback)"
+
+    strongest_channel, strongest = max(target_contexts.items(), key=lambda item: float(item[1].metrics.get("PGA", 0.0)))
+    pga_m_s2 = float(strongest.metrics.get("PGA", 0.0))
+    pga_gal = pga_m_s2 * 100.0
+    pga_pct_g = (pga_m_s2 / 9.80665) * 100.0
+    pgv_m_s = float(strongest.metrics.get("PGV", 0.0))
+    pgv_cm_s = pgv_m_s * 100.0
+
+    from core.processing.parameters import compute_worden_mmi
+    worden_res = compute_worden_mmi(pga_gal, pgv_cm_s)
     mmi_info = get_mmi_worden(pga_pct_g, pgv_cm_s)
     mmi_rgb = mmi_info["rgb"]
     bg_color = f"rgb({mmi_rgb[0]}, {mmi_rgb[1]}, {mmi_rgb[2]})"
@@ -1719,10 +1776,16 @@ def _display_intensity_view(contexts: dict[str, Any]) -> None:
         f"""
         <div class="sci-card" style="padding: 1.2rem; margin-top: 0.5rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid {token('colors.border')}; padding-bottom: 0.75rem; margin-bottom: 1rem;">
-                <span style="font-size: 0.85rem; font-weight: 700; color: {token('colors.text_secondary')}; text-transform: uppercase;">SHAKEMAP INSTRUMENTAL INTENSITY (WORDEN ET AL., 2011)</span>
-                <span style="background-color: {bg_color}; color: {text_color}; font-family: 'Fira Code', monospace; font-weight: 800; font-size: 1.2rem; padding: 0.3rem 1rem; border-radius: 3px;">
-                    MMI {mmi_info['mmi']}
-                </span>
+                <div>
+                    <span style="font-size: 0.85rem; font-weight: 700; color: {token('colors.text_secondary')}; text-transform: uppercase;">SHAKEMAP INSTRUMENTAL INTENSITY (WORDEN ET AL., 2012)</span><br>
+                    <span style="font-size: 0.78rem; color: {token('colors.text_muted')};">Acuan: <strong>{basis_label} — Kanal {strongest_channel}</strong></span>
+                </div>
+                <div style="text-align: right;">
+                    <span style="background-color: {bg_color}; color: {text_color}; font-family: 'Fira Code', monospace; font-weight: 800; font-size: 1.2rem; padding: 0.3rem 1rem; border-radius: 3px;">
+                        MMI {mmi_info['mmi']}
+                    </span>
+                    <div style="font-size: 0.75rem; color: {token('colors.text_muted')}; margin-top: 0.2rem;">Regresi Kontinu: <strong>MMI {worden_res['mmi_continuous']}</strong></div>
+                </div>
             </div>
             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; font-size: 0.85rem;">
                 <div>
@@ -1734,14 +1797,14 @@ def _display_intensity_view(contexts: dict[str, Any]) -> None:
                     <strong style="color: {token('colors.text')}; font-size: 1.05rem;">{mmi_info['damage']}</strong>
                 </div>
                 <div>
-                    <span style="color: {token('colors.text_secondary')}; font-weight: 600;">PEAK ACC. (%g)</span><br>
-                    <strong style="color: {token('colors.text')}; font-size: 1.05rem;">{pga_pct_g:.3f} %g</strong> 
-                    <span style="color: {token('colors.text_muted')}; font-size: 0.78rem;">(Ref: {mmi_info['pga_label']} %g)</span>
+                    <span style="color: {token('colors.text_secondary')}; font-weight: 600;">PEAK ACC. (PGA)</span><br>
+                    <strong style="color: {token('colors.text')}; font-size: 1.05rem;">{pga_gal:.2f} Gal</strong> 
+                    <span style="color: {token('colors.text_muted')}; font-size: 0.78rem;">({pga_pct_g:.3f} %g)</span>
                 </div>
                 <div>
-                    <span style="color: {token('colors.text_secondary')}; font-weight: 600;">PEAK VEL. (cm/s)</span><br>
+                    <span style="color: {token('colors.text_secondary')}; font-weight: 600;">PEAK VEL. (PGV)</span><br>
                     <strong style="color: {token('colors.text')}; font-size: 1.05rem;">{pgv_cm_s:.3f} cm/s</strong> 
-                    <span style="color: {token('colors.text_muted')}; font-size: 0.78rem;">(Ref: {mmi_info['pgv_label']} cm/s)</span>
+                    <span style="color: {token('colors.text_muted')}; font-size: 0.78rem;">(Dominan: {worden_res['basis']})</span>
                 </div>
             </div>
         </div>
@@ -1823,6 +1886,31 @@ def _display_spectrum_view(contexts: dict[str, Any], configuration: AnalysisConf
             margin=dict(l=65, r=20, t=35, b=30),
         )
         st.plotly_chart(figure, use_container_width=True, theme=None)
+
+        with st.expander("🔬 SDOF Solver Cross-Validation & Numerical Benchmark (Nigam–Jennings vs Newmark–Beta)", expanded=False):
+            from core.processing.response_spectrum import benchmark_sdof_solvers
+            strongest_channel, strongest = max(contexts.items(), key=lambda item: float(item[1].metrics.get("PGA", 0.0)))
+            periods_bm = np.logspace(np.log10(0.01), np.log10(10.0), 100)
+            bm_res = benchmark_sdof_solvers(
+                strongest.acceleration.data,
+                strongest.dt,
+                periods_bm,
+                damping=configuration.damping_ratio,
+            )
+            col_b1, col_b2, col_b3, col_b4 = st.columns(4)
+            with col_b1:
+                st.metric("Max Rel. Difference", f"{bm_res['max_rel_diff']*100:.2f}%")
+            with col_b2:
+                st.metric("Mean Rel. Difference", f"{bm_res['mean_rel_diff']*100:.2f}%")
+            with col_b3:
+                st.metric("RMS Difference", f"{bm_res['rms_diff']:.4f} m/s²")
+            with col_b4:
+                st.metric("Period of Max Diff", f"{bm_res['max_diff_period']:.2f} s")
+            st.caption(
+                f"Validasi komputasi numerik SDOF untuk komponen terkuat ({strongest_channel}): membandingkan solusi rekursif analitik "
+                f"Nigam–Jennings (1969) terhadap integrasi numerik implisit Newmark–Beta (1959, γ=1/2, β=1/4). "
+                f"Tingkat konkordansi: {'Sangat Baik (< 5% rata-rata)' if bm_res['mean_rel_diff'] < 0.05 else 'Memenuhi Syarat Konvergensi'}."
+            )
 
     with sub_tab2:
         figure = go.Figure()

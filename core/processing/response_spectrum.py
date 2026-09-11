@@ -61,6 +61,7 @@ from utils.exceptions import (
 __all__ = [
     "ResponseSpectrumConfig",
     "ResponseSpectrumPlugin",
+    "benchmark_sdof_solvers",
 ]
 
 
@@ -755,3 +756,74 @@ class ResponseSpectrumPlugin(ProcessingStep):
             sa,
             omega,
         )
+
+
+def benchmark_sdof_solvers(
+    acceleration: np.ndarray,
+    dt: float,
+    periods: np.ndarray,
+    damping: float = 0.05,
+) -> dict[str, Any]:
+    """
+    Quantitative benchmark comparison between Nigam-Jennings (1969)
+    recursive analytical formulation and Newmark (1959) implicit solver.
+
+    Parameters
+    ----------
+    acceleration : np.ndarray
+        Input acceleration waveform in m/s^2.
+    dt : float
+        Sampling interval in seconds.
+    periods : np.ndarray
+        Array of natural oscillator periods in seconds.
+    damping : float, default 0.05
+        Fraction of critical damping.
+
+    Returns
+    -------
+    dict
+        - max_rel_diff : float, maximum relative difference
+        - mean_rel_diff : float, mean relative difference
+        - rms_diff : float, root-mean-square difference of PSA (m/s^2)
+        - max_diff_period : float, period (s) where maximum difference occurs
+        - psa_nigam : np.ndarray, PSA spectrum from Nigam-Jennings
+        - psa_newmark : np.ndarray, PSA spectrum from Newmark
+        - periods : np.ndarray, period array
+    """
+    periods_arr = np.asarray(periods, dtype=np.float64)
+    u_nj, v_nj, a_nj = solve_nigam_jennings(acceleration, dt, periods_arr, damping)
+    u_nm, v_nm, a_nm = solve_newmark(acceleration, dt, periods_arr, damping)
+
+    sd_nj = np.max(np.abs(u_nj), axis=-1)
+    sd_nm = np.max(np.abs(u_nm), axis=-1)
+
+    safe_periods = np.where(periods_arr > 0, periods_arr, 1.0)
+    omega = np.where(periods_arr > 0, 2.0 * np.pi / safe_periods, 0.0)
+
+    psa_nj = (omega ** 2) * sd_nj
+    psa_nm = (omega ** 2) * sd_nm
+
+    pga = float(np.max(np.abs(acceleration)))
+    for i, p in enumerate(periods_arr):
+        if p == 0.0:
+            psa_nj[i] = pga
+            psa_nm[i] = pga
+
+    denom = np.maximum(psa_nj, 1e-6)
+    rel_diff = np.abs(psa_nj - psa_nm) / denom
+
+    max_idx = int(np.argmax(rel_diff))
+    max_rel_diff = float(rel_diff[max_idx])
+    mean_rel_diff = float(np.mean(rel_diff))
+    rms_diff = float(np.sqrt(np.mean(np.square(psa_nj - psa_nm))))
+    max_diff_period = float(periods_arr[max_idx])
+
+    return {
+        "max_rel_diff": max_rel_diff,
+        "mean_rel_diff": mean_rel_diff,
+        "rms_diff": rms_diff,
+        "max_diff_period": max_diff_period,
+        "psa_nigam": psa_nj,
+        "psa_newmark": psa_nm,
+        "periods": periods_arr,
+    }

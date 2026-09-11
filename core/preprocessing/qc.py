@@ -194,8 +194,26 @@ class TraceQCMetrics:
 
         self.quality_score = max(0, min(100, score))
 
-        # A score below 60 is considered QC-failed.
-        self.is_valid = self.quality_score >= 60
+        # Harmonized scientific QC threshold:
+        # PASS    : score >= 70
+        # WARNING : 50 <= score < 70 (usable with caution)
+        # FAIL    : score < 50 or fatal anomaly (clipping / ADC saturation)
+        has_fatal_anomaly = self.has_clipping or self.has_adc_saturation
+        self.is_valid = (self.quality_score >= 50) and not has_fatal_anomaly
+
+    @property
+    def status(self) -> str:
+        """
+        Overall scientific validation status:
+        - PASS    : score >= 70 and is_valid
+        - WARNING : 50 <= score < 70 and is_valid
+        - FAIL    : score < 50 or not is_valid
+        """
+        if not self.is_valid or self.quality_score < 50:
+            return "FAIL"
+        if self.quality_score < 70:
+            return "WARNING"
+        return "PASS"
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize QC metrics."""
@@ -203,6 +221,7 @@ class TraceQCMetrics:
         return {
             "trace_id": self.trace_id,
             "is_valid": self.is_valid,
+            "status": self.status,
             "quality_score": self.quality_score,
             "has_clipping": self.has_clipping,
             "has_adc_saturation": self.has_adc_saturation,
@@ -254,6 +273,15 @@ class StreamQCReport:
             not metrics.is_valid
             for metrics in self.trace_metrics.values()
         )
+
+    @property
+    def overall_status(self) -> str:
+        """Overall Stream QC status: FAIL > WARNING > PASS."""
+        if not self.is_passed or any(m.status == "FAIL" for m in self.trace_metrics.values()):
+            return "FAIL"
+        if any(m.status == "WARNING" for m in self.trace_metrics.values()):
+            return "WARNING"
+        return "PASS"
 
 
 class QCAnalyzer:

@@ -916,9 +916,9 @@ def build_guidebook_pdf() -> Path:
     <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 7px 10px;">
         <b style="font-size: 7.6pt; color: #002d62;">PANDUAN VALIDITAS & PENGGUNAAN DATA (DATA VALIDITY GUIDE):</b>
         <p style="font-size: 7.2pt; line-height: 1.30; margin-top: 3px; color: #334155;">
-            • <b>QC PASS (Class 1 & 2, Skor >= 70)</b>: Sinyal memenuhi standar integritas tinggi; seluruh parameter kinematika (PGA, PGV, Arias, Spektrum <i>S<sub>a</sub></i>) andal digunakan untuk evaluasi rekayasa.<br>
-            • <b>QC WARNING (Class 3 & 4, Skor 50 - 69)</b>: Terdapat anomali spesifik; evaluasi cutoff filter dan stabilitas <i>baseline</i>. Bila terjadi <i>clipping</i>, nilai PGA tidak boleh dijadikan acuan puncak absolut.<br>
-            • <b>QC SUSPECT / FAIL (Class 5 & 6, Skor &lt; 50)</b>: Derau sangat dominan atau sinyal terputus; tidak direkomendasikan untuk interpretasi kuantitatif.
+            • <b>QC PASS (Skor ≥ 70)</b>: Sinyal berintegritas nominal; seluruh parameter kinematika (PGA, PGV, Arias, Spektrum <i>S<sub>a</sub></i>) andal untuk analisis rekayasa seismik.<br>
+            • <b>QC WARNING (Skor 50 – 69)</b>: Anomali non-fatal (lonjakan terisolasi, SNR marginal, atau drift minor); periksa cutoff filter dan inspeksi kurva riwayat waktu.<br>
+            • <b>QC FAIL (Skor &lt; 50 atau Anomali Fatal)</b>: Terdeteksi <i>clipping</i>, saturasi ADC, <i>flatline</i>, atau skor &lt; 50; data ditolak/tidak valid untuk parameter puncak karena PGA terdistorsi dan estimasi MMI <i>underestimate</i>.
         </p>
     </div>
     """
@@ -1099,11 +1099,13 @@ def build_guidebook_pdf() -> Path:
         • <b>Nigam dan Jennings (1969)</b>: Formulasi rekursif analitik berbasis representasi input <i>piecewise-linear</i> untuk 
         menghitung respons SDOF secara efisien tanpa integrasi numerik langkah demi langkah (<i>step-by-step</i>).<br>
         • <b>Newmark (1959)</b>: Solver integrasi numerik implisit langkah demi langkah (<i>step-by-step</i>) dengan 
-        parameter konstan rata-rata percepatan (&gamma; = 1/2, &beta; = 1/4).
+        parameter konstan rata-rata percepatan (&gamma; = 1/2, &beta; = 1/4).<br>
+        • <b>Numerical Cross-Validation Benchmark</b>: Aplikasi menyematkan fitur verifikasi silang otomatis yang menghitung metrik 
+        deviasi relatif maksimum, rata-rata, dan RMS antara kedua solver guna menjamin akurasi solusi numerik.
     </p>
     """
-    builder.insert_html_safe(p9, pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 55), p9_html_sdof)
-    y += 60
+    builder.insert_html_safe(p9, pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 68), p9_html_sdof)
+    y += 73
 
     y = builder.draw_subsection_heading(p9, y, "7.4", "Antarmuka Dual-Theme Switcher (Light Mode & Dark Mode)")
     p9_html_theme = """
@@ -1274,12 +1276,13 @@ def build_guidebook_pdf() -> Path:
 
     builder.draw_callout(
         p10,
-        pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 66),
-        "Formulasi Empiris GMICE & Perhatian Metodologi PGD",
-        "BSMA mengimplementasikan formulasi empiris Worden et al. (2012) yang terintegrasi konvensi USGS ShakeMap: "
-        "untuk log<sub>10</sub>(PGA) &le; 1.57 berlaku MMI = 1.78 + 1.55 log<sub>10</sub>(PGA); sedangkan untuk log<sub>10</sub>(PGA) &gt; 1.57 "
-        "berlaku MMI = -1.60 + 3.70 log<sub>10</sub>(PGA) dengan PGA dalam Gal dari komponen horizontal terbesar. Nilai MMI ini merupakan "
-        "estimasi instrumental matematis dan bukan pengganti survei makroseismik observasi lapangan.",
+        pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 74),
+        "Formulasi Empiris GMICE (Worden et al., 2012) & Konvensi Komponen Horizontal",
+        "BSMA mengimplementasikan GMICE Worden et al. (2012) berbasis komponen horizontal terbesar (Max-H PGA & PGV): "
+        "untuk log<sub>10</sub>(PGA) &le; 1.57 berlaku MMI = 1.78 + 1.55 log<sub>10</sub>(PGA); untuk log<sub>10</sub>(PGA) &gt; 1.57 "
+        "berlaku MMI = -1.60 + 3.70 log<sub>10</sub>(PGA). Pada intensitas kuat (MMI &ge; 5.0), evaluasi dipadukan dengan regresi PGV "
+        "(log<sub>10</sub>PGV &le; 0.53: MMI = 3.78 + 2.89 log<sub>10</sub>PGV; log<sub>10</sub>PGV &gt; 0.53: MMI = 2.40 + 4.00 log<sub>10</sub>PGV). "
+        "Nilai ini adalah estimasi instrumental matematis, bukan pengganti survei makroseismik lapangan.",
         callout_type="info"
     )
 

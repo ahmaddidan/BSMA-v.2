@@ -57,11 +57,12 @@ BSMA menerapkan pipeline pemrosesan sekuensial yang ketat guna menjamin akurasi 
    * Ekstraksi parameter puncak: **PGA**, **PGV**, **PGD**, dan rasio **$V_{\max}/A_{\max}$**.
    * Perhitungan energi seismik kumulatif **Intensitas Arias ($I_a$)** dan **Durasi Signifikan ($D_{5-95}$)**.
    * Komputasi kurva **Pseudo-Spectral Acceleration (PSA)** osilator elastis SDOF dengan redaman kritis 5% ($\xi = 0.05$) pada rentang periode $T = 0.01 - 10.0$ detik.
-   * Pilihan algoritma solver: formulasi analitik rekursif **Nigam & Jennings (1969)** atau integrasi numerik implisit **Newmark (1959)** ($\gamma = 1/2, \beta = 1/4$).
+   * Pilihan algoritma solver: formulasi rekursif analitik **Nigam & Jennings (1969)** (representasi *piecewise-linear*) atau integrasi implisit **Newmark-Beta (1959)** ($\gamma = 1/2, \beta = 1/4$).
+   * Dilengkapi modul otomatis **SDOF Solver Cross-Validation & Numerical Benchmark** yang memverifikasi residual deviasi relatif antara kedua solver pada spektrum percepatan.
 
 5. **Tahap 5: Quality Control (QC), ShakeMap MMI, & Multi-Format Reporting**
-   * Modul diagnostik otomatis dengan evaluasi skor numerik **QC Score (0 – 100)** yang mengelompokkan rekaman ke dalam **6 Kategori Diagnostik Fisik Sinyal** (*Class 1: Nominal Quality* hingga *Class 6: Telemetry Gap*).
-   * Estimasi tingkat guncangan instrumental **Skala MMI** berbasis perumusan empiris GMICE **Worden et al. (2012)** USGS ShakeMap.
+   * Sistem evaluasi kualitas rekaman terharmonisasi 3-tingkat: **QC PASS** ($\ge 70$), **QC WARNING** ($50-69$), dan **QC FAIL** ($< 50$ atau anomali fatal sensor *clipping* / saturasi ADC / *flatline*), terpisah tegas dari evaluasi skor numerik (0–100) dan kelompok diagnostik fisik sinyal (*Class 1* hingga *Class 6*).
+   * Estimasi tingkat guncangan instrumental **Skala MMI** berbasis perumusan empiris GMICE **Worden et al. (2012)** USGS ShakeMap yang dihitung secara baku dari **Komponen Horizontal Maksimum** (Max-H) dengan transisi dominansi PGV pada guncangan kuat ($I_{\text{MMI}} \ge 5.0$).
    * Ekspor laporan teknis resmi **PDF komprehensif siap cetak**, lembar **CSV ringkasan parameter kinematika**, lembar **CSV matriks spektrum respons diskret**, serta paket arsip terkompresi **ZIP**.
 
 ---
@@ -77,7 +78,7 @@ Antarmuka BSMA v2.0.0 dibangun di atas pustaka interaktif modern Streamlit dan v
 | **3** | **Quality Control** | Diagnostik integritas rekaman: skor numerik (0–100), visualisasi radar metrik derau latar, kurva *Power Spectral Density* (PSD), estimasi SNR (dB), dan bendera deteksi anomali (*clipping*, *spikes*, *flatline*). |
 | **4** | **Strong Motion** | Analisis energi guncangan mendalam: kurva akumulasi Intensitas Arias (*Husid Plot*), interval Durasi Signifikan ($D_{5-95}$), rasio $V_{\max}/A_{\max}$, dan percepatan efektif (*effective peak acceleration*). |
 | **5** | **Intensity** | Klasifikasi tingkat guncangan Skala MMI instrumental (Worden et al., 2012) berbasis PGA dan PGV. Menyajikan kartu deskripsi dampak fisik guncangan (*Perceived Shaking*) dan potensi kerusakan struktural (*Potential Damage*). |
-| **6** | **Spectrum** | Kurva Spektrum Respons Pseudo-Percepatan ($S_a$) elastis redaman 5% untuk ketiga kanal pada rentang periode $T = 0.01 - 10.0$ s. Mendukung perbandingan langsung (*overlay*) terhadap kurva spektrum desain **SNI 1726:2019**. |
+| **6** | **Spectrum** | Kurva Spektrum Respons Pseudo-Percepatan ($S_a$) elastis redaman 5% untuk ketiga kanal pada rentang periode $T = 0.01 - 10.0$ s. Mendukung perbandingan langsung (*overlay*) terhadap kurva spektrum desain **SNI 1726:2019**, serta panel verifikasi silang numerik (*SDOF Solver Benchmark: Nigam-Jennings vs Newmark-Beta*). |
 | **7** | **Report** | Pratinjau dan pengunduhan dokumen laporan resmi PDF terstandarisasi BMKG, tabel CSV ringkasan parameter kinematika, lembar CSV matriks spektrum respons diskret, dan paket arsip ZIP. |
 
 ---
@@ -85,6 +86,7 @@ Antarmuka BSMA v2.0.0 dibangun di atas pustaka interaktif modern Streamlit dan v
 ## 🚀 Fitur Unggulan Lanjutan
 
 * ⚡ **Batch Processing Multi-Stasiun**: Mampu memproses puluhan rekaman stasiun akselerograf secara simultan dalam satu klik, menghasilkan tabel matriks komparasi regional terpadu yang dapat diurutkan berdasarkan PGA tertinggi atau estimasi MMI.
+* 🔬 **SDOF Solver Cross-Validation Benchmark**: Alat uji presisi komputasi interaktif yang menghitung deviasi relatif maksimal, rata-rata, dan RMS antara Nigam-Jennings dan Newmark-Beta.
 * 🌓 **Dual-Theme Switcher (Light Mode & Dark Mode)**: Tombol saklar instan di pojok kanan atas aplikasi untuk beralih antara tema terang (kebutuhan pelaporan formal dan pencahayaan terang) dan tema gelap (pengamatan jangka panjang di ruang monitor seismologi redup).
 * 🛡️ **Provenance Logging & Audit Trail**: Setiap tahapan pemrosesan dicatat secara transparan (parameter filter, versi pustaka numerik, waktu eksekusi, dan status StationXML) pada laporan akhir guna menjamin reproduksibilitas ilmiah (*scientific reproducibility*).
 
@@ -98,11 +100,11 @@ Antarmuka BSMA v2.0.0 dibangun di atas pustaka interaktif modern Streamlit dan v
 | **Signal-to-Noise** | $\text{SNR} = 20 \log_{10}\left( \frac{\mathrm{RMS_{signal}}}{\mathrm{RMS_{noise}}} \right)$ | $\text{dB}$ | Konvensi FDSN / PEER |
 | **PGA** | $\text{PGA} = \max \vert a(t) \vert$ | $\text{Gal}$ | Seismologi Rekayasa Baku |
 | **PGV** | $\text{PGV} = \max \vert v(t) \vert = \max \left\vert \int_0^t a(\tau) d\tau \right\vert$ | $\text{cm/s}$ | Kalkulus Integral Tentu Sinyal |
-| **PGD** | $\text{PGD} = \max \vert d(t) \vert = \max \left\vert \int_0^t v(\tau) d\tau \right\vert$ | $\text{cm}$ | Integrasi Ganda Transien |
+| **PGD** | $\text{PGD} = \max \vert d(t) \vert = \max \left\vert \int_0^t v(\tau) d\tau \right\vert$ | $\text{cm}$ | Integrasi Ganda Transien (Deformasi Dinamik) |
 | **Intensitas Arias** | $I_a = \frac{\pi}{2g} \int_0^{t_{\max}} [a(t)]^2 dt$ | $\text{m/s}$ | Arias (1970) |
 | **Durasi Signifikan** | $D_{5-95} = t_{95} - t_{5}$ | $\text{detik}$ | Trifunac & Brady (1975) (akumulasi $I_a$ 5% – 95%) |
-| **Spektrum Respons** | $\text{PSA}(T, \xi) = \omega^2 S_d(T, \xi) = \omega^2 \max \vert u(t) \vert$ | $\text{g}$ | Nigam-Jennings (1969), SNI 1726:2019 |
-| **GMICE MMI** | $\text{MMI} = 1.78 + 1.55 \log_{10}(\text{PGA}) \quad (\log_{10}\text{PGA} \le 1.57)$<br>$\text{MMI} = -1.60 + 3.70 \log_{10}(\text{PGA}) \quad (\log_{10}\text{PGA} > 1.57)$ | Skala I–IX+ | Worden et al. (2012), USGS ShakeMap |
+| **Spektrum Respons** | $\text{PSA}(T, \xi) = \omega^2 S_d(T, \xi) = \omega^2 \max \vert u(t) \vert$ | $\text{g}$ | Nigam-Jennings (1969), Newmark (1959), SNI 1726:2019 |
+| **GMICE MMI** | $\text{MMI}_{\text{PGA}} = 1.78 + 1.55 \log_{10}(\text{PGA}) \quad (\log_{10}\text{PGA} \le 1.57)$<br>$\text{MMI}_{\text{PGA}} = -1.60 + 3.70 \log_{10}(\text{PGA}) \quad (\log_{10}\text{PGA} > 1.57)$<br>$\text{MMI}_{\text{PGV}} = 3.78 + 2.89 \log_{10}(\text{PGV}) \quad (\log_{10}\text{PGV} \le 0.53)$<br>$\text{MMI}_{\text{PGV}} = 2.40 + 4.00 \log_{10}(\text{PGV}) \quad (\log_{10}\text{PGV} > 0.53)$ | Skala I–IX+ | Worden et al. (2012), USGS ShakeMap (Komponen Horizontal Maksimum) |
 
 ---
 

@@ -64,3 +64,24 @@ def test_newmark_extreme_damping():
         u, v, a_abs = solve_newmark(MOCK_ACC_GROUND, DT, np.array([period]), d)
         sd, psv, psa = _to_spectral_peaks(u, v, a_abs, [period])
         assert np.isfinite(psa[0]), f"Solver failed for damping {d*100}%"
+
+
+def test_benchmark_sdof_solvers_concordance():
+    """Verify quantitative concordance between Nigam-Jennings and Newmark solvers."""
+    from core.processing.response_spectrum import benchmark_sdof_solvers
+
+    time = np.arange(0, 5.0, 0.01)
+    acc = np.sin(2.0 * np.pi * 1.5 * time) * np.exp(-0.5 * time)
+    periods = np.logspace(-1, 0.5, 30)  # 0.1s to 3.16s
+
+    bm = benchmark_sdof_solvers(acc, 0.01, periods, damping=0.05)
+
+    assert "max_rel_diff" in bm
+    assert "mean_rel_diff" in bm
+    assert "rms_diff" in bm
+    assert "max_diff_period" in bm
+    assert np.isfinite(bm["max_rel_diff"])
+    assert np.isfinite(bm["mean_rel_diff"])
+    assert np.isfinite(bm["rms_diff"])
+    # For dt=0.01 and periods >= 0.1, mean relative difference is strictly < 5%
+    assert bm["mean_rel_diff"] < 0.05, f"Mean relative difference {bm['mean_rel_diff']:.4%} exceeds 5%"

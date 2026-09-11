@@ -119,3 +119,46 @@ def test_failed_warning_pass_helpers():
     assert len(report.passed()) == 1
     assert len(report.warnings()) == 1
     assert len(report.failed()) == 1
+
+
+def test_trace_qc_metrics_harmonized_thresholds():
+    """Verify harmonized scientific QC thresholds (PASS >= 70, WARNING 50-69, FAIL < 50)."""
+    from core.preprocessing.qc import TraceQCMetrics, QCIssue, QCSeverity as PreprocQCSeverity
+
+    # 1. Clean trace: 100 -> PASS
+    m_clean = TraceQCMetrics(trace_id="TEST.1")
+    m_clean.calculate_quality_score()
+    assert m_clean.quality_score == 100
+    assert m_clean.is_valid is True
+    assert m_clean.status == "PASS"
+
+    # 2. Warning trace: 1 warning (-15) -> 85 -> PASS
+    m_warn1 = TraceQCMetrics(trace_id="TEST.2")
+    m_warn1.issues.append(QCIssue("MINOR", PreprocQCSeverity.WARNING))
+    m_warn1.calculate_quality_score()
+    assert m_warn1.quality_score == 85
+    assert m_warn1.status == "PASS"
+
+    # 3. Warning trace: 3 warnings (-45) -> 55 -> WARNING (50-69)
+    m_warn3 = TraceQCMetrics(trace_id="TEST.3")
+    for _ in range(3):
+        m_warn3.issues.append(QCIssue("WARN", PreprocQCSeverity.WARNING))
+    m_warn3.calculate_quality_score()
+    assert m_warn3.quality_score == 55
+    assert m_warn3.is_valid is True
+    assert m_warn3.status == "WARNING"
+
+    # 4. Severe trace: 2 errors (-80) -> 20 -> FAIL (<50)
+    m_err = TraceQCMetrics(trace_id="TEST.4")
+    m_err.issues.append(QCIssue("ERR1", PreprocQCSeverity.ERROR))
+    m_err.issues.append(QCIssue("ERR2", PreprocQCSeverity.ERROR))
+    m_err.calculate_quality_score()
+    assert m_err.quality_score == 20
+    assert m_err.is_valid is False
+    assert m_err.status == "FAIL"
+
+    # 5. Clipping fatal anomaly -> always FAIL
+    m_clip = TraceQCMetrics(trace_id="TEST.5", has_clipping=True)
+    m_clip.calculate_quality_score()
+    assert m_clip.is_valid is False
+    assert m_clip.status == "FAIL"

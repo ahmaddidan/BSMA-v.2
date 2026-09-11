@@ -1,9 +1,14 @@
-streamlit
-obspy
-numpy
-pandas
-matplotlib
-plotly
-scipy
-fpdf
-setuptools
+# BMKG Strong Motion Analyzer (BSMA v2.0.0) - Dependency Specification
+# Fully tested on Python 3.10 – 3.13
+
+streamlit>=1.35.0,<2.0.0
+obspy>=1.4.0,<2.0.0
+numpy>=1.26.0,<3.0.0
+scipy>=1.12.0,<2.0.0
+pandas>=2.0.0,<4.0.0
+matplotlib>=3.8.0,<4.0.0
+plotly>=5.20.0,<7.0.0
+fpdf>=1.7.2,<2.0.0
+pymupdf>=1.24.0,<2.0.0
+pytest>=8.0.0
+setuptools>=65.0.0

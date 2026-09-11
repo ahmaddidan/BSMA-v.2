@@ -1675,9 +1675,18 @@ def export_station_report(
     # SIG & MMI classification
     # -------------------------------------------------------------------------
 
-    strongest_metrics = _extract_metrics(contexts[strongest_channel])
-    pga_pct_g = (strongest_metrics["PGA"] / 9.80665) * 100.0
-    pgv_cm_s = strongest_metrics["PGV"] * 100.0
+    # Standard GMICE: Intensity is calibrated against horizontal motion.
+    horizontal_channels = [
+        ch for ch in contexts
+        if not ch.upper().endswith("Z") and not ch.upper().endswith("U")
+    ]
+    target_channel = (
+        max(horizontal_channels, key=lambda ch: _extract_metrics(contexts[ch])["PGA"])
+        if horizontal_channels else strongest_channel
+    )
+    target_metrics = _extract_metrics(contexts[target_channel])
+    pga_pct_g = (target_metrics["PGA"] / 9.80665) * 100.0
+    pgv_cm_s = target_metrics["PGV"] * 100.0
     mmi_info = get_mmi_worden(pga_pct_g, pgv_cm_s)
 
     _pdf_add_sig_box(
