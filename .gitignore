@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Caches and virtual environments
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# Logs
+logs/
+*.log
+
+# Scratch and temporary testing files
+scratch/
+.tempmediaStorage/
+
+# IDE settings
+.vscode/
+.devcontainer/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Runtime outputs
+outputs/reports/
+outputs/temp/

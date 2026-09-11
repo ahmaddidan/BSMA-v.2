@@ -41,20 +41,41 @@ st.set_page_config(
 
 
 DESIGN_TOKENS: dict[str, Any] = {
-    "colors": {
-        "bg": "#0B0B0B",
-        "sidebar": "#111111",
-        "panel": "#171717",
-        "panel_active": "#1D1D1D",
-        "border": "#2A2A2A",
-        "border_light": "#3A3A3A",
-        "text": "#F2F2F2",
-        "text_secondary": "#A8A8A8",
-        "text_muted": "#666666",
-        "success": "#10B981",
-        "warning": "#F59E0B",
-        "error": "#EF4444",
-        "focus": "#D0D0D0",
+    "dark": {
+        "colors": {
+            "bg": "#0B0B0B",
+            "sidebar": "#111111",
+            "panel": "#171717",
+            "panel_active": "#1D1D1D",
+            "border": "#2A2A2A",
+            "border_light": "#3A3A3A",
+            "text": "#F2F2F2",
+            "text_secondary": "#A8A8A8",
+            "text_muted": "#666666",
+            "log_bg": "#0D0D0D",
+            "success": "#10B981",
+            "warning": "#F59E0B",
+            "error": "#EF4444",
+            "focus": "#D0D0D0",
+        },
+    },
+    "light": {
+        "colors": {
+            "bg": "#F8FAFC",
+            "sidebar": "#F1F5F9",
+            "panel": "#FFFFFF",
+            "panel_active": "#F8FAFC",
+            "border": "#E2E8F0",
+            "border_light": "#CBD5E1",
+            "text": "#0F172A",
+            "text_secondary": "#475569",
+            "text_muted": "#64748B",
+            "log_bg": "#F1F5F9",
+            "success": "#059669",
+            "warning": "#D97706",
+            "error": "#DC2626",
+            "focus": "#2563EB",
+        },
     },
     "typography": {
         "font_sans": "'Inter', system-ui, -apple-system, sans-serif",
@@ -91,8 +112,28 @@ DESIGN_TOKENS: dict[str, Any] = {
 
 
 def token(path: str) -> str:
-    """Resolve a design token path (e.g., 'colors.bg' or 'semantic.status_pass') to its raw value."""
+    """Resolve a design token path (e.g., 'colors.bg' or 'semantic.status_pass') to its raw value based on active theme."""
+    theme = "dark"
+    try:
+        if hasattr(st, "session_state") and "theme_mode" in st.session_state:
+            theme = st.session_state["theme_mode"]
+    except Exception:
+        theme = "dark"
+    if theme not in ("dark", "light"):
+        theme = "dark"
+
     keys = path.split(".")
+    if keys[0] == "colors":
+        sub_dict = DESIGN_TOKENS.get(theme, {}).get("colors", {})
+        if len(keys) > 1 and keys[1] in sub_dict:
+            return str(sub_dict[keys[1]])
+        return ""
+
+    if keys[0] == "semantic":
+        target = DESIGN_TOKENS.get("semantic", {}).get(keys[1], "")
+        if target:
+            return token(target)
+
     current: Any = DESIGN_TOKENS
     for k in keys:
         if isinstance(current, dict) and k in current:
@@ -104,8 +145,54 @@ def token(path: str) -> str:
     return str(current)
 
 
+def get_plotly_theme() -> dict[str, str]:
+    """Return theme configuration dictionary for Plotly charts based on active theme_mode."""
+    theme = "dark"
+    try:
+        if hasattr(st, "session_state") and "theme_mode" in st.session_state:
+            theme = st.session_state["theme_mode"]
+    except Exception:
+        theme = "dark"
+    if theme == "light":
+        return {
+            "template": "plotly_white",
+            "paper_bgcolor": "#FFFFFF",
+            "plot_bgcolor": "#F8FAFC",
+            "gridcolor": "#CBD5E1",
+            "zerolinecolor": "#94A3B8",
+            "linecolor": "#475569",
+            "font_color": "#0F172A",
+            "title_font_color": "#0F172A",
+            "tickfont_color": "#1E293B",
+            "sub_font_color": "#334155",
+            "legend_font_color": "#0F172A",
+        }
+    return {
+        "template": "plotly_dark",
+        "paper_bgcolor": "#171717",
+        "plot_bgcolor": "#0B0B0B",
+        "gridcolor": "#2A2A2A",
+        "zerolinecolor": "#404040",
+        "linecolor": "#737373",
+        "font_color": "#F8FAFC",
+        "title_font_color": "#FFFFFF",
+        "tickfont_color": "#E2E8F0",
+        "sub_font_color": "#A8A8A8",
+        "legend_font_color": "#F8FAFC",
+    }
+
+
 def inject_bsma_theme() -> None:
     """Inject global CSS theme derived dynamically from DESIGN_TOKENS."""
+    theme = "dark"
+    try:
+        if hasattr(st, "session_state") and "theme_mode" in st.session_state:
+            theme = st.session_state["theme_mode"]
+    except Exception:
+        theme = "dark"
+    if theme not in ("dark", "light"):
+        theme = "dark"
+
     bg = token("colors.bg")
     sidebar = token("colors.sidebar")
     panel = token("colors.panel")
@@ -114,6 +201,7 @@ def inject_bsma_theme() -> None:
     border_light = token("colors.border_light")
     text = token("colors.text")
     text_secondary = token("colors.text_secondary")
+    log_bg = token("colors.log_bg")
     pass_col = token("semantic.status_pass")
     warn_col = token("semantic.status_warning")
     fail_col = token("semantic.status_error")
@@ -121,87 +209,229 @@ def inject_bsma_theme() -> None:
     font_mono = token("typography.font_mono")
     radius_sm = token("radius.sm")
 
+    btn_border = border_light if theme == "light" else "#444444"
+    btn_hover_bg = "#E2E8F0" if theme == "light" else "#222222"
+    btn_hover_border = "#94A3B8" if theme == "light" else "#666666"
+    btn_hover_text = "#0F172A" if theme == "light" else "#FFFFFF"
+
+    toggle_track_bg = "#1B1F27" if theme == "dark" else "#DDE2EB"
+    toggle_track_border = "#282E3B" if theme == "dark" else "#C4CBD6"
+    toggle_track_shadow = (
+        "inset 0 3px 6px rgba(0, 0, 0, 0.7), inset 0 -1px 2px rgba(255, 255, 255, 0.05)"
+        if theme == "dark"
+        else "inset 0 3px 6px rgba(0, 0, 0, 0.14), inset 0 -1px 2px rgba(255, 255, 255, 0.9)"
+    )
+    toggle_knob_bg = "#2A303C" if theme == "dark" else "#FFFFFF"
+    toggle_knob_border = "#3E4657" if theme == "dark" else "#E2E8F0"
+    toggle_knob_shadow = (
+        "0 3px 8px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(0, 0, 0, 0.4)"
+        if theme == "dark"
+        else "0 3px 8px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.12)"
+    )
+    toggle_knob_icon = (
+        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23CBD5E1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z'/%3E%3Cpath d='M19 3v4M21 5h-4' stroke-width='1.5'/%3E%3C/svg%3E"
+        if theme == "dark"
+        else "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41'/%3E%3C/svg%3E"
+    )
+    toggle_justify = "flex-start" if theme == "dark" else "flex-end"
+    toggle_padding = "0 34px 0 14px" if theme == "dark" else "0 14px 0 34px"
+    toggle_align = "left" if theme == "dark" else "right"
+    toggle_pseudo = "after" if theme == "dark" else "before"
+    toggle_knob_side = "right: 4px;" if theme == "dark" else "left: 4px;"
+    toggle_icon_size = "15px 15px" if theme == "dark" else "16px 16px"
+    toggle_text_col = "#6C7A9C" if theme == "dark" else "#64748B"
+
     css = f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+
+    :root, .stApp {{
+        --primary-color: {token('colors.focus')};
+        --background-color: {bg};
+        --secondary-background-color: {sidebar};
+        --text-color: {text};
+    }}
 
     html, body, [class*="css"] {{
         font-family: {font_sans};
     }}
 
-    /* App Main Canvas: Neutral Scientific Dark */
+    /* Streamlit App Header Toolbar */
+    header[data-testid="stHeader"],
+    header[data-testid="stHeader"] > div {{
+        background-color: {bg} !important;
+        color: {text} !important;
+    }}
+    header[data-testid="stHeader"] button,
+    header[data-testid="stHeader"] span,
+    header[data-testid="stHeader"] a {{
+        color: {text_secondary} !important;
+    }}
+
+    /* App Main Canvas: Neutral Scientific Theme */
     .stApp {{
-        background-color: {bg};
-        color: {text};
+        background-color: {bg} !important;
+        color: {text} !important;
         padding-bottom: 50px !important;
     }}
 
-    /* Sidebar Styling */
+    /* General typography contrast */
+    .stMarkdown, .stMarkdown p, .stMarkdown span {{
+        color: {text};
+    }}
+    h1, h2, h3, h4, h5, h6 {{
+        color: {text} !important;
+    }}
+    .stCaption, p, span, label {{
+        color: {text_secondary};
+    }}
+
+    /* Sidebar Styling & High-Contrast Typography */
     section[data-testid="stSidebar"] {{
-        background-color: {sidebar};
-        border-right: 1px solid {border};
+        background-color: {sidebar} !important;
+        border-right: 1px solid {border} !important;
     }}
 
     section[data-testid="stSidebar"][aria-expanded="false"] {{
         border-right: none !important;
     }}
 
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3,
+    section[data-testid="stSidebar"] h4,
     section[data-testid="stSidebar"] .stMarkdown h3 {{
-        color: {text_secondary};
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        margin-top: 1rem;
-        margin-bottom: 0.5rem;
+        color: {text_secondary} !important;
+        font-size: 0.75rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.08em !important;
+        margin-top: 1rem !important;
+        margin-bottom: 0.4rem !important;
     }}
 
-    /* Expander Containers (Read-only / Collapsible Panels) */
-    .stExpander {{
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] [data-testid="stWidgetLabel"] p,
+    section[data-testid="stSidebar"] [data-testid="stWidgetLabel"] span {{
+        color: {text} !important;
+        font-weight: 600 !important;
+        font-size: 0.82rem !important;
+    }}
+
+    section[data-testid="stSidebar"] .stCaption,
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] span {{
+        color: {text_secondary} !important;
+    }}
+
+    /* Expander Containers (Closed & Open States) */
+    [data-testid="stExpander"],
+    .stExpander,
+    [data-testid="stExpander"] details,
+    .stExpander details {{
         background-color: {panel} !important;
         border: 1px solid {border} !important;
         border-radius: {radius_sm} !important;
         margin-bottom: 0.5rem !important;
+        overflow: hidden !important;
     }}
-    
-    .stExpander > details > summary {{
+
+    /* Expander Summary Header (Open, Closed, Hover, Active) */
+    [data-testid="stExpander"] summary,
+    .stExpander summary,
+    [data-testid="stExpander"] details summary,
+    .stExpander details summary,
+    [data-testid="stExpander"] details[open] > summary,
+    .stExpander details[open] > summary,
+    section[data-testid="stSidebar"] [data-testid="stExpander"] summary,
+    section[data-testid="stSidebar"] [data-testid="stExpander"] details[open] > summary {{
+        background-color: {panel} !important;
+        color: {text} !important;
         font-weight: 600 !important;
         font-size: 0.82rem !important;
-        color: {text} !important;
         letter-spacing: 0.02em !important;
+        border: none !important;
+        border-radius: {radius_sm} !important;
+        transition: background-color 0.15s ease !important;
+    }}
+
+    /* Summary on Hover */
+    [data-testid="stExpander"] summary:hover,
+    .stExpander summary:hover,
+    [data-testid="stExpander"] details summary:hover,
+    .stExpander details summary:hover,
+    section[data-testid="stSidebar"] [data-testid="stExpander"] summary:hover {{
+        background-color: {panel_active} !important;
+        color: {text} !important;
+    }}
+
+    /* Text and Icons inside Expander Summary */
+    [data-testid="stExpander"] summary *,
+    .stExpander summary *,
+    section[data-testid="stSidebar"] [data-testid="stExpander"] summary * {{
+        color: {text} !important;
+    }}
+
+    [data-testid="stExpander"] summary svg,
+    .stExpander summary svg,
+    section[data-testid="stSidebar"] [data-testid="stExpander"] summary svg {{
+        fill: {text_secondary} !important;
+        color: {text_secondary} !important;
+    }}
+
+    /* Expander Details Inner Content */
+    [data-testid="stExpander"] [data-testid="stExpanderDetails"],
+    .stExpander [data-testid="stExpanderDetails"],
+    [data-testid="stExpander"] details > div,
+    .stExpander details > div,
+    section[data-testid="stSidebar"] [data-testid="stExpander"] [data-testid="stExpanderDetails"] {{
+        background-color: {panel} !important;
+        border-top: 1px solid {border} !important;
+        color: {text} !important;
+    }}
+
+    [data-testid="stExpander"] [data-testid="stExpanderDetails"] *,
+    .stExpander [data-testid="stExpanderDetails"] * {{
+        color: {text} !important;
     }}
 
     /* Scientific Data Panels / Cards */
     .sci-card {{
-        background-color: {panel};
-        border: 1px solid {border};
-        border-radius: {radius_sm};
+        background-color: {panel} !important;
+        border: 1px solid {border} !important;
+        border-radius: {radius_sm} !important;
         padding: 0.75rem 1rem;
         margin-bottom: 0.75rem;
+        color: {text} !important;
     }}
 
     .sci-card-active {{
-        background-color: {panel_active};
-        border: 1px solid {border_light};
+        background-color: {panel_active} !important;
+        border: 1px solid {border_light} !important;
     }}
 
     /* Monospace Logs & Identifiers */
     .code-ident {{
         font-family: {font_mono};
-        color: {text};
+        color: {text} !important;
     }}
 
     /* Technical Log Panel */
     .technical-log {{
         font-family: {font_mono};
-        background-color: #0d0d0d;
-        border: 1px solid {border};
-        border-left: 3px solid {border_light};
+        background-color: {log_bg} !important;
+        border: 1px solid {border} !important;
+        border-left: 3px solid {border_light} !important;
         padding: 0.75rem 1rem;
         border-radius: {radius_sm};
-        color: {text_secondary};
+        color: {text_secondary} !important;
         font-size: 0.8rem;
         line-height: 1.6;
+    }}
+
+    .technical-log strong {{
+        color: {text} !important;
+        font-weight: 700 !important;
     }}
 
     /* Functional Badges */
@@ -237,61 +467,390 @@ def inject_bsma_theme() -> None:
 
     /* Table Styling */
     [data-testid="stDataFrame"] {{
-        border: 1px solid {border};
+        border: 1px solid {border} !important;
         border-radius: {radius_sm};
-        background-color: {panel};
+        background-color: {panel} !important;
     }}
 
     /* Tabs Styling */
     .stTabs [data-baseweb="tab-list"] {{
         gap: 2px;
-        background-color: {bg};
-        border-bottom: 1px solid {border};
+        background-color: {bg} !important;
+        border-bottom: 1px solid {border} !important;
     }}
 
     .stTabs [data-baseweb="tab"] {{
         font-size: 0.8rem;
         font-weight: 600;
-        color: {text_secondary};
+        color: {text_secondary} !important;
         padding: 0.5rem 1rem;
         border-radius: 4px 4px 0 0;
-        background-color: {sidebar};
-        border: 1px solid {border};
-        border-bottom: none;
+        background-color: {sidebar} !important;
+        border: 1px solid {border} !important;
+        border-bottom: none !important;
     }}
 
     .stTabs [aria-selected="true"] {{
         color: {text} !important;
         background-color: {panel} !important;
-        border-top: 2px solid {text} !important;
+        border-top: 2px solid {border_light} !important;
     }}
 
-    /* Form Controls & Dropdowns */
-    [data-testid="stSelectbox"] > div > div, [data-testid="stTextInput"] > div > div {{
+    /* Form Controls, Inputs & Selectboxes (Closed state) */
+    div[data-baseweb="select"],
+    div[data-baseweb="select"] > div,
+    div[data-baseweb="input"],
+    div[data-baseweb="input"] > div,
+    div[data-baseweb="base-input"],
+    [data-testid="stSelectbox"] > div > div, 
+    [data-testid="stTextInput"] > div > div,
+    [data-testid="stNumberInput"] > div > div {{
         background-color: {panel} !important;
-        border: 1px solid {border} !important;
+        border-color: {border} !important;
         color: {text} !important;
         border-radius: {radius_sm} !important;
     }}
 
-    /* Buttons */
+    /* Selectbox text and input values - High Contrast Guarantee */
+    div[data-baseweb="select"] *,
+    div[data-baseweb="select"] [class*="ValueContainer"] *,
+    div[data-baseweb="select"] [class*="singleValue"] *,
+    div[data-baseweb="select"] div[role="combobox"] *,
+    div[data-baseweb="input"] *,
+    div[data-baseweb="base-input"] *,
+    [data-testid="stSelectbox"] *,
+    [data-testid="stSelectbox"] div[data-baseweb="select"] *,
+    [data-testid="stSelectbox"] [data-testid="stMarkdownContainer"] p,
+    [data-testid="stTextInput"] input,
+    [data-testid="stNumberInput"] input {{
+        color: {text} !important;
+        -webkit-text-fill-color: {text} !important;
+        font-size: 0.85rem !important;
+    }}
+
+    div[data-baseweb="select"] [class*="ValueContainer"] *,
+    div[data-baseweb="select"] [class*="singleValue"] *,
+    div[data-baseweb="select"] div[role="combobox"] * {{
+        color: {text} !important;
+        -webkit-text-fill-color: {text} !important;
+        font-weight: 600 !important;
+    }}
+
+    /* Dropdown arrow and input stepper buttons */
+    div[data-baseweb="select"] svg,
+    [data-testid="stSelectbox"] svg,
+    [data-testid="stNumberInput"] button svg {{
+        fill: {text_secondary} !important;
+        color: {text_secondary} !important;
+    }}
+    [data-testid="stNumberInput"] button {{
+        background-color: {panel} !important;
+        border-color: {border} !important;
+    }}
+
+    /* BaseWeb Portal Popover & Dropdown Menu List (Open state) */
+    div[data-baseweb="popover"],
+    div[data-baseweb="popover"] > div,
+    div[data-baseweb="menu"],
+    div[data-baseweb="menu"] > ul,
+    ul[role="listbox"] {{
+        background-color: {panel} !important;
+        border: 1px solid {border} !important;
+        color: {text} !important;
+        border-radius: 6px !important;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18) !important;
+    }}
+
+    li[role="option"] {{
+        background-color: {panel} !important;
+        color: {text} !important;
+        font-size: 0.85rem !important;
+        border-radius: 4px !important;
+        padding: 8px 12px !important;
+        margin: 2px 4px !important;
+        cursor: pointer !important;
+        transition: background 0.15s ease, color 0.15s ease !important;
+    }}
+
+    li[role="option"] *,
+    li[role="option"] span,
+    li[role="option"] div {{
+        color: {text} !important;
+        -webkit-text-fill-color: {text} !important;
+    }}
+
+    li[role="option"]:hover,
+    li[role="option"][aria-selected="true"] {{
+        background-color: {panel_active} !important;
+        color: {text} !important;
+        font-weight: 600 !important;
+    }}
+
+    li[role="option"]:hover *,
+    li[role="option"][aria-selected="true"] * {{
+        color: {text} !important;
+        -webkit-text-fill-color: {text} !important;
+    }}
+
+    /* File Uploader Dropzone */
+    [data-testid="stFileUploader"] section {{
+        background-color: {panel} !important;
+        border: 1px dashed {border_light} !important;
+        color: {text_secondary} !important;
+        border-radius: {radius_sm} !important;
+    }}
+    [data-testid="stFileUploader"] section * {{
+        color: {text_secondary} !important;
+    }}
+    [data-testid="stFileUploader"] section button {{
+        background-color: {panel_active} !important;
+        border: 1px solid {border} !important;
+        color: {text} !important;
+    }}
+
+    /* File Uploader Uploaded File Items (Eliminates jarring white cards in Dark Mode) */
+    [data-testid="stFileUploaderFile"],
+    [data-testid="stFileUploaderFileData"],
+    div[data-testid="stFileUploader"] section + ul li,
+    div[data-testid="stFileUploader"] ul li,
+    div[data-testid="stFileUploader"] li {{
+        background-color: { "#1E222B" if theme == "dark" else "#FFFFFF" } !important;
+        border: 1px solid { "#2A2E39" if theme == "dark" else "#CBD5E1" } !important;
+        border-radius: 6px !important;
+        color: {text} !important;
+        margin-bottom: 6px !important;
+    }}
+
+    [data-testid="stFileUploaderFile"] *,
+    [data-testid="stFileUploaderFileData"] *,
+    div[data-testid="stFileUploader"] section + ul li *,
+    div[data-testid="stFileUploader"] ul li * {{
+        color: {text} !important;
+        -webkit-text-fill-color: {text} !important;
+    }}
+
+    [data-testid="stFileUploaderFile"] small,
+    [data-testid="stFileUploaderFileData"] small,
+    div[data-testid="stFileUploader"] ul li small,
+    div[data-testid="stFileUploader"] ul li span {{
+        color: {text_secondary} !important;
+        -webkit-text-fill-color: {text_secondary} !important;
+    }}
+
+    [data-testid="stFileUploaderFile"] svg,
+    [data-testid="stFileUploaderFileData"] svg,
+    div[data-testid="stFileUploader"] ul li svg {{
+        fill: {text_secondary} !important;
+        color: {text_secondary} !important;
+    }}
+
+    [data-testid="stFileUploaderDeleteFile"],
+    div[data-testid="stFileUploader"] ul li button {{
+        background: transparent !important;
+        border: none !important;
+        color: {text_secondary} !important;
+    }}
+    [data-testid="stFileUploaderDeleteFile"]:hover,
+    div[data-testid="stFileUploader"] ul li button:hover {{
+        background: transparent !important;
+        color: {fail_col} !important;
+    }}
+    [data-testid="stFileUploaderDeleteFile"] svg,
+    div[data-testid="stFileUploader"] ul li button svg {{
+        fill: {text_secondary} !important;
+    }}
+    [data-testid="stFileUploaderDeleteFile"]:hover svg,
+    div[data-testid="stFileUploader"] ul li button:hover svg {{
+        fill: {fail_col} !important;
+    }}
+
+    /* Standard Buttons */
     .stButton button {{
         border-radius: {radius_sm};
         font-weight: 600;
         font-size: 0.82rem;
         letter-spacing: 0.02em;
+        background-color: {panel} !important;
+        border: 1px solid {border} !important;
+        color: {text} !important;
     }}
 
     .stButton button[kind="primary"] {{
-        background-color: {panel};
-        border: 1px solid #444444;
-        color: {text};
+        background-color: {panel_active} !important;
+        border: 1px solid {btn_border} !important;
+        color: {text} !important;
     }}
 
-    .stButton button[kind="primary"]:hover {{
-        background-color: #222222;
-        border-color: #666666;
-        color: #ffffff;
+    .stButton button:hover {{
+        background-color: {btn_hover_bg} !important;
+        border-color: {btn_hover_border} !important;
+        color: {btn_hover_text} !important;
+    }}
+
+    /* Neumorphic Capsule Theme Switcher (Matches Reference Design) */
+    .st-key-theme_switch_btn {{
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        margin: 0 0 0 auto !important;
+        padding: 0 !important;
+    }}
+
+    .st-key-theme_switch_btn button {{
+        position: relative !important;
+        width: 104px !important;
+        min-width: 104px !important;
+        max-width: 104px !important;
+        height: 36px !important;
+        min-height: 36px !important;
+        max-height: 36px !important;
+        border-radius: 18px !important;
+        background-color: {toggle_track_bg} !important;
+        border: 1.5px solid {toggle_track_border} !important;
+        box-shadow: {toggle_track_shadow} !important;
+        display: flex !important;
+        align-items: center !important;
+        cursor: pointer !important;
+        overflow: visible !important;
+        transition: all 0.25s ease !important;
+        outline: none !important;
+        margin: 0 !important;
+        justify-content: {toggle_justify} !important;
+        padding: {toggle_padding} !important;
+    }}
+
+    .st-key-theme_switch_btn button:hover,
+    .st-key-theme_switch_btn button:focus,
+    .st-key-theme_switch_btn button:active {{
+        background-color: {toggle_track_bg} !important;
+        border: 1.5px solid {toggle_track_border} !important;
+        box-shadow: {toggle_track_shadow} !important;
+        outline: none !important;
+    }}
+
+    .st-key-theme_switch_btn button div,
+    .st-key-theme_switch_btn button p,
+    .st-key-theme_switch_btn button span {{
+        color: {toggle_text_col} !important;
+        -webkit-text-fill-color: {toggle_text_col} !important;
+        font-family: 'Inter', -apple-system, sans-serif !important;
+        font-size: 0.58rem !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.08em !important;
+        line-height: 1.15 !important;
+        text-transform: uppercase !important;
+        white-space: pre-line !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        user-select: none !important;
+        text-align: {toggle_align} !important;
+    }}
+
+    /* Outset Sliding Knob with Moon / Sun Icon */
+    .st-key-theme_switch_btn button::{toggle_pseudo} {{
+        content: "" !important;
+        position: absolute !important;
+        {toggle_knob_side}
+        top: 3px !important;
+        width: 28px !important;
+        height: 28px !important;
+        border-radius: 50% !important;
+        background-color: {toggle_knob_bg} !important;
+        border: 1px solid {toggle_knob_border} !important;
+        box-shadow: {toggle_knob_shadow} !important;
+        background-image: url("{toggle_knob_icon}") !important;
+        background-repeat: no-repeat !important;
+        background-position: center !important;
+        background-size: {toggle_icon_size} !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        pointer-events: none !important;
+    }}
+
+    /* Checkboxes */
+    [data-testid="stCheckbox"] label,
+    [data-testid="stCheckbox"] label p,
+    [data-testid="stCheckbox"] label span,
+    div[data-baseweb="checkbox"] label p,
+    div[data-baseweb="checkbox"] label span {{
+        color: {text} !important;
+        font-size: 0.83rem !important;
+    }}
+
+    /* Segmented Control (Workflow Mode - Eliminates Stark White Pills) */
+    [data-testid="stSegmentedControl"] {{
+        background-color: { "#111111" if theme == "dark" else "#F1F5F9" } !important;
+        border: 1px solid {border} !important;
+        border-radius: 6px !important;
+        padding: 3px !important;
+        gap: 4px !important;
+    }}
+
+    [data-testid="stSegmentedControl"] [data-baseweb="button-group"],
+    [data-testid="stSegmentedControl"] div[role="radiogroup"] {{
+        background-color: transparent !important;
+        gap: 4px !important;
+    }}
+
+    /* Unselected Buttons */
+    [data-testid="stSegmentedControl"] button,
+    [data-testid="stSegmentedControl"] [data-baseweb="button-group"] button,
+    [data-testid="stSegmentedControl"] div[role="radiogroup"] button,
+    [data-testid="stSegmentedControl"] button[data-baseweb="button"],
+    [data-testid="stSegmentedControl"] button[aria-checked="false"],
+    [data-testid="stSegmentedControl"] button[aria-selected="false"] {{
+        background-color: { "#1A1D24" if theme == "dark" else "#FFFFFF" } !important;
+        color: {text_secondary} !important;
+        -webkit-text-fill-color: {text_secondary} !important;
+        border: 1px solid { "#2A2E39" if theme == "dark" else "#E2E8F0" } !important;
+        border-radius: 5px !important;
+        font-weight: 500 !important;
+        font-size: 0.82rem !important;
+        padding: 5px 12px !important;
+        transition: all 0.15s ease !important;
+    }}
+
+    /* Unselected Button Hover */
+    [data-testid="stSegmentedControl"] button:hover,
+    [data-testid="stSegmentedControl"] [data-baseweb="button-group"] button:hover {{
+        background-color: {panel_active} !important;
+        color: {text} !important;
+        -webkit-text-fill-color: {text} !important;
+        border-color: {border_light} !important;
+    }}
+
+    /* Selected Button */
+    [data-testid="stSegmentedControl"] button[aria-checked="true"],
+    [data-testid="stSegmentedControl"] button[aria-selected="true"],
+    [data-testid="stSegmentedControl"] button[data-selected="true"],
+    [data-testid="stSegmentedControl"] [data-baseweb="button-group"] button[aria-checked="true"],
+    [data-testid="stSegmentedControl"] [data-baseweb="button-group"] button[aria-selected="true"] {{
+        background-color: { "#232936" if theme == "dark" else "#0F172A" } !important;
+        color: { "#FFFFFF" } !important;
+        -webkit-text-fill-color: { "#FFFFFF" } !important;
+        border: 1px solid { "#38BDF8" if theme == "dark" else "#0F172A" } !important;
+        border-radius: 5px !important;
+        font-weight: 700 !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25) !important;
+    }}
+
+    [data-testid="stSegmentedControl"] button *,
+    [data-testid="stSegmentedControl"] button p,
+    [data-testid="stSegmentedControl"] button span {{
+        color: inherit !important;
+        -webkit-text-fill-color: inherit !important;
+    }}
+
+    /* Radio Buttons & Sliders */
+    div[data-testid="stRadio"] label,
+    div[data-testid="stRadio"] label p,
+    div[data-testid="stRadio"] label span {{
+        color: {text} !important;
+        font-size: 0.83rem !important;
+    }}
+    div[data-testid="stSlider"] label,
+    div[data-testid="stSlider"] label p,
+    div[data-testid="stSlider"] div[data-baseweb="slider"] div {{
+        color: {text} !important;
     }}
 
     /* Workflow Stepper */
@@ -299,13 +858,13 @@ def inject_bsma_theme() -> None:
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        background-color: {sidebar};
-        border: 1px solid {border};
+        background-color: {sidebar} !important;
+        border: 1px solid {border} !important;
         padding: 0.4rem 1rem;
         border-radius: {radius_sm};
         margin-bottom: 1rem;
         font-size: 0.78rem;
-        color: {text_secondary};
+        color: {text_secondary} !important;
     }}
 
     .stepper-item {{
@@ -315,12 +874,12 @@ def inject_bsma_theme() -> None:
     }}
 
     .stepper-active {{
-        color: {text};
+        color: {text} !important;
         font-weight: 700;
     }}
 
     .stepper-done {{
-        color: {pass_col};
+        color: {pass_col} !important;
     }}
 
     /* Footer Status Bar */
@@ -329,12 +888,12 @@ def inject_bsma_theme() -> None:
         bottom: 0;
         left: 0;
         right: 0;
-        background-color: {sidebar};
-        border-top: 1px solid {border};
+        background-color: {sidebar} !important;
+        border-top: 1px solid {border} !important;
         padding: 0.3rem 1.5rem;
         font-size: 0.75rem;
         font-family: {font_mono};
-        color: {text_secondary};
+        color: {text_secondary} !important;
         display: flex;
         justify-content: space-between;
         z-index: 999;
@@ -350,6 +909,8 @@ def _inject_custom_css() -> None:
 
 
 def _initialise_state() -> None:
+    st.session_state.setdefault("theme_mode", "dark")
+    st.session_state.setdefault("theme_toggle", st.session_state["theme_mode"] == "dark")
     st.session_state.setdefault("contexts_by_station", {})
     st.session_state.setdefault("batch_failures", {})
     st.session_state.setdefault("last_station", None)
@@ -751,10 +1312,10 @@ def _display_summary_view(
         <div class="sci-card" style="margin-bottom: 0.75rem;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <h2 style="margin:0; font-size: 1.3rem; font-weight: 700; color: #f2f2f2;">
+                    <h2 style="margin:0; font-size: 1.3rem; font-weight: 700; color: {token('colors.text')};">
                         <span class="code-ident">{metadata.get('network', 'IA')}.{metadata.get('station', station)}</span>
                     </h2>
-                    <span style="color: #a8a8a8; font-size: 0.82rem;">
+                    <span style="color: {token('colors.text_secondary')}; font-size: 0.82rem;">
                         Start: <span class="code-ident">{metadata.get('starttime', '-')}</span> | 
                         Sampling: <span class="code-ident">{strongest.sampling_rate:.1f} Hz</span> | 
                         Components: <span class="code-ident">{' · '.join(contexts)}</span>
@@ -811,6 +1372,7 @@ def _display_summary_view(
 
     # 2. Waveform Preview (40-50% Height Canvas)
     st.markdown("#### WAVEFORM PREVIEW")
+    plt_theme = get_plotly_theme()
     figure = make_subplots(rows=len(contexts), cols=1, shared_xaxes=True, vertical_spacing=0.04)
     colors = ["#06b6d4", "#3b82f6", "#10b981", "#f59e0b", "#ec4899"]
     
@@ -830,18 +1392,37 @@ def _display_summary_view(
             row=idx + 1,
             col=1,
         )
-        figure.update_yaxes(title_text=f"{channel} (m/s²)", row=idx + 1, col=1, gridcolor="#2a2a2a")
+        figure.update_yaxes(
+            title_text=f"{channel} (m/s²)",
+            title_font=dict(color=plt_theme["title_font_color"], size=10),
+            tickfont=dict(color=plt_theme["tickfont_color"], size=9),
+            gridcolor=plt_theme["gridcolor"],
+            linecolor=plt_theme["linecolor"],
+            zerolinecolor=plt_theme["zerolinecolor"],
+            row=idx + 1,
+            col=1,
+        )
 
-    figure.update_xaxes(title_text="Time (s)", row=len(contexts), col=1, gridcolor="#2a2a2a")
+    figure.update_xaxes(
+        title_text="Time (s)",
+        title_font=dict(color=plt_theme["title_font_color"], size=10),
+        tickfont=dict(color=plt_theme["tickfont_color"], size=9),
+        gridcolor=plt_theme["gridcolor"],
+        linecolor=plt_theme["linecolor"],
+        zerolinecolor=plt_theme["zerolinecolor"],
+        row=len(contexts),
+        col=1,
+    )
     figure.update_layout(
-        template="plotly_dark",
-        paper_bgcolor="#171717",
-        plot_bgcolor="#0b0b0b",
+        template=plt_theme["template"],
+        paper_bgcolor=plt_theme["paper_bgcolor"],
+        plot_bgcolor=plt_theme["plot_bgcolor"],
+        font=dict(color=plt_theme["font_color"], family="Arial, sans-serif"),
         height=320,  # Balanced 40-50% preview height
         showlegend=False,
-        margin=dict(l=20, r=20, t=15, b=25),
+        margin=dict(l=60, r=20, t=15, b=35),
     )
-    st.plotly_chart(figure, use_container_width=True)
+    st.plotly_chart(figure, use_container_width=True, theme=None)
 
     # 3. Strong Motion Metrics Scientific Table
     st.markdown("#### STRONG-MOTION PARAMETERS")
@@ -912,7 +1493,7 @@ def _display_summary_view(
                     <span>Spike & Clipping Flags:</span> {qc_badge}
                 </div>
                 <div style="display:flex; justify-content:space-between;">
-                    <span>Classification:</span> <strong style="color:#f2f2f2;">Class {quality['class_id']} ({quality['label']})</strong>
+                    <span>Classification:</span> <strong style="color:{token('colors.text')};">Class {quality['class_id']} ({quality['label']})</strong>
                 </div>
             </div>
             """,
@@ -940,13 +1521,23 @@ def _display_waveforms_view(contexts: dict[str, Any]) -> None:
         st.markdown(f"**COMPONENT:** `{channel}`")
         time = np.arange(acc.npts) / acc.sampling_rate
         figure = make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.05)
+        plt_theme = get_plotly_theme()
         
         # Subplot 1: Acceleration
         figure.add_trace(
             go.Scatter(x=time, y=acc.data, mode="lines", name="Acc (m/s²)", line=dict(color="#06b6d4", width=1.2)),
             row=1, col=1
         )
-        figure.update_yaxes(title_text="Acc (m/s²)", row=1, col=1, gridcolor="#2a2a2a")
+        figure.update_yaxes(
+            title_text="Acc (m/s²)",
+            title_font=dict(color=plt_theme["title_font_color"], size=11),
+            tickfont=dict(color=plt_theme["tickfont_color"], size=10),
+            gridcolor=plt_theme["gridcolor"],
+            linecolor=plt_theme["linecolor"],
+            zerolinecolor=plt_theme["zerolinecolor"],
+            row=1,
+            col=1,
+        )
 
         # Subplot 2: Velocity
         if context.velocity is not None:
@@ -954,7 +1545,16 @@ def _display_waveforms_view(contexts: dict[str, Any]) -> None:
                 go.Scatter(x=time, y=context.velocity.data, mode="lines", name="Vel (m/s)", line=dict(color="#3b82f6", width=1.2)),
                 row=2, col=1
             )
-            figure.update_yaxes(title_text="Vel (m/s)", row=2, col=1, gridcolor="#2a2a2a")
+            figure.update_yaxes(
+                title_text="Vel (m/s)",
+                title_font=dict(color=plt_theme["title_font_color"], size=11),
+                tickfont=dict(color=plt_theme["tickfont_color"], size=10),
+                gridcolor=plt_theme["gridcolor"],
+                linecolor=plt_theme["linecolor"],
+                zerolinecolor=plt_theme["zerolinecolor"],
+                row=2,
+                col=1,
+            )
 
         # Subplot 3: Displacement
         if context.displacement is not None:
@@ -962,27 +1562,60 @@ def _display_waveforms_view(contexts: dict[str, Any]) -> None:
                 go.Scatter(x=time, y=context.displacement.data, mode="lines", name="Disp (m)", line=dict(color="#10b981", width=1.2)),
                 row=3, col=1
             )
-            figure.update_yaxes(title_text="Disp (m)", row=3, col=1, gridcolor="#2a2a2a")
+            figure.update_yaxes(
+                title_text="Disp (m)",
+                title_font=dict(color=plt_theme["title_font_color"], size=11),
+                tickfont=dict(color=plt_theme["tickfont_color"], size=10),
+                gridcolor=plt_theme["gridcolor"],
+                linecolor=plt_theme["linecolor"],
+                zerolinecolor=plt_theme["zerolinecolor"],
+                row=3,
+                col=1,
+            )
 
         pga_index = int(np.argmax(np.abs(acc.data)))
-        figure.add_vline(x=float(time[pga_index]), line_color="#ef4444", line_dash="dot", annotation_text="PGA", annotation_font_color="#ef4444")
+        figure.add_vline(
+            x=float(time[pga_index]),
+            line_color="#ef4444",
+            line_dash="dot",
+            annotation_text="PGA",
+            annotation_position="top left",
+            annotation_font=dict(color="#ef4444", size=10, family="Arial, sans-serif"),
+        )
         
         husid = context.cache.husid_curve
         if husid is not None and len(husid) == len(time):
-            for level, label, color in ((0.05, "D5", "#f59e0b"), (0.95, "D95", "#10b981")):
+            for level, label, color, pos in ((0.05, "D5", "#f59e0b", "bottom right"), (0.95, "D95", "#10b981", "top right")):
                 index = int(np.searchsorted(np.asarray(husid), level))
-                figure.add_vline(x=float(time[min(index, len(time) - 1)]), line_color=color, line_dash="dash", annotation_text=label, annotation_font_color=color)
+                figure.add_vline(
+                    x=float(time[min(index, len(time) - 1)]),
+                    line_color=color,
+                    line_dash="dash",
+                    annotation_text=label,
+                    annotation_position=pos,
+                    annotation_font=dict(color=color, size=10, family="Arial, sans-serif"),
+                )
 
-        figure.update_xaxes(title_text="Time (s)", row=3, col=1, gridcolor="#2a2a2a")
+        figure.update_xaxes(
+            title_text="Time (s)",
+            title_font=dict(color=plt_theme["title_font_color"], size=11),
+            tickfont=dict(color=plt_theme["tickfont_color"], size=10),
+            gridcolor=plt_theme["gridcolor"],
+            linecolor=plt_theme["linecolor"],
+            zerolinecolor=plt_theme["zerolinecolor"],
+            row=3,
+            col=1,
+        )
         figure.update_layout(
-            template="plotly_dark",
-            paper_bgcolor="#171717",
-            plot_bgcolor="#0b0b0b",
+            template=plt_theme["template"],
+            paper_bgcolor=plt_theme["paper_bgcolor"],
+            plot_bgcolor=plt_theme["plot_bgcolor"],
+            font=dict(color=plt_theme["font_color"], family="Arial, sans-serif"),
             height=600,  # Primary 60-70% height canvas
             showlegend=False,
-            margin=dict(l=20, r=20, t=20, b=20),
+            margin=dict(l=65, r=20, t=25, b=35),
         )
-        st.plotly_chart(figure, use_container_width=True)
+        st.plotly_chart(figure, use_container_width=True, theme=None)
 
 
 def _display_qc_view(contexts: dict[str, Any]) -> None:
@@ -992,7 +1625,7 @@ def _display_qc_view(contexts: dict[str, Any]) -> None:
     
     st.markdown(
         f"""
-        <div class="technical-log" style="border-left-color: #3a3a3a; margin-bottom: 1rem;">
+        <div class="technical-log" style="border-left-color: {token('colors.border_light')}; margin-bottom: 1rem;">
             STATION QC CLASS : <strong>Class {quality_summary['class_id']} - {quality_summary['label']}</strong><br>
             AVERAGE QC SCORE : <strong>{quality_summary['quality_score']} / 100</strong><br>
             DIAGNOSTIC DETAILS : {quality_summary['description']}
@@ -1028,7 +1661,22 @@ def _display_strong_motion_view(contexts: dict[str, Any]) -> None:
     """Kinematic strong-motion metric breakdown."""
     st.markdown("### STRONG-MOTION PARAMETERS")
     rows = extract_summary_data("", contexts)
-    st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+    sm_df = pd.DataFrame(rows)
+    col_rename = {
+        "channel": "Component",
+        "pga_gal": "PGA (Gal)",
+        "pgv_cm_s": "PGV (cm/s)",
+        "pgd_cm": "PGD (cm)",
+        "arias_intensity_m_s": "Arias Intensity (m/s)",
+        "significant_duration_d5_95_s": "Significant Duration (D5–95)",
+        "significant_duration_d5_95": "Significant Duration (D5–95)",
+    }
+    disp_df = sm_df.rename(columns=col_rename)
+    disp_df = disp_df.loc[:, ~disp_df.columns.duplicated()]
+    selected_cols = [c for c in col_rename.values() if c in disp_df.columns]
+    seen = set()
+    unique_cols = [x for x in selected_cols if not (x in seen or seen.add(x))]
+    st.dataframe(disp_df[unique_cols] if unique_cols else disp_df, hide_index=True, use_container_width=True)
 
     strongest_channel, strongest = max(contexts.items(), key=lambda item: float(item[1].metrics.get("PGA", 0.0)))
     pga = float(strongest.metrics.get("PGA", 0.0))
@@ -1069,31 +1717,31 @@ def _display_intensity_view(contexts: dict[str, Any]) -> None:
 
     st.markdown(
         f"""
-        <div style="background-color: #171717; border: 1px solid #2a2a2a; border-radius: 4px; padding: 1.2rem; margin-top: 0.5rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2a2a2a; padding-bottom: 0.75rem; margin-bottom: 1rem;">
-                <span style="font-size: 0.85rem; font-weight: 700; color: #a8a8a8; text-transform: uppercase;">SHAKEMAP INSTRUMENTAL INTENSITY (WORDEN ET AL., 2011)</span>
+        <div class="sci-card" style="padding: 1.2rem; margin-top: 0.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid {token('colors.border')}; padding-bottom: 0.75rem; margin-bottom: 1rem;">
+                <span style="font-size: 0.85rem; font-weight: 700; color: {token('colors.text_secondary')}; text-transform: uppercase;">SHAKEMAP INSTRUMENTAL INTENSITY (WORDEN ET AL., 2011)</span>
                 <span style="background-color: {bg_color}; color: {text_color}; font-family: 'Fira Code', monospace; font-weight: 800; font-size: 1.2rem; padding: 0.3rem 1rem; border-radius: 3px;">
                     MMI {mmi_info['mmi']}
                 </span>
             </div>
             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; font-size: 0.85rem;">
                 <div>
-                    <span style="color: #a8a8a8; font-weight: 600;">PERCEIVED SHAKING</span><br>
-                    <strong style="color: #f2f2f2; font-size: 1.05rem;">{mmi_info['shaking']}</strong>
+                    <span style="color: {token('colors.text_secondary')}; font-weight: 600;">PERCEIVED SHAKING</span><br>
+                    <strong style="color: {token('colors.text')}; font-size: 1.05rem;">{mmi_info['shaking']}</strong>
                 </div>
                 <div>
-                    <span style="color: #a8a8a8; font-weight: 600;">POTENTIAL DAMAGE</span><br>
-                    <strong style="color: #f2f2f2; font-size: 1.05rem;">{mmi_info['damage']}</strong>
+                    <span style="color: {token('colors.text_secondary')}; font-weight: 600;">POTENTIAL DAMAGE</span><br>
+                    <strong style="color: {token('colors.text')}; font-size: 1.05rem;">{mmi_info['damage']}</strong>
                 </div>
                 <div>
-                    <span style="color: #a8a8a8; font-weight: 600;">PEAK ACC. (%g)</span><br>
-                    <strong style="color: #f2f2f2; font-size: 1.05rem;">{pga_pct_g:.3f} %g</strong> 
-                    <span style="color: #666666; font-size: 0.78rem;">(Ref: {mmi_info['pga_label']} %g)</span>
+                    <span style="color: {token('colors.text_secondary')}; font-weight: 600;">PEAK ACC. (%g)</span><br>
+                    <strong style="color: {token('colors.text')}; font-size: 1.05rem;">{pga_pct_g:.3f} %g</strong> 
+                    <span style="color: {token('colors.text_muted')}; font-size: 0.78rem;">(Ref: {mmi_info['pga_label']} %g)</span>
                 </div>
                 <div>
-                    <span style="color: #a8a8a8; font-weight: 600;">PEAK VEL. (cm/s)</span><br>
-                    <strong style="color: #f2f2f2; font-size: 1.05rem;">{pgv_cm_s:.3f} cm/s</strong> 
-                    <span style="color: #666666; font-size: 0.78rem;">(Ref: {mmi_info['pgv_label']} cm/s)</span>
+                    <span style="color: {token('colors.text_secondary')}; font-weight: 600;">PEAK VEL. (cm/s)</span><br>
+                    <strong style="color: {token('colors.text')}; font-size: 1.05rem;">{pgv_cm_s:.3f} cm/s</strong> 
+                    <span style="color: {token('colors.text_muted')}; font-size: 0.78rem;">(Ref: {mmi_info['pgv_label']} cm/s)</span>
                 </div>
             </div>
         </div>
@@ -1107,6 +1755,7 @@ def _display_spectrum_view(contexts: dict[str, Any], configuration: AnalysisConf
     sub_tab1, sub_tab2, sub_tab3 = st.tabs(["Response Spectrum", "Fourier Spectrum (FAS)", "Husid Energy Growth"])
 
     colors = ["#06b6d4", "#3b82f6", "#10b981", "#f59e0b", "#ec4899"]
+    plt_theme = get_plotly_theme()
 
     with sub_tab1:
         col_s1, col_s2 = st.columns(2)
@@ -1141,20 +1790,39 @@ def _display_spectrum_view(contexts: dict[str, Any], configuration: AnalysisConf
         figure.update_xaxes(
             type="log" if scale_type == "Logarithmic" else "linear",
             title="Period (s)",
-            gridcolor="#2a2a2a",
+            title_font=dict(color=plt_theme["title_font_color"], size=11),
+            tickfont=dict(color=plt_theme["tickfont_color"], size=10),
+            gridcolor=plt_theme["gridcolor"],
+            linecolor=plt_theme["linecolor"],
+            zerolinecolor=plt_theme["zerolinecolor"],
             dtick=1 if scale_type == "Logarithmic" else None,
             exponentformat="none",
         )
-        figure.update_yaxes(title="Pseudo-Spectral Acceleration PSa (g)", gridcolor="#2a2a2a")
-        figure.update_layout(
-            template="plotly_dark",
-            paper_bgcolor="#171717",
-            plot_bgcolor="#0b0b0b",
-            height=480,
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-            margin=dict(l=20, r=20, t=30, b=20),
+        figure.update_yaxes(
+            title="Pseudo-Spectral Acceleration PSa (g)",
+            title_font=dict(color=plt_theme["title_font_color"], size=11),
+            tickfont=dict(color=plt_theme["tickfont_color"], size=10),
+            gridcolor=plt_theme["gridcolor"],
+            linecolor=plt_theme["linecolor"],
+            zerolinecolor=plt_theme["zerolinecolor"],
         )
-        st.plotly_chart(figure, use_container_width=True)
+        figure.update_layout(
+            template=plt_theme["template"],
+            paper_bgcolor=plt_theme["paper_bgcolor"],
+            plot_bgcolor=plt_theme["plot_bgcolor"],
+            font=dict(color=plt_theme["font_color"], family="Arial, sans-serif"),
+            height=480,
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="right",
+                x=1,
+                font=dict(color=plt_theme["legend_font_color"], size=10),
+            ),
+            margin=dict(l=65, r=20, t=35, b=30),
+        )
+        st.plotly_chart(figure, use_container_width=True, theme=None)
 
     with sub_tab2:
         figure = go.Figure()
@@ -1172,17 +1840,33 @@ def _display_spectrum_view(contexts: dict[str, Any], configuration: AnalysisConf
                 )
             )
         figure.update_layout(
-            template="plotly_dark",
-            paper_bgcolor="#171717",
-            plot_bgcolor="#0b0b0b",
+            template=plt_theme["template"],
+            paper_bgcolor=plt_theme["paper_bgcolor"],
+            plot_bgcolor=plt_theme["plot_bgcolor"],
+            font=dict(color=plt_theme["font_color"], family="Arial, sans-serif"),
             height=450,
             xaxis_type="log",
             yaxis_type="log",
-            xaxis=dict(title="Frequency (Hz)", gridcolor="#2a2a2a", dtick=1, exponentformat="none"),
-            yaxis=dict(title="Fourier Amplitude (m/s² · s)", gridcolor="#2a2a2a"),
-            margin=dict(l=20, r=20, t=20, b=20),
+            xaxis=dict(
+                title="Frequency (Hz)",
+                title_font=dict(color=plt_theme["title_font_color"], size=11),
+                tickfont=dict(color=plt_theme["tickfont_color"], size=10),
+                gridcolor=plt_theme["gridcolor"],
+                linecolor=plt_theme["linecolor"],
+                dtick=1,
+                exponentformat="none",
+            ),
+            yaxis=dict(
+                title="Fourier Amplitude (m/s² · s)",
+                title_font=dict(color=plt_theme["title_font_color"], size=11),
+                tickfont=dict(color=plt_theme["tickfont_color"], size=10),
+                gridcolor=plt_theme["gridcolor"],
+                linecolor=plt_theme["linecolor"],
+            ),
+            legend=dict(font=dict(color=plt_theme["legend_font_color"], size=10)),
+            margin=dict(l=65, r=20, t=25, b=30),
         )
-        st.plotly_chart(figure, use_container_width=True)
+        st.plotly_chart(figure, use_container_width=True, theme=None)
 
     with sub_tab3:
         st.caption("Normalized cumulative Arias intensity / energy growth representation.")
@@ -1200,16 +1884,32 @@ def _display_spectrum_view(contexts: dict[str, Any], configuration: AnalysisConf
                         line=dict(width=2, color=colors[idx % len(colors)]),
                     )
                 )
-        figure.update_xaxes(title="Time (s)", gridcolor="#2a2a2a")
-        figure.update_yaxes(title="Cumulative Arias Energy (%)", gridcolor="#2a2a2a")
-        figure.update_layout(
-            template="plotly_dark",
-            paper_bgcolor="#171717",
-            plot_bgcolor="#0b0b0b",
-            height=450,
-            margin=dict(l=20, r=20, t=20, b=20),
+        figure.update_xaxes(
+            title="Time (s)",
+            title_font=dict(color=plt_theme["title_font_color"], size=11),
+            tickfont=dict(color=plt_theme["tickfont_color"], size=10),
+            gridcolor=plt_theme["gridcolor"],
+            linecolor=plt_theme["linecolor"],
+            zerolinecolor=plt_theme["zerolinecolor"],
         )
-        st.plotly_chart(figure, use_container_width=True)
+        figure.update_yaxes(
+            title="Cumulative Arias Energy (%)",
+            title_font=dict(color=plt_theme["title_font_color"], size=11),
+            tickfont=dict(color=plt_theme["tickfont_color"], size=10),
+            gridcolor=plt_theme["gridcolor"],
+            linecolor=plt_theme["linecolor"],
+            zerolinecolor=plt_theme["zerolinecolor"],
+        )
+        figure.update_layout(
+            template=plt_theme["template"],
+            paper_bgcolor=plt_theme["paper_bgcolor"],
+            plot_bgcolor=plt_theme["plot_bgcolor"],
+            font=dict(color=plt_theme["font_color"], family="Arial, sans-serif"),
+            height=450,
+            legend=dict(font=dict(color=plt_theme["legend_font_color"], size=10)),
+            margin=dict(l=60, r=20, t=25, b=30),
+        )
+        st.plotly_chart(figure, use_container_width=True, theme=None)
 
 
 def _display_report_view(station: str, contexts: dict[str, Any], event_info: dict[str, Any]) -> None:
@@ -1423,28 +2123,41 @@ def _render_status_footer(station: str = "-", num_components: int = 0, sampling_
 
 
 def main() -> None:
-    _inject_custom_css()
     _initialise_state()
+    _inject_custom_css()
     _ensure_directories()
     
     configuration, event_info = _configuration_from_sidebar()
 
-    # App Header Banner
-    col_h1, col_h2 = st.columns([1, 6])
+    # App Header Banner with Top-Right Theme Toggle
+    col_h1, col_h2, col_h3 = st.columns([0.8, 7.2, 2.0], vertical_alignment="center")
     with col_h1:
         if LOGO_PATH.is_file():
-            st.image(str(LOGO_PATH), width=100)
+            st.image(str(LOGO_PATH), width=85)
     with col_h2:
         st.markdown(
-            """
-            <h1 style="color: #f2f2f2; font-size: 1.6rem; font-weight: 700; margin-bottom: 0;">
+            f"""
+            <h1 style="color: {token('colors.text')}; font-size: 1.6rem; font-weight: 700; margin-bottom: 0;">
                 BMKG Strong Motion Analyzer (BSMA)
             </h1>
-            <p style="color: #a8a8a8; font-size: 0.85rem; margin-top: 0;">
+            <p style="color: {token('colors.text_secondary')}; font-size: 0.85rem; margin-top: 0;">
                 Professional Seismological & Geotechnical Strong-Motion Processing Workstation
             </p>
             """,
             unsafe_allow_html=True,
+        )
+    with col_h3:
+        current_theme = st.session_state.get("theme_mode", "dark")
+
+        def _on_theme_click() -> None:
+            st.session_state["theme_mode"] = "light" if current_theme == "dark" else "dark"
+
+        btn_label = "DARK\nMODE" if current_theme == "dark" else "LIGHT\nMODE"
+        st.button(
+            btn_label,
+            key="theme_switch_btn",
+            on_click=_on_theme_click,
+            help="Klik untuk beralih antara Light Mode dan Dark Mode",
         )
 
     files = _waveform_files()
