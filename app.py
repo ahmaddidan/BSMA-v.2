@@ -1369,6 +1369,7 @@ def _display_summary_view(
     pgv_cm = float(strongest.metrics.get("PGV", 0.0)) * 100.0
     pgd_cm = float(strongest.metrics.get("PGD", 0.0)) * 100.0
     arias_m = float(strongest.metrics.get("Arias_Intensity", 0.0))
+    d595 = float(strongest.metrics.get("Significant_Duration_D5_95", 0.0))
     horizontal_contexts = {
         ch: ctx for ch, ctx in contexts.items()
         if not ch.upper().endswith("Z") and not ch.upper().endswith("U")

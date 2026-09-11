@@ -54,36 +54,41 @@ Sistem BSMA mengimplementasikan pipeline komputasi sekuensial yang ketat guna me
 │ 4. DIGITAL SIGNAL PROCESSING (DSP)                     │
 │    • Baseline Detrending (Mean & Polynomial / Linear)  │
 │    • Cosine Tapering 5% (Tukey Window)                 │
-│    • Zero-Phase Butterworth Filtering (sosfiltfilt)    │
+│    • Forward-Backward Butterworth Bandpass Filtering   │
 │      Bandpass 0.10–25.0 Hz, f_max ≤ 0.40 f_s           │
 │      Adaptive SNR low-frequency floor (0.20–0.40 Hz)   │
 └───────────────────────────┬────────────────────────────┘
-                            ▼
+                            │
+               [ Corrected Acceleration a(t) ]
+                            │
+            ┌───────────────┴───────────────┐
+            ▼                               ▼
+┌───────────────────────────────┐ ┌───────────────────────────────┐
+│ 5a. KINEMATIC INTEGRATION     │ │ 5b. SDOF RESPONSE SPECTRUM    │
+│  • Cumulative Trapezoidal     │ │  • Solvers: Nigam–Jennings    │
+│    Rule: a(t) -> v(t) -> d(t) │ │    (1969) & Newmark-β (1959)  │
+│  • Strict Acceleration-only   │ │  • 5% Damping Pseudo-Spectral │
+│    detrending pre-integration │ │    Acceleration: PSA = ω²·Sd  │
+│  • No post-integration drift  │ │  • SDOF Solver Numerical      │
+│    forcing on v(t) or d(t)    │ │    Cross-Validation Benchmark │
+│  • PGD represents transient   │ │  • SNI 1726:2019 Design Code  │
+│    dynamic peak displacement  │ │    Reference Spectrum Overlay │
+└───────────────┬───────────────┘ └───────────────┬───────────────┘
+                │                                 │
+                ▼                                 │
+┌───────────────────────────────┐                 │
+│ 6. PARAMETERS & GMICE MMI     │                 │
+│  • Peaks: PGA, PGV, PGD       │                 │
+│  • Energy: Arias Ia, Husid    │                 │
+│  • Duration: D5-95, D5-75     │                 │
+│  • MMI: Worden et al. (2012)  │                 │
+│    on Max Horizontal Comp.    │                 │
+└───────────────┬───────────────┘                 │
+                │                                 │
+                └───────────────┬─────────────────┘
+                                ▼
 ┌────────────────────────────────────────────────────────┐
-│ 5. KINEMATIC INTEGRATION & DRIFT MITIGATION            │
-│    Cumulative Trapezoidal Rule: a(t) -> v(t) -> d(t)   │
-│    Baseline correction enforced pre- and post-integ.   │
-│    PGD represents transient dynamic peak displacement  │
-└───────────────────────────┬────────────────────────────┘
-                            ▼
-┌────────────────────────────────────────────────────────┐
-│ 6. STRONG-MOTION PARAMETERS & GMICE MMI                │
-│    • Peaks: PGA (Gal), PGV (cm/s), PGD (cm), Vmax/Amax │
-│    • Energy: Arias Intensity Ia (m/s), Husid Curve     │
-│    • Duration: Significant Duration D5-95 (s) & D5-75  │
-│    • MMI: Worden et al. (2012) on Max Horizontal Comp. │
-└───────────────────────────┬────────────────────────────┘
-                            ▼
-┌────────────────────────────────────────────────────────┐
-│ 7. SDOF RESPONSE SPECTRUM & DESIGN OVERLAY             │
-│    • 5%-Damped Pseudo-Spectral Acceleration (PSA)      │
-│    • Solvers: Nigam–Jennings (1969) & Newmark (1959)   │
-│    • SDOF Solver Numerical Cross-Validation Benchmark  │
-│    • Indonesian Seismic Design Standard SNI 1726:2019  │
-└───────────────────────────┬────────────────────────────┘
-                            ▼
-┌────────────────────────────────────────────────────────┐
-│ 8. REPORT GENERATION & DATA EXPORT                     │
+│ 7. REPORT GENERATION & DATA EXPORT                     │
 │    • Technical PDF Report (Single & Multi-Station)     │
 │    • Tabular CSV Kinematics Summary                    │
 │    • Discrete Spectral Response Matrix CSV             │
@@ -110,14 +115,14 @@ Sistem BSMA mengimplementasikan pipeline komputasi sekuensial yang ketat guna me
 3. **Digital Signal Processing (DSP)**:
    * **Penghilangan Tren (*Detrending*)**: Koreksi *mean offset* dan tren polinomial linier untuk mengoreksi pergeseran DC awal.
    * **Jendela Kosinus Tukey 5% (*Tapering*)**: Menghaluskan diskontinuitas amplitudo di kedua ujung rekaman untuk mereduksi kebocoran spektral (*spectral leakage*).
-   * **Penapis Butterworth Orde-4 Fase Nol (*Zero-Phase Filtering*)**: Diterapkan melalui pemrosesan maju-mundur (*forward-backward filtering* via `scipy.signal.sosfiltfilt`), sehingga respons magnitudo efektif memiliki karakteristik atenuasi orde dua kali lipat (kemiringan *roll-off* 48 dB/oktaf pada pita henti) tanpa pergeseran fase neto (*zero net phase lag*).
+   * **Penapis Butterworth Orde-4 Maju-Mundur (*Forward-Backward Filtering*)**: Diterapkan melalui pemrosesan dua arah (`scipy.signal.sosfiltfilt`) untuk mengeliminasi distorsi fase tanpa pergeseran waktu neto (*zero net phase lag*). Kuadrat fungsi transfer magnitudo ($|H(f)|^2$) memberikan laju atenuasi efektif 48 dB/oktaf pada pita henti (setara kemiringan orde-8), dengan tetap mempertahankan kestabilan dan sifat pole prototipe orde-4 aslinya.
    * **Batas Atas Nyquist 80%**: $f_{\max} \le 0.80 f_{\mathrm{Nyquist}} = 0.40 f_s$ guna mencegah timbulnya artefak numerik frekuensi tinggi.
    * **Floor Adaptif SNR Frekuensi Rendah**: Cutoff $f_{\min}$ dinaikkan secara adaptif ke $0.20\text{ Hz}$ atau $0.40\text{ Hz}$ saat rekaman memiliki rasio sinyal-derau rendah ($< 20\text{ dB}$ atau $< 10\text{ dB}$) guna menekan drift periode panjang.
 
 4. **Integrasi Kinematika & Kebijakan Garis Dasar (Baseline Policy)**:
    * Integrasi numerik bertahap dari percepatan $a(t)$ ke kecepatan $v(t)$, dilanjutkan ke perpindahan $d(t)$ menggunakan aturan trapesium kumulatif (*cumulative trapezoidal rule*).
-   * **Kebijakan Ilmiah Garis Dasar**: Koreksi garis dasar (*detrending*) diaplikasikan secara ketat pada deret waktu percepatan *sebelum* integrasi. Sesuai kaidah kalkulus kinematika murni, BSMA secara sengaja **tidak melakukan modifikasi detrending pasca-integrasi** pada kecepatan atau perpindahan untuk menjaga konsistensi derivatif fisik ($a = \dot{v} = \ddot{d}$).
-   * **Catatan Metodologis PGD**: Nilai PGD yang dihasilkan merepresentasikan **perpindahan puncak dinamik transien** dalam batas pita frekuensi penapis, bukan deformasi tektonik statis permanen (*static fling-step*).
+   * **Kebijakan Ilmiah Garis Dasar**: Koreksi garis dasar (*detrending*) diaplikasikan secara ketat hanya pada deret waktu percepatan *sebelum* integrasi. Sesuai kaidah kalkulus kinematika murni, BSMA secara sengaja **tidak melakukan modifikasi detrending pasca-integrasi** pada kecepatan atau perpindahan guna menjaga konsistensi derivatif fisik ($a = \dot{v} = \ddot{d}$).
+   * **Catatan Metodologis PGD**: Nilai PGD yang dihasilkan merepresentasikan **perpindahan puncak dinamik transien** dalam batas pita frekuensi penapis, bukan deformasi tektonik statis permanen (*static fling-step*), yang secara seismologis membutuhkan koreksi garis dasar nonlinear khusus atau data GPS laju-tinggi (*high-rate GNSS*).
 
 5. **Parameter Kinematika Seismik & Intensitas Instrumental MMI**:
    * Ekstraksi parameter puncak absolut: **PGA**, **PGV**, **PGD**, dan rasio **$V_{\max}/A_{\max}$**.
@@ -128,7 +133,7 @@ Sistem BSMA mengimplementasikan pipeline komputasi sekuensial yang ketat guna me
    * Komputasi kurva **Pseudo-Spectral Acceleration (PSA)** osilator elastis SDOF dengan redaman kritis 5% ($\xi = 0.05$) pada rentang periode $T = 0.01 - 10.0$ detik.
    * Pilihan algoritma solver: formulasi rekursif analitik **Nigam & Jennings (1969)** (*piecewise-linear ground acceleration state-transition*) atau integrasi implisit **Newmark-Beta (1959)** ($\gamma = 1/2, \beta = 1/4$, *average acceleration*).
    * Fitur **SDOF Solver Cross-Validation & Numerical Benchmark**: Evaluasi kuantitatif deviasi relatif maksimal, deviasi rata-rata, dan selisih RMS antara kedua solver.
-   * Perbandingan langsung (*overlay*) terhadap kurva spektrum desain **SNI 1726:2019** ($S_{DS}, S_{D1}, T_0, T_s$).
+   * Perbandingan langsung (*overlay*) terhadap kurva spektrum desain **SNI 1726:2019** ($S_{DS}, S_{D1}, T_0, T_s$) sebagai acuan standar rekayasa kegempaan (*design code reference overlay*), bukan sebagai besaran yang diestimasi langsung dari rekaman sinyal.
 
 7. **Pelaporan Teknis & Ekspor Multi-Format**:
    * Dokumen laporan teknis PDF komprehensif individual dan batch.

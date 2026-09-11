@@ -13,11 +13,32 @@ Internal calculations are strictly executed in SI units (m/s², m/s, m), and sca
 ## 2. End-to-End Processing Pipeline
 
 ```text
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  1. INGESTION   │ ──> │  2. PREPROCESS  │ ──> │ 3. INTEGRATION  │ ──> │  4. KINEMATICS  │ ──> │  5. REPORTING   │
-│ MiniSEED / SAC  │     │ Detrend, Taper  │     │ Acc -> Vel ->   │     │ PGA, PGV, Arias │     │ Laporan PDF/CSV │
-│ + StationXML    │     │ Butterworth 4-P │     │ Disp Mitigation │     │ SDOF PSA (5%)   │     │ ShakeMap MMI    │
-└─────────────────┘     └─────────────────┘     └─────────────────┘     └─────────────────┘     └─────────────────┘
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  1. INGESTION   │ ──> │  2. QC SCREEN   │ ──> │  3. DECONV/DSP  │
+│ MiniSEED / SAC  │     │ Score 0-100     │     │ Detrend, Taper, │
+│ + StationXML    │     │ Flags & Status  │     │ 4th-order BP    │
+└─────────────────┘     └─────────────────┘     └────────┬────────┘
+                                                         │
+                                    [ Corrected Acceleration a(t) ]
+                                                         │
+                                    ┌────────────────────┴───────────────────┐
+                                    ▼                                        ▼
+                         ┌───────────────────────┐               ┌───────────────────────┐
+                         │ 4a. KINEMATICS & INT. │               │ 4b. SDOF SPECTRUM     │
+                         │ • a(t) -> v(t) -> d(t)│               │ • Nigam-Jennings /    │
+                         │ • PGA, PGV, PGD       │               │   Newmark-Beta (5%)   │
+                         │ • Arias Ia, D5-95     │               │ • Cross-Solver Bench  │
+                         │ • Worden 2012 MMI     │               │ • SNI 1726:2019 Design│
+                         │   (Max-H component)   │               │   Reference Overlay   │
+                         └──────────┬────────────┘               └───────────┬───────────┘
+                                    │                                        │
+                                    └────────────────────┬───────────────────┘
+                                                         ▼
+                                             ┌───────────────────────┐
+                                             │ 5. REPORT & EXPORT    │
+                                             │ • PDF Report / CSV    │
+                                             │ • Full ZIP Archive    │
+                                             └───────────────────────┘
 ```
 
 ### Stage 1: Quality Control (QC) & Signal Integrity Screening
@@ -35,7 +56,7 @@ Waveform data are audited prior to irreversible transformation:
 ### Stage 3: Digital Signal Processing (DSP)
 - **Baseline Detrending**: Mean removal and polynomial/linear trend correction to eliminate initial DC offset.
 - **Cosine Tapering**: 5% Tukey window applied to both record edges to prevent Gibbs phenomenon and spectral leakage.
-- **Zero-Phase Butterworth Filtering**: 4th-order forward-backward filter (`scipy.signal.sosfiltfilt` using Second-Order Sections), yielding an effective 8th-order roll-off (48 dB/octave) with zero net phase distortion.
+- **Forward-Backward Butterworth Filtering**: 4th-order forward-backward filter (`scipy.signal.sosfiltfilt` using Second-Order Sections). Passing the time series in both directions applies the squared magnitude response ($|H(f)|^2$), achieving an effective 48 dB/octave stopband attenuation slope (equivalent steepness to an 8th-order filter) with zero net phase distortion and preserving the stability of the 4th-order prototype.
 - **Corner Frequencies**:
   - Baseline default band: 0.10 – 25.0 Hz.
   - High-frequency upper bound: f_max ≤ 0.80 f_Nyquist = 0.40 f_s to avoid near-Nyquist numerical artifacts.
@@ -46,7 +67,7 @@ Waveform data are audited prior to irreversible transformation:
   Velocity: v(t) = ∫ a(τ) dτ
   Displacement: d(t) = ∫ v(τ) dτ
 - **Scientific Baseline Policy**: Baseline correction (linear detrending and mean removal) is applied strictly to acceleration prior to integration. To preserve the physical kinematic derivative relationship (a = dv/dt = d²x/dt²), no artificial post-integration detrending is applied to velocity or displacement.
-- **Scientific Limitation**: PGD computed via bandpass-filtered integration represents **transient dynamic peak displacement**, not static tectonic fling-step or permanent ground deformation.
+- **Scientific Limitation**: PGD computed via bandpass-filtered integration represents **transient dynamic peak displacement**, not static tectonic fling-step or permanent ground deformation (which would require specialized non-linear baseline corrections or high-rate GNSS data).
 
 ### Stage 5: Kinematics, Energy, and Intensity Metrics
 - **PGA, PGV, PGD**: Extracted as the absolute peak value max |x(t)| across the analyzed time window.
@@ -66,7 +87,7 @@ Waveform data are audited prior to irreversible transformation:
   1. **Nigam & Jennings (1969)**: Closed-form recurrence solution for piecewise-linear ground acceleration input.
   2. **Newmark-Beta (1959)**: Implicit step-by-step numerical integration (γ = 1/2, β = 1/4, average acceleration).
 - **Built-in SDOF Benchmark**: Automated cross-validation computing maximum relative error (≤ 5%), mean relative difference, and RMS concordance across the period spectrum.
-- **Design Spectrum Comparison**: Overlay against Indonesian standard **SNI 1726:2019** design response spectra (S_DS, S_D1, T0, Ts).
+- **Design Spectrum Comparison**: Overlay against Indonesian standard **SNI 1726:2019** design response spectra (S_DS, S_D1, T0, Ts) as an engineering design reference overlay for structural safety comparison, rather than an empirical quantity extracted from the waveform.
 
 ---
 
