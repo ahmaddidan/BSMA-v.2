@@ -21,7 +21,7 @@
 Aplikasi interaktif, berkas panduan teknis resmi, dan repositori kode sumber dapat diakses melalui tautan berikut:
 
 * **Aplikasi Cloud Web (Daring)**: [https://strong-motion.streamlit.app/](https://strong-motion.streamlit.app/)
-* **Buku Panduan Pengguna (PDF)**: [outputs/BSMA_User_Guidebook.pdf](outputs/BSMA_User_Guidebook.pdf)
+* **Buku Panduan Pengguna (PDF Bahasa Indonesia)**: [outputs/BSMA_User_Guidebook_ID.pdf](outputs/BSMA_User_Guidebook_ID.pdf) (Versi Bahasa Inggris: [outputs/BSMA_User_Guidebook_EN.pdf](outputs/BSMA_User_Guidebook_EN.pdf))
 * **Repositori Kode Sumber GitHub**: [https://github.com/ahmaddidan/BSMA-v.2](https://github.com/ahmaddidan/BSMA-v.2)
 
 ---
@@ -349,7 +349,9 @@ Project BSMA/
 │   ├── test_reference_benchmark.py  # Pengujian regresi dataset referensi end-to-end
 │   └── test_response_spectrum.py    # Pengujian solver SDOF & benchmark silang NJ vs Newmark
 ├── outputs/                         # Direktori luaran dokumen & laporan
-│   └── BSMA_User_Guidebook.pdf      # Buku Panduan Pengguna & Referensi Teknis
+│   ├── BSMA_User_Guidebook_ID.pdf   # Buku Panduan Pengguna & Referensi Teknis (Bahasa Indonesia)
+│   ├── BSMA_User_Guidebook_EN.pdf   # Buku Panduan Pengguna & Referensi Teknis (Bahasa Inggris)
+│   └── BSMA_User_Guidebook.pdf      # Salinan Panduan Pengguna Utama (PDF)
 ├── app.py                           # Titik masuk utama antarmuka pengguna Streamlit (GUI)
 ├── assets/                          # Aset identitas visual & logo resmi instansi
 │   ├── Logo_BMKG_Icon.png           # Ikon logo BMKG transparan dengan interior putih solid

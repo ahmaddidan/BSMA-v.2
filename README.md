@@ -21,7 +21,7 @@
 The interactive web application, official technical guidebook, and source code repository can be accessed via the following links:
 
 * **Interactive Cloud Web Application**: [https://strong-motion.streamlit.app/](https://strong-motion.streamlit.app/)
-* **User Guidebook & Technical Reference (PDF)**: [outputs/BSMA_User_Guidebook.pdf](outputs/BSMA_User_Guidebook.pdf)
+* **Official User Guidebook (English PDF)**: [outputs/BSMA_User_Guidebook_EN.pdf](outputs/BSMA_User_Guidebook_EN.pdf) (Indonesian version: [outputs/BSMA_User_Guidebook_ID.pdf](outputs/BSMA_User_Guidebook_ID.pdf))
 * **GitHub Source Code Repository**: [https://github.com/ahmaddidan/BSMA-v.2](https://github.com/ahmaddidan/BSMA-v.2)
 
 ---
@@ -351,7 +351,9 @@ Project BSMA/
 │   ├── test_reference_benchmark.py  # End-to-end reference dataset regression benchmarks
 │   └── test_response_spectrum.py    # SDOF solvers & Nigam-Jennings vs. Newmark-Beta benchmark tests
 ├── outputs/                         # Documentation and export outputs
-│   └── BSMA_User_Guidebook.pdf      # Official User Guidebook & Technical Reference
+│   ├── BSMA_User_Guidebook_EN.pdf   # Official User Guidebook & Technical Reference (English)
+│   ├── BSMA_User_Guidebook_ID.pdf   # Official User Guidebook & Technical Reference (Indonesian)
+│   └── BSMA_User_Guidebook.pdf      # Default User Guidebook (PDF)
 ├── app.py                           # Streamlit graphical user interface entry point (GUI)
 ├── assets/                          # Official institution branding & visual identity assets
 │   ├── Logo_BMKG_Icon.png           # Transparent BMKG logo icon with solid white interior
