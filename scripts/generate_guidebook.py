@@ -23,17 +23,25 @@ import matplotlib.patches as patches
 import pymupdf
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-if not (PROJECT_ROOT / "Logo_Judul.png").exists():
+if not ((PROJECT_ROOT / "assets" / "Logo_BMKG_Icon.png").exists() or (PROJECT_ROOT / "Logo_BMKG_Icon.png").exists()):
     PROJECT_ROOT = Path(r"d:\Perkuliahan\Cadangan project\Project BSMA")
 
 OUTPUT_DIR = PROJECT_ROOT / "outputs"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 PDF_OUTPUT_PATH = OUTPUT_DIR / "BSMA_User_Guidebook.pdf"
-LOGO_PATH = PROJECT_ROOT / "Logo_Judul.png"
-LOGO_ITERA_PATH = PROJECT_ROOT / "Logo_ITERA.png"
-LOGO_HEADER_PATH = PROJECT_ROOT / "Logo_Header.png"
-LOGO_BMKG_ICON_PATH = PROJECT_ROOT / "Logo_BMKG_Icon.png"
-LOGO_ITERA_ICON_PATH = PROJECT_ROOT / "Logo_ITERA_Icon.png"
+ASSETS_DIR = PROJECT_ROOT / "assets"
+
+def _resolve_asset(name: str) -> Path:
+    p = ASSETS_DIR / name
+    if p.is_file():
+        return p
+    fallback = PROJECT_ROOT / name
+    return fallback if fallback.is_file() else p
+
+LOGO_PATH = _resolve_asset("Logo_Judul.png")
+LOGO_ITERA_PATH = _resolve_asset("Logo_ITERA.png")
+LOGO_BMKG_ICON_PATH = _resolve_asset("Logo_BMKG_Icon.png")
+LOGO_ITERA_ICON_PATH = _resolve_asset("Logo_ITERA_Icon.png")
 
 # Color Palette (RGB 0.0 - 1.0)
 COLOR_NAVY = (0.0, 0.176, 0.384)          # #002D62 (BMKG Navy)

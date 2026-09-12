@@ -351,8 +351,12 @@ Project BSMA/
 ├── outputs/                         # Direktori luaran dokumen & laporan
 │   └── BSMA_User_Guidebook.pdf      # Buku Panduan Pengguna & Referensi Teknis
 ├── app.py                           # Titik masuk utama antarmuka pengguna Streamlit (GUI)
+├── assets/                          # Aset identitas visual & logo resmi instansi
+│   ├── Logo_BMKG_Icon.png           # Ikon logo BMKG transparan dengan interior putih solid
+│   ├── Logo_ITERA_Icon.png          # Ikon logo ITERA transparan
+│   ├── Logo_ITERA.png               # Logo resmi ITERA resolusi tinggi
+│   └── Logo_Judul.png               # Logo banner asli BMKG Stasiun Geofisika Sleman
 ├── requirements.txt                 # Daftar dependensi pustaka Python dengan batas versi
-├── Logo_Judul.png                   # Aset logo identitas instansi KP
 ├── README.md                        # Dokumentasi komprehensif proyek (English)
 └── README.id.md                     # Dokumentasi komprehensif proyek (Bahasa Indonesia)
 ```

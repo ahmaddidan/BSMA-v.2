@@ -32,12 +32,19 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 WAVEFORM_DIRECTORY = PROJECT_ROOT / "Data" / "mseed"
 INVENTORY_DIRECTORY = PROJECT_ROOT / "Data" / "stationXML"
 REPORT_DIRECTORY = PROJECT_ROOT / "outputs" / "reports"
-LOGO_PATH = PROJECT_ROOT / "Logo_Judul.png"
-LOGO_ITERA_PATH = PROJECT_ROOT / "Logo_ITERA.png"
-LOGO_HEADER_PATH = PROJECT_ROOT / "Logo_Header.png"
-LOGO_APP_BANNER_PATH = PROJECT_ROOT / "Logo_App_Banner.png"
-LOGO_BMKG_ICON_PATH = PROJECT_ROOT / "Logo_BMKG_Icon.png"
-LOGO_ITERA_ICON_PATH = PROJECT_ROOT / "Logo_ITERA_Icon.png"
+ASSETS_DIRECTORY = PROJECT_ROOT / "assets"
+
+def _resolve_asset(name: str) -> Path:
+    p = ASSETS_DIRECTORY / name
+    if p.is_file():
+        return p
+    fallback = PROJECT_ROOT / name
+    return fallback if fallback.is_file() else p
+
+LOGO_PATH = _resolve_asset("Logo_Judul.png")
+LOGO_ITERA_PATH = _resolve_asset("Logo_ITERA.png")
+LOGO_BMKG_ICON_PATH = _resolve_asset("Logo_BMKG_Icon.png")
+LOGO_ITERA_ICON_PATH = _resolve_asset("Logo_ITERA_Icon.png")
 
 st.set_page_config(
     page_title="BMKG Strong Motion Analyzer",

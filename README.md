@@ -353,8 +353,12 @@ Project BSMA/
 ├── outputs/                         # Documentation and export outputs
 │   └── BSMA_User_Guidebook.pdf      # Official User Guidebook & Technical Reference
 ├── app.py                           # Streamlit graphical user interface entry point (GUI)
+├── assets/                          # Official institution branding & visual identity assets
+│   ├── Logo_BMKG_Icon.png           # Transparent BMKG logo icon with solid white interior
+│   ├── Logo_ITERA_Icon.png          # Transparent ITERA golden diamond logo icon
+│   ├── Logo_ITERA.png               # High-resolution ITERA official crest
+│   └── Logo_Judul.png               # BMKG Sleman original banner crest
 ├── requirements.txt                 # Python dependency specifications with version bounds
-├── Logo_Judul.png                   # Institutional identity logo asset
 ├── README.md                        # Comprehensive project documentation (English)
 └── README.id.md                     # Comprehensive project documentation (Bahasa Indonesia)
 ```
