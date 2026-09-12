@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import logging
@@ -35,6 +36,8 @@ LOGO_PATH = PROJECT_ROOT / "Logo_Judul.png"
 LOGO_ITERA_PATH = PROJECT_ROOT / "Logo_ITERA.png"
 LOGO_HEADER_PATH = PROJECT_ROOT / "Logo_Header.png"
 LOGO_APP_BANNER_PATH = PROJECT_ROOT / "Logo_App_Banner.png"
+LOGO_BMKG_ICON_PATH = PROJECT_ROOT / "Logo_BMKG_Icon.png"
+LOGO_ITERA_ICON_PATH = PROJECT_ROOT / "Logo_ITERA_Icon.png"
 
 st.set_page_config(
     page_title="BMKG Strong Motion Analyzer",
@@ -1006,10 +1009,13 @@ def _find_inventory(station: str) -> obspy.Inventory | None:
 
 
 def _find_inventory_path(station: str) -> Path | None:
-    direct = INVENTORY_DIRECTORY / f"{station}.xml"
+    clean_station = station.split(" | ")[0].split()[0].strip() if station else ""
+    if not clean_station:
+        return None
+    direct = INVENTORY_DIRECTORY / f"{clean_station}.xml"
     candidates = [direct] if direct.is_file() else list(INVENTORY_DIRECTORY.glob("*.xml"))
     for candidate in candidates:
-        if candidate.stem.upper() == station.upper() or station.upper() in candidate.stem.upper():
+        if candidate.stem.upper() == clean_station.upper() or clean_station.upper() in candidate.stem.upper():
             return candidate
     return None
 
@@ -1095,7 +1101,7 @@ def _configuration_from_sidebar() -> tuple[AnalysisConfiguration, dict[str, Any]
             st.session_state["input_freq_max"] = default_fmax
 
         if is_prefiltered:
-            st.info("⚡ **File Akselerograf Operasional BMKG Terdeteksi (BP4 0.05–40 Hz).**\nSudut tapis diselaraskan ke **0.05 – 40.0 Hz**.")
+            st.info("⚡ **Operational BMKG Accelerograph Record Detected (Bandpass 4-Pole 0.05–40.0 Hz).**\nFilter corner frequencies automatically aligned to **0.05 – 40.0 Hz**.")
 
         filter_type = st.selectbox("Filter", options=[member.value for member in FilterType], index=0)
         frequency_min = st.number_input("Low Cutoff (Hz)", min_value=0.001, key="input_freq_min", step=0.05)
@@ -2203,6 +2209,7 @@ def _display_benchmark(record_id: str, contexts: dict[str, Any]) -> None:
             "pgd": "PGD",
             "arias_intensity": "Arias_Intensity",
             "significant_duration_d5_95": "Significant_Duration_D5_95",
+            "significant_duration_d5_95_s": "Significant_Duration_D5_95",
             "psa": "PSA",
         }
         tolerance = float(st.session_state["benchmark_tolerance_percent"])
@@ -2259,31 +2266,59 @@ def main() -> None:
     
     configuration, event_info = _configuration_from_sidebar()
 
-    # App Header Banner with Top-Right Theme Toggle
-    col_h1, col_h2, col_h3 = st.columns([1.6, 6.4, 2.0], vertical_alignment="center")
-    with col_h1:
-        # Prefer clean transparent banner (no card border); fallback to single logo
-        logo_display = (
-            LOGO_APP_BANNER_PATH if LOGO_APP_BANNER_PATH.is_file()
-            else LOGO_HEADER_PATH if LOGO_HEADER_PATH.is_file()
-            else LOGO_PATH
-        )
-        if logo_display.is_file():
-            st.image(str(logo_display), use_container_width=True)
+    # ── App Header: logo card (left) + title (inline) + theme button (right) ──
+    def _logo_b64(p: Path) -> str:
+        try:
+            return base64.b64encode(p.read_bytes()).decode() if p.is_file() else ""
+        except Exception:
+            return ""
 
-    with col_h2:
-        st.markdown(
-            f"""
-            <h1 style="color: {token('colors.text')}; font-size: 1.6rem; font-weight: 700; margin-bottom: 0;">
-                BMKG Strong Motion Analyzer (BSMA)
-            </h1>
-            <p style="color: {token('colors.text_secondary')}; font-size: 0.85rem; margin-top: 0;">
-                Professional Seismological & Geotechnical Strong-Motion Processing Workstation
-            </p>
-            """,
-            unsafe_allow_html=True,
+    bmkg_b64  = _logo_b64(LOGO_BMKG_ICON_PATH if LOGO_BMKG_ICON_PATH.is_file() else LOGO_PATH)
+    itera_b64 = _logo_b64(LOGO_ITERA_ICON_PATH if LOGO_ITERA_ICON_PATH.is_file() else LOGO_ITERA_PATH)
+
+    title_color    = token("colors.text")
+    subtitle_color = token("colors.text_secondary")
+    border_color   = token("colors.border")
+
+    logo_html = ""
+    if bmkg_b64 or itera_b64:
+        bmkg_block = (
+            f'<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">'
+            f'<img src="data:image/png;base64,{bmkg_b64}" style="height:44px;width:auto;display:block;" />'
+            f'<span style="font-size:0.70rem;font-weight:700;color:{title_color};letter-spacing:0.6px;line-height:1;">BMKG</span>'
+            f'</div>'
+            if bmkg_b64 else ""
         )
-    with col_h3:
+        divider_block = (
+            f'<div style="width:1px;height:40px;background:{border_color};margin:0 12px;align-self:center;"></div>'
+            if bmkg_b64 and itera_b64 else ""
+        )
+        itera_block = (
+            f'<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">'
+            f'<img src="data:image/png;base64,{itera_b64}" style="height:44px;width:auto;display:block;" />'
+            f'<span style="font-size:0.70rem;font-weight:700;color:{title_color};letter-spacing:0.6px;line-height:1;">ITERA</span>'
+            f'</div>'
+            if itera_b64 else ""
+        )
+        logo_html = (
+            f'<div style="display:flex;align-items:center;flex-shrink:0;padding-right:8px;">'
+            f'{bmkg_block}{divider_block}{itera_block}'
+            f'</div>'
+        )
+
+    header_html = (
+        f'<div style="display:flex;align-items:center;gap:18px;padding:4px 0 6px 0;">'
+        f'{logo_html}'
+        f'<div style="min-width:0;">'
+        f'<h1 style="color:{title_color};font-size:1.55rem;font-weight:700;margin:0 0 2px 0;line-height:1.25;white-space:nowrap;">BMKG Strong Motion Analyzer (BSMA)</h1>'
+        f'<p style="color:{subtitle_color};font-size:0.82rem;margin:0;line-height:1.4;">Professional Seismological &amp; Geotechnical Strong-Motion Processing Workstation</p>'
+        f'</div></div>'
+    )
+
+    col_banner, col_btn = st.columns([8.2, 1.8], vertical_alignment="center")
+    with col_banner:
+        st.markdown(header_html, unsafe_allow_html=True)
+    with col_btn:
         current_theme = st.session_state.get("theme_mode", "dark")
 
         def _on_theme_click() -> None:

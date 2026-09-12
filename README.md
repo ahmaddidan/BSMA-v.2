@@ -1,11 +1,5 @@
-<div align="center">
-  <img src="Logo_Judul.png" alt="Logo BMKG" height="90" />
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="Logo_ITERA.png" alt="Logo ITERA" height="90" />
-</div>
-
-<h1 align="center">🏛️ BMKG Strong Motion Analyzer (BSMA v2.0.0)</h1>
-<p align="center"><b>Platform Komputasi Sinyal Akselerograf, Kinematika Seismik, & Spektrum Respons</b></p>
+<h1 align="center">BMKG Strong Motion Analyzer (BSMA v2.0.0)</h1>
+<p align="center"><b>Computational Platform for Accelerograph Signal Processing, Seismic Kinematics, & Response Spectra</b></p>
 
 <p align="center">
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.10+" /></a>
@@ -16,26 +10,33 @@
   <a href="https://github.com/ahmaddidan/BSMA-v.2"><img src="https://img.shields.io/badge/Status-Release_v2.0.0-059669?style=for-the-badge" alt="Status" /></a>
 </p>
 
----
-
-### 🌐 Akses Cepat & Luaran Proyek
-* 🚀 **Aplikasi Cloud Web (Daring)**: [https://strong-motion.streamlit.app/](https://strong-motion.streamlit.app/)
-* 📄 **Buku Panduan Pengguna (PDF 11 Halaman)**: [outputs/BSMA_User_Guidebook.pdf](outputs/BSMA_User_Guidebook.pdf)
-* 🐙 **Repositori Kode Sumber GitHub**: [https://github.com/ahmaddidan/BSMA-v.2](https://github.com/ahmaddidan/BSMA-v.2)
+<p align="center">
+  <b>Language:</b> <b>English</b> | <a href="README.id.md">Bahasa Indonesia</a>
+</p>
 
 ---
 
-## 📌 Ringkasan Eksekutif & Informasi Proyek
+### Application Access & Project Deliverables
 
-**BMKG Strong Motion Analyzer (BSMA v2.0.0)** merupakan perangkat lunak analisis sinyal akselerograf yang dirancang dan dikembangkan secara mandiri dalam rangka pelaksanaan kegiatan **Kerja Praktik (KP)** mahasiswa **Program Studi Teknik Geofisika, Fakultas Teknik Industri, Institut Teknologi Sumatera (ITERA)** di **Stasiun Geofisika Kelas I Sleman, Badan Meteorologi, Klimatologi, dan Geofisika (BMKG) D.I. Yogyakarta** (periode 20 Juli – 20 Agustus 2026). Perangkat lunak ini merupakan karya akademik independen dan bukan merupakan sistem operasional atau produk komersial BMKG.
+The interactive web application, official technical guidebook, and source code repository can be accessed via the following links:
 
-Aplikasi ini mengotomatisasi alur kerja analisis rekaman getaran tanah kuat (*strong ground motion*) secara terpadu—mulai dari pembacaan data mentah (*raw counts*), dekonvolusi respons instrumen StationXML, evaluasi integritas kualitas data (Quality Control), pemrosesan sinyal digital (DSP), integrasi kinematika puncak (PGA, PGV, PGD), estimasi intensitas instrumental Skala MMI berbasis perumusan GMICE Worden et al. (2012), hingga pemodelan Spektrum Respons *Pseudo-Spectral Acceleration* (PSA) elastis redaman 5% dengan opsi solver analitik **Nigam–Jennings (1969)** dan integrasi implisit **Newmark-Beta (1959)** yang dapat diperbandingkan dengan standar ketahanan gempa **SNI 1726:2019**.
+* **Interactive Cloud Web Application**: [https://strong-motion.streamlit.app/](https://strong-motion.streamlit.app/)
+* **User Guidebook & Technical Reference (PDF)**: [outputs/BSMA_User_Guidebook.pdf](outputs/BSMA_User_Guidebook.pdf)
+* **GitHub Source Code Repository**: [https://github.com/ahmaddidan/BSMA-v.2](https://github.com/ahmaddidan/BSMA-v.2)
 
 ---
 
-## 🔬 Arsitektur Pipeline Pemrosesan Sinyal
+## Executive Summary & Project Overview
 
-Sistem BSMA mengimplementasikan pipeline komputasi sekuensial yang ketat guna menjamin transparansi (*provenance tracking*) dan reproduksibilitas ilmiah (*scientific reproducibility*):
+**BMKG Strong Motion Analyzer (BSMA v2.0.0)** is an accelerograph signal analysis software suite independently developed as part of an undergraduate **Internship Program (Kerja Praktik)** by a student of **Geophysical Engineering, Faculty of Industrial Technology, Institut Teknologi Sumatera (ITERA)** at the **Sleman Geophysical Station Class I, Meteorology, Climatology, and Geophysical Agency (BMKG) D.I. Yogyakarta** (conducted from July 20 to August 20, 2026). This software is an independent academic project and does not constitute an official operational system or commercial software of BMKG.
+
+The platform provides an automated, end-to-end processing pipeline for strong ground motion records—spanning raw count ingestion, StationXML instrument response deconvolution, multi-tier data quality control (QC), digital signal processing (DSP), numerical kinematic integration (PGA, PGV, PGD), instrumental Modified Mercalli Intensity (MMI) estimation based on GMICE formulations by Worden et al. (2012), and 5% damped elastic Single-Degree-of-Freedom (SDOF) Pseudo-Spectral Acceleration (PSA) response spectra modeling using both the **Nigam–Jennings (1969)** analytical recursive filter and the **Newmark-Beta (1959)** implicit integration solver, alongside standard structural design reference overlays (**SNI 1726:2019**).
+
+---
+
+## Signal Processing Pipeline Architecture
+
+The BSMA architecture enforces a rigorous, sequential computational pipeline designed for full data provenance tracking and scientific reproducibility:
 
 ```text
 ┌────────────────────────────────────────────────────────┐
@@ -104,98 +105,100 @@ Sistem BSMA mengimplementasikan pipeline komputasi sekuensial yang ketat guna me
 └────────────────────────────────────────────────────────┘
 ```
 
-### Rincian Metodologi Tahapan
+### Detailed Pipeline Methodology
 
-1. **Ingestion & Validasi Metadata**:
-   * Mendukung berkas triaksial **MiniSEED (`.mseed`)** standar FDSN dan **SAC (`.sac`)** standar IRIS.
-   * Sinkronisasi otomatis 3-komponen ortogonal (Z, N, E / U-D, N-S, E-W) berbasis penanda waktu UTC absolut.
-   * Dekonvolusi fungsi transfer instrumen (*transfer function*) berbasis berkas **StationXML (`.xml`)** (analisis *poles-zeros* / PAZ dan *stage gain*).
-   * Mode *Physical Acceleration Bypass* diaktifkan otomatis bila masukan telah berdimensi percepatan fisik (m/s² atau Gal).
+1. **Ingestion & Metadata Validation**:
+   * Supports triaxial **MiniSEED (`.mseed`)** (FDSN standard) and **SAC (`.sac`)** (IRIS standard) waveform formats.
+   * Automated temporal synchronization for 3 orthogonal channels (Z, N, E / U-D, N-S, E-W) based on absolute UTC timestamps.
+   * Instrument transfer function deconvolution using **StationXML (`.xml`)** metadata (poles-zeros / PAZ and stage gain deconvolution via ObsPy).
+   * Automatic *Physical Acceleration Bypass* when input records are already calibrated in physical acceleration units (m/s² or Gal).
 
-2. **Quality Control (QC) & Integritas Sinyal**:
-   * **Skor Kualitas (Quality Score, 0–100)**: Ukuran kuantitatif kebersihan sinyal berdasarkan penalti anomali fisik.
-   * **Status Validasi Operasional**:
-     * **`QC PASS`** ($\ge 70$): Kualitas sinyal nominal, andal untuk analisis rekayasa dan spektrum respons.
-     * **`QC WARNING`** ($50-69$): Terdapat anomali non-fatal (lonjakan terisolasi, SNR marginal, pergeseran baseline minor).
-     * **`QC FAIL`** ($< 50$ atau Anomali Fatal): Mengalami sensor *clipping*, saturasi ADC, *flatline* (sensor mati), atau *data gap*. Data dengan *clipping* ditandai tidak valid untuk analisis puncak karena PGA terpotong dan estimasi MMI *underestimate*.
-   * **Taksonomi 6 Kategori Diagnostik (*Class 1* – *Class 6*)**: Klasifikasi fisik komparatif untuk penyajian antarmuka dan laporan.
+2. **Quality Control (QC) & Signal Integrity Screening**:
+   * **Quality Score (0–100)**: Quantitative cleanliness index computed from calibrated physical penalties.
+   * **Three-Tier Operational Status**:
+     * **`QC PASS`** ($\ge 70$): Clean, high-fidelity signals suitable for engineering analysis and response spectra computation.
+     * **`QC WARNING`** ($50-69$): Non-fatal anomalies detected (isolated spikes, marginal pre-event SNR, or mild baseline tilt).
+     * **`QC FAIL`** ($< 50$ or Fatal Override): Sensor clipping, ADC saturation, flatlines, or corrupted data channels. Clipped records are strictly invalidated for peak ground motion analysis because PGA is truncated and MMI estimation becomes artificially underestimated.
+   * **Six-Class Diagnostic Taxonomy (Class 1–6)**: Standardized physical classification presented across the UI and export reports.
 
 3. **Digital Signal Processing (DSP)**:
-   * **Penghilangan Tren (*Detrending*)**: Koreksi *mean offset* dan tren polinomial linier untuk mengoreksi pergeseran DC awal.
-   * **Jendela Kosinus Tukey 5% (*Tapering*)**: Menghaluskan diskontinuitas amplitudo di kedua ujung rekaman untuk mereduksi kebocoran spektral (*spectral leakage*).
-   * **Penapis Butterworth Orde-4 Maju-Mundur (*Forward-Backward Filtering*)**: Diterapkan melalui pemrosesan dua arah (`scipy.signal.sosfiltfilt`) untuk mengeliminasi distorsi fase tanpa pergeseran waktu neto (*zero net phase lag*). Kuadrat fungsi transfer magnitudo ($|H(f)|^2$) memberikan laju atenuasi efektif 48 dB/oktaf pada pita henti (setara kemiringan orde-8), dengan tetap mempertahankan kestabilan dan sifat pole prototipe orde-4 aslinya.
-   * **Batas Atas Nyquist 80%**: $f_{\max} \le 0.80 f_{\mathrm{Nyquist}} = 0.40 f_s$ guna mencegah timbulnya artefak numerik frekuensi tinggi.
-   * **Floor Adaptif SNR Frekuensi Rendah**: Cutoff $f_{\min}$ dinaikkan secara adaptif ke $0.20\text{ Hz}$ atau $0.40\text{ Hz}$ saat rekaman memiliki rasio sinyal-derau rendah ($< 20\text{ dB}$ atau $< 10\text{ dB}$) guna menekan drift periode panjang.
+   * **Baseline Detrending**: Mean subtraction and linear/polynomial trend removal to eliminate initial DC baseline offset (Boore & Bommer, 2005).
+   * **5% Cosine Tapering (Tukey Window)**: Smooths amplitude discontinuities at both record boundaries to mitigate spectral leakage during Fourier and filter operations (Harris, 1978).
+   * **Zero-Phase 4th-Order Butterworth Bandpass Filtering**: Forward-backward two-pass filtering (`scipy.signal.sosfiltfilt`) that guarantees zero net phase lag ($\Delta \phi = 0$). The squared magnitude transfer function ($|H(f)|^2$) achieves an effective 48 dB/octave attenuation rate in the stopband (equivalent to an 8th-order slope) while preserving the intrinsic numerical stability and pole structure of the 4th-order prototype.
+   * **Nyquist Safeguard Limit**: $f_{\max} \le 0.80 f_{\mathrm{Nyquist}} = 0.40 f_s$ to prevent high-frequency aliasing and filter distortion.
+   * **Adaptive Low-Frequency SNR Floor**: Highpass corner $f_{\min}$ is automatically elevated to $0.20\text{ Hz}$ or $0.40\text{ Hz}$ when pre-event SNR is marginal ($< 20\text{ dB}$ or $< 10\text{ dB}$) to suppress low-frequency integration drift.
 
-4. **Integrasi Kinematika & Kebijakan Garis Dasar (Baseline Policy)**:
-   * Integrasi numerik bertahap dari percepatan $a(t)$ ke kecepatan $v(t)$, dilanjutkan ke perpindahan $d(t)$ menggunakan aturan trapesium kumulatif (*cumulative trapezoidal rule*).
-   * **Kebijakan Ilmiah Garis Dasar**: Koreksi garis dasar (*detrending*) diaplikasikan secara ketat hanya pada deret waktu percepatan *sebelum* integrasi. Sesuai kaidah kalkulus kinematika murni, BSMA secara sengaja **tidak melakukan modifikasi detrending pasca-integrasi** pada kecepatan atau perpindahan guna menjaga konsistensi derivatif fisik ($a = \dot{v} = \ddot{d}$).
-   * **Catatan Metodologis PGD**: Nilai PGD yang dihasilkan merepresentasikan **perpindahan puncak dinamik transien** dalam batas pita frekuensi penapis, bukan deformasi tektonik statis permanen (*static fling-step*), yang secara seismologis membutuhkan koreksi garis dasar nonlinear khusus atau data GPS laju-tinggi (*high-rate GNSS*).
+4. **Kinematic Integration & Baseline Policy**:
+   * Sequential numerical integration from acceleration $a(t)$ to velocity $v(t)$, and velocity to displacement $d(t)$ using the cumulative trapezoidal rule.
+   * **Strict Baseline Policy**: Baseline detrending is strictly applied to acceleration *prior* to integration. In accordance with rigorous kinematic calculus, BSMA deliberately avoids artificial polynomial drift fitting on $v(t)$ or $d(t)$ post-integration, preserving strict derivative consistency ($a = \dot{v} = \ddot{d}$).
+   * **PGD Interpretation**: PGD represents the **transient dynamic peak displacement** within the passband of the bandpass filter, not the permanent tectonic static offset (*fling-step*), which seismologically requires specialized baseline correction or high-rate GNSS instrumentation.
 
-5. **Parameter Kinematika Seismik & Intensitas Instrumental MMI**:
-   * Ekstraksi parameter puncak absolut: **PGA**, **PGV**, **PGD**, dan rasio **$V_{\max}/A_{\max}$**.
-   * Perhitungan energi seismik kumulatif **Intensitas Arias ($I_a$)** dan interval waktu **Durasi Signifikan ($D_{5-95}$)**.
-   * Estimasi intensitas instrumental Skala MMI berbasis perumusan empiris GMICE **Worden et al. (2012)** USGS ShakeMap yang dihitung secara baku dari **Komponen Horizontal Maksimum (Max-H)** (mengecualikan kanal vertikal Z/U), dengan transisi dominansi PGV pada guncangan kuat ($I_{\text{MMI}} \ge 5.0$).
+5. **Kinematic Parameters & Instrumental MMI**:
+   * Peak Ground Motion Extraction: **PGA**, **PGV**, **PGD**, and the structural indicator ratio **$V_{\max}/A_{\max}$**.
+   * Energy and Duration Metrics: Cumulative **Arias Intensity ($I_a$)** and Significant Duration intervals (**$D_{5-95}$** and **$D_{5-75}$**).
+   * Instrumental MMI estimation using the **Worden et al. (2012)** USGS ShakeMap GMICE formulation evaluated on the **Maximum Horizontal Component (Max-H)** (excluding vertical Z/U), featuring continuous transition from PGA dominance to PGV dominance at higher shaking levels ($I_{\text{MMI}} \ge 5.0$).
 
-6. **Spektrum Respons SDOF & Standar Desain SNI 1726:2019**:
-   * Komputasi kurva **Pseudo-Spectral Acceleration (PSA)** osilator elastis SDOF dengan redaman kritis 5% ($\xi = 0.05$) pada rentang periode $T = 0.01 - 10.0$ detik.
-   * Pilihan algoritma solver: formulasi rekursif analitik **Nigam & Jennings (1969)** (*piecewise-linear ground acceleration state-transition*) atau integrasi implisit **Newmark-Beta (1959)** ($\gamma = 1/2, \beta = 1/4$, *average acceleration*).
-   * Fitur **SDOF Solver Cross-Validation & Numerical Benchmark**: Evaluasi kuantitatif deviasi relatif maksimal, deviasi rata-rata, dan selisih RMS antara kedua solver.
-   * Perbandingan langsung (*overlay*) terhadap kurva spektrum desain **SNI 1726:2019** ($S_{DS}, S_{D1}, T_0, T_s$) sebagai acuan standar rekayasa kegempaan (*design code reference overlay*), bukan sebagai besaran yang diestimasi langsung dari rekaman sinyal.
+6. **SDOF Response Spectra & Structural Design Standards**:
+   * Elastic 5% critically damped Single-Degree-of-Freedom (SDOF) **Pseudo-Spectral Acceleration (PSA)** across period range $T = 0.01 - 10.0$ seconds.
+   * Dual numerical solver engines:
+     * **Nigam–Jennings (1969)**: Recursive exact analytical state-transition solver assuming piecewise linear ground acceleration.
+     * **Newmark-Beta (1959)**: Implicit time integration solver ($\gamma = 1/2, \beta = 1/4$, average acceleration scheme).
+   * **SDOF Solver Cross-Validation Benchmark**: Interactive quantitative comparison calculating maximum relative deviation, mean relative deviation, and RMS difference between solvers.
+   * **SNI 1726:2019 Design Code Overlay**: Direct comparison against Indonesian building code design spectra ($S_{DS}, S_{D1}, T_0, T_s$) as an engineering reference overlay.
 
-7. **Pelaporan Teknis & Ekspor Multi-Format**:
-   * Dokumen laporan teknis PDF komprehensif individual dan batch.
-   * Lembar data tabular CSV ringkasan parameter kinematika.
-   * Lembar data matriks CSV spektrum respons diskret ($T$ vs $S_a$).
-   * Paket arsip terkompresi ZIP untuk pemrosesan banyak stasiun (*batch processing*).
+7. **Technical Reporting & Multi-Format Export**:
+   * Publication-grade PDF engineering reports (single-station and multi-station batch).
+   * Comprehensive tabular CSV kinematics summaries.
+   * Discrete spectral response matrix CSV exports ($T$ vs $S_a$).
+   * Standalone ZIP archive bundling all processed data products.
 
 ---
 
-## 🖥️ Eksplorasi 7 Tab Fitur Analisis Interaktif
+## 7 Interactive Analysis Tabs
 
-Antarmuka BSMA v2.0.0 dibangun di atas pustaka interaktif Streamlit dan visualisasi saintifik Plotly, terbagi ke dalam 7 tab tematik:
+The BSMA graphical interface is built with Streamlit and Plotly, organized into 7 functional tabs:
 
-| Tab | Nama Tab | Deskripsi & Kapabilitas Fungsional |
+| Tab | Name | Scope & Capabilities |
 | :---: | :--- | :--- |
-| **1** | **Summary** | Dasbor eksekutif menyajikan kartu metadata stasiun (lintang, bujur, elevasi), pratinjau seismogram 3-kanal (40–50% tinggi layar), metrik kinematika puncak komponen terkuat, status QC, estimasi MMI, dan panel jejak audit (*audit trail*). |
-| **2** | **Waveforms** | Visualisasi interaktif riwayat waktu 3-komponen untuk kinematika lengkap: Percepatan ($a$), Kecepatan ($v$), dan Perpindahan ($d$). Dilengkapi penanda waktu tiba otomatis (*pick markers*) dan titik amplitudo puncak absolut. |
-| **3** | **Quality Control** | Diagnostik integritas rekaman: skor numerik (0–100), status validasi (PASS/WARNING/FAIL), visualisasi radar metrik derau latar, kurva *Power Spectral Density* (PSD), estimasi SNR (dB), dan bendera deteksi anomali (*clipping*, *spikes*, *flatline*). |
-| **4** | **Strong Motion** | Analisis energi guncangan mendalam: kurva akumulasi Intensitas Arias (*Husid Plot*), interval Durasi Signifikan ($D_{5-95}$ dan $D_{5-75}$), rasio $V_{\max}/A_{\max}$, dan percepatan efektif (*effective peak acceleration*). |
-| **5** | **Intensity** | Klasifikasi tingkat guncangan Skala MMI instrumental (Worden et al., 2012) berbasis PGA dan PGV horizontal maksimum. Menyajikan kartu deskripsi dampak fisik guncangan (*Perceived Shaking*) dan potensi kerusakan struktural (*Potential Damage*). |
-| **6** | **Spectrum** | Kurva Spektrum Respons Pseudo-Percepatan ($S_a$) elastis redaman 5% untuk ketiga kanal pada rentang periode $T = 0.01 - 10.0$ s. Mendukung perbandingan langsung (*overlay*) terhadap kurva spektrum desain **SNI 1726:2019**, serta panel verifikasi silang numerik (*SDOF Solver Benchmark: Nigam-Jennings vs Newmark-Beta*). |
-| **7** | **Report** | Pratinjau dan pengunduhan dokumen laporan teknis PDF komprehensif, tabel CSV ringkasan parameter kinematika, lembar CSV matriks spektrum respons diskret, dan paket arsip ZIP. |
+| **1** | **Summary** | Executive dashboard featuring station metadata (latitude, longitude, elevation), triaxial waveform preview (40–50% viewport height), peak kinematic metrics of the strongest channel, QC status badge, instrumental MMI, and an audit trail panel. |
+| **2** | **Waveforms** | Interactive 3-component time series for complete kinematics: Acceleration ($a$), Velocity ($v$), and Displacement ($d$), complete with automated P-wave arrival markers and peak amplitude annotations. |
+| **3** | **Quality Control** | Signal integrity diagnostics: numerical Quality Score (0–100), validation badges (PASS/WARNING/FAIL), polar radar chart of noise metrics, Power Spectral Density (PSD) curves, SNR estimates (dB), and diagnostic anomaly flags. |
+| **4** | **Strong Motion** | Advanced energy diagnostics: cumulative Arias Intensity curves (*Husid Plot*), Significant Duration intervals ($D_{5-95}$ and $D_{5-75}$), $V_{\max}/A_{\max}$ ratio, and effective peak acceleration. |
+| **5** | **Intensity** | Instrumental MMI classification (Worden et al., 2012) derived from maximum horizontal PGA and PGV, paired with perceived shaking descriptions and potential structural damage assessments. |
+| **6** | **Spectrum** | Elastic 5% damped Pseudo-Spectral Acceleration ($S_a$) response curves across $T = 0.01 - 10.0$ s. Includes design code reference overlay (**SNI 1726:2019**) and the numerical **SDOF Solver Cross-Validation Benchmark** (Nigam-Jennings vs. Newmark-Beta). |
+| **7** | **Report** | Technical PDF report preview and download, kinematic parameter CSV tables, discrete spectral response matrix CSVs, and complete ZIP package export. |
 
 ---
 
-## 🚀 Fitur Unggulan Lanjutan
+## Advanced Features
 
-* ⚡ **Batch Processing Multi-Stasiun**: Memproses puluhan rekaman stasiun akselerograf secara simultan dalam satu klik, menghasilkan tabel matriks komparasi regional terpadu yang dapat diurutkan berdasarkan PGA tertinggi atau estimasi MMI.
-* 🔬 **SDOF Solver Cross-Validation Benchmark**: Alat uji presisi komputasi interaktif yang menghitung deviasi relatif maksimal, rata-rata, dan RMS antara Nigam-Jennings dan Newmark-Beta secara langsung pada rekaman aktif.
-* 🌓 **Dual-Theme Switcher (Light Mode & Dark Mode)**: Tombol saklar instan di pojok kanan atas aplikasi untuk beralih antara tema terang (kebutuhan pelaporan formal dan pencahayaan terang) dan tema gelap (pengamatan jangka panjang di ruang monitor seismologi redup).
-* 🛡️ **Provenance Logging & Audit Trail**: Setiap tahapan pemrosesan dicatat secara transparan (parameter filter, versi pustaka numerik, waktu eksekusi, dan status StationXML) pada laporan akhir guna menjamin reproduksibilitas ilmiah (*scientific reproducibility*).
+* **Batch Multi-Station Processing**: Process dozens of accelerograph station files simultaneously in one click, generating a unified regional comparison matrix sortable by highest PGA or MMI.
+* **SDOF Solver Cross-Validation Benchmark**: Interactive computational verification tool that computes maximum, mean, and RMS relative discrepancies between Nigam-Jennings and Newmark-Beta solvers directly on active records.
+* **Dual-Theme Switcher (Light Mode & Dark Mode)**: One-click toggle in the top-right header to seamlessly switch between light mode (formal reporting and bright environments) and dark mode (night observation in low-light seismic monitoring rooms).
+* **Provenance Logging & Audit Trail**: Every signal processing step, filter parameter, library version, execution timestamp, and StationXML response status is logged transparently into export reports for rigorous scientific reproducibility.
 
 ---
 
-## 📐 Landasan Formulasi Matematis
+## Mathematical Formulations
 
-Berikut adalah formulasi matematis baku yang diimplementasikan dalam mesin komputasi BSMA. Ditulis dalam blok notasi LaTeX display standar agar dapat dirender dengan jelas, bersih, dan presisi pada GitHub:
+The following core mathematical formulas are implemented within the BSMA computational engine:
 
-### 1. Batas Numerik Frekuensi Nyquist
+### 1. Nyquist Frequency Upper Limit
 
 $$
 f_{\max} \le 0.80 \times f_{\mathrm{Nyquist}} = 0.40 \times f_s \quad [\text{Hz}]
 $$
 
-### 2. Rasio Sinyal terhadap Derau (Signal-to-Noise Ratio)
+### 2. Signal-to-Noise Ratio (SNR)
 
 $$
 \text{SNR} = 20 \log_{10}\left( \frac{\mathrm{RMS}_{\mathrm{signal}}}{\mathrm{RMS}_{\mathrm{noise}}} \right) \quad [\text{dB}]
 $$
 
-### 3. Kinematika Puncak Gerakan Tanah (Peak Ground Motion)
+### 3. Peak Ground Motion Kinematics
 
 $$
-\text{PGA} = \max_{t} |a(t)| \quad [\text{Gal atau cm/s}^2]
+\text{PGA} = \max_{t} |a(t)| \quad [\text{Gal or cm/s}^2]
 $$
 
 $$
@@ -206,33 +209,33 @@ $$
 \text{PGD} = \max_{t} |d(t)| = \max_{t} \left| \int_0^t v(\tau) \, d\tau \right| \quad [\text{cm}]
 $$
 
-### 4. Intensitas Arias Kumulatif ($I_a$)
+### 4. Cumulative Arias Intensity ($I_a$)
 
 $$
 I_a = \frac{\pi}{2g} \int_0^{t_{\max}} [a(t)]^2 \, dt \quad [\text{m/s}]
 $$
 
-### 5. Durasi Signifikan ($D_{5-95}$)
+### 5. Significant Duration ($D_{5-95}$)
 
 $$
-D_{5-95} = t_{95} - t_{5} \quad [\text{detik}]
+D_{5-95} = t_{95} - t_{5} \quad [\text{seconds}]
 $$
 
-Keterangan: Dihitung dari selisih waktu antara pencapaian 5% hingga 95% integral akumulasi energi Husid.
+*Note: Defined by the time interval between 5% and 95% of total accumulated Arias Intensity on the Husid curve.*
 
-### 6. Spektrum Respons Pseudo-Percepatan (PSA SDOF Redaman 5%)
+### 6. SDOF 5% Damped Elastic Pseudo-Spectral Acceleration (PSA)
 
 $$
-\text{PSA}(T, \xi) = \omega^2 S_d(T, \xi) = \omega^2 \max_{t} |u(t)| \quad [g \text{ atau m/s}^2]
+\text{PSA}(T, \xi) = \omega^2 S_d(T, \xi) = \omega^2 \max_{t} |u(t)| \quad [g \text{ or m/s}^2]
 $$
 
-Keterangan: $\omega = \frac{2\pi}{T}$ adalah frekuensi sudut alami osilator SDOF, $S_d(T, \xi)$ adalah spektrum simpangan relatif maksimum, dan $\xi = 0.05$ (rasio redaman kritis 5% standar rekayasa gempa).
+*Note: $\omega = \frac{2\pi}{T}$ denotes the oscillator undamped natural circular frequency, $S_d(T, \xi)$ is the maximum relative displacement spectrum, and $\xi = 0.05$ (5% critical damping ratio standard in earthquake engineering).*
 
-### 7. Hubungan Intensitas Instrumental Skala MMI (Worden et al., 2012)
+### 7. Instrumental MMI Relationships (Worden et al., 2012)
 
-Dihitung secara baku dari **Komponen Horizontal Maksimum (Max-H)**:
+Evaluated standardly on the **Maximum Horizontal Component (Max-H)**:
 
-**Formulasi Berdasarkan PGA (Gal):**
+**PGA-Based Formulation (PGA in Gal):**
 
 $$
 \text{MMI}_{\text{PGA}} = \begin{cases}
@@ -241,7 +244,7 @@ $$
 \end{cases}
 $$
 
-**Formulasi Berdasarkan PGV (cm/s):**
+**PGV-Based Formulation (PGV in cm/s):**
 
 $$
 \text{MMI}_{\text{PGV}} = \begin{cases}
@@ -250,137 +253,141 @@ $$
 \end{cases}
 $$
 
-Pada intensitas guncangan kuat ($I_{\text{MMI}} \ge 5.0$), perumusan PGV mendominasi penentuan intensitas instrumental sesuai pedoman konvensi USGS ShakeMap.
+At moderate-to-severe ground shaking ($I_{\text{MMI}} \ge 5.0$), the PGV formulation automatically governs the final intensity value in adherence with USGS ShakeMap standards.
 
 ---
 
-## 💻 Panduan Instalasi & Menjalankan Aplikasi Secara Lokal
+## Installation & Local Setup Guide
 
-### Prasyarat Sistem
-* **Sistem Operasi**: Windows 10/11, macOS, atau Linux (Ubuntu 20.04+)
-* **Lingkungan Python**: Versi **3.10** hingga **3.13** (lingkungan pengujian primer: Python 3.13.2)
-* **RAM**: Minimal 4 GB (disarankan 8 GB untuk batch processing)
+### System Requirements
+* **Operating System**: Windows 10/11, macOS, or Linux (Ubuntu 20.04+)
+* **Python Environment**: Version **3.10** through **3.13** (primary test environment: Python 3.13.2)
+* **Core Dependencies**: Streamlit, ObsPy, NumPy, SciPy, Pandas, Matplotlib, Plotly, FPDF, PyMuPDF
+* **RAM**: Minimum 4 GB (8 GB recommended for batch multi-station workflows)
 
-### Langkah Instalasi
+### Installation Steps
 
-1. **Kloning Repositori:**
+1. **Clone the Repository:**
    ```bash
    git clone https://github.com/ahmaddidan/BSMA-v.2.git
    cd BSMA-v.2
    ```
 
-2. **Buat dan Aktifkan Lingkungan Virtual (*Virtual Environment*):**
-   * Di Windows (PowerShell):
+2. **Create and Activate a Virtual Environment:**
+   * On Windows (PowerShell):
      ```powershell
      python -m venv .venv
      .venv\Scripts\activate
      ```
-   * Di Linux / macOS:
+   * On Linux / macOS:
      ```bash
      python3 -m venv .venv
      source .venv/bin/activate
      ```
 
-3. **Instal Seluruh Dependensi:**
+3. **Install Dependencies:**
    ```bash
    pip install --upgrade pip
    pip install -r requirements.txt
    ```
 
-4. **Jalankan Aplikasi BSMA Streamlit:**
+4. **Launch the BSMA Streamlit Application:**
    ```bash
    streamlit run app.py
    ```
-   Aplikasi akan terbuka otomatis di peramban pada alamat `http://localhost:8501`.
+   The browser will automatically open at `http://localhost:8501`.
 
-5. **(Opsional) Menjalankan Test Suite Otomatis:**
+5. **(Optional) Run the Automated Test Suite:**
    ```bash
    pytest tests/
    ```
 
 ---
 
-## 🧪 Validasi Ilmiah & Suite Pengujian Otomatis
+## Scientific Validation & Automated Test Suite
 
-BSMA dilengkapi dengan test suite otomatis berbasis `pytest` (83 butir pengujian unit, regresi referensi, dan validasi rekaman riil) yang mencakup:
-* **Pengujian Sintetik Analitik ([tests/test_integration.py](tests/test_integration.py))**: Verifikasi integrasi trapesium kumulatif terhadap solusi analitik eksak gelombang sinusoidal $a(t) = A\sin(\omega t)$ dengan toleransi galat relatif $< 0.1\%$.
-* **Benchmark Regresi Dataset Referensi ([tests/test_reference_benchmark.py](tests/test_reference_benchmark.py))**: Uji coba *end-to-end* sinyal gempa sintetik kanonikal untuk verifikasi konvergensi deterministik nilai puncak kinematika (PGA/PGV/PGD), energi Arias ($I_a$), durasi $D_{5-95}$, MMI Worden et al. (2012), dan spektrum respons PSA.
-* **Uji Keselarasan Solver SDOF ([tests/test_response_spectrum.py](tests/test_response_spectrum.py))**: Verifikasi komparasi antara formulasi analitik rekursif Nigam-Jennings (1969) dan integrasi implisit Newmark-Beta (1959) dengan rata-rata deviasi relatif $< 5\%$, serta pembuktian batas kaku (*rigid limit anchor*) $\lim_{T \to 0} \text{PSA}(T) = \text{PGA}$.
-* **Uji Intensitas MMI & ShakeMap ([tests/test_mmi.py](tests/test_mmi.py))**: Validasi percabangan formulasi Worden et al. (2012), sifat monotonitas kurva intensitas, dominansi PGV pada guncangan tinggi, dan penanganan nilai non-finit.
-* **Uji Ambang Batas QC ([tests/test_qc.py](tests/test_qc.py))**: Pengujian ketepatan keputusan status kelayakan (PASS $\ge 70$, WARNING $50-69$, FAIL $< 50$), serta diskualifikasi otomatis pada sinyal yang mengalami *sensor clipping* atau *ADC saturation*.
-* **Uji Validasi Rekaman Riil BMKG ([tests/test_level4_real_data.py](tests/test_level4_real_data.py))**: Pengujian *end-to-end* pada rekaman multi-stasiun gempa nyata BMKG (PPJR, PCJI, PRJI) untuk memverifikasi keselarasan penuh ekstraksi parameter akselerogram (PGA 100% konsisten terhadap standar operasional BMKG).
+BSMA includes a comprehensive `pytest` test suite (83 unit tests, reference regression benchmarks, and real earthquake validation tests):
+* **Synthetic Analytical Integration ([tests/test_integration.py](tests/test_integration.py))**: Verifies cumulative trapezoidal integration against exact sinusoidal solutions $a(t) = A\sin(\omega t)$ with relative error tolerances $< 0.1\%$.
+* **Reference Dataset Regression Benchmark ([tests/test_reference_benchmark.py](tests/test_reference_benchmark.py))**: End-to-end tests on canonical synthetic waveforms ensuring deterministic convergence of peak kinematics (PGA, PGV, PGD), Arias energy ($I_a$), duration $D_{5-95}$, MMI (Worden et al., 2012), and PSA response spectra.
+* **SDOF Solver Cross-Validation ([tests/test_response_spectrum.py](tests/test_response_spectrum.py))**: Verifies consistency between Nigam-Jennings (1969) and Newmark-Beta (1959) formulations (mean relative discrepancy $< 5\%$) and proves the high-frequency rigid limit anchor $\lim_{T \to 0} \text{PSA}(T) = \text{PGA}$.
+* **MMI & ShakeMap Invariance ([tests/test_mmi.py](tests/test_mmi.py))**: Validates Worden et al. (2012) branching, monotonicity, PGV dominance at strong shaking, and finite number safety.
+* **Quality Control Screening ([tests/test_qc.py](tests/test_qc.py))**: Validates threshold logic (PASS $\ge 70$, WARNING $50-69$, FAIL $< 50$) and mandatory fatal disqualification for sensor clipping and ADC saturation.
+* **Real Operational BMKG Records Validation ([tests/test_level4_real_data.py](tests/test_level4_real_data.py))**: End-to-end multi-station validation on real BMKG earthquake records (PPJR, PCJI, PRJI) confirming 100% parameter agreement with operational standards.
 
 ---
 
-## 📂 Struktur Direktori Repositori
+## Repository Directory Structure
 
 ```text
 Project BSMA/
-├── .streamlit/                      # Konfigurasi tema visual (light/dark) & server Streamlit
-├── core/                            # Modul logika sains murni (Python standard + NumPy/SciPy)
-│   ├── interfaces/                  # Kontrak antarmuka abstrak preprocessor & solver
-│   ├── io/                          # Modul parser waveform (MiniSEED, SAC) & StationXML
-│   ├── preprocessing/               # Detrending, cosine tapering, Butterworth filtering, QC
-│   ├── processing/                  # Integrasi numerik, parameter kinematika (PGA/PGV/PGD, Arias, MMI)
-│   ├── sdof/                        # Solvers SDOF elastis (Nigam-Jennings 1969 & Newmark-Beta 1959)
-│   ├── types/                       # Definisi dataclass context, waveform, & processing state
-│   ├── orchestrator.py              # Koordinator orkestrasi pemrosesan sinyal
-│   └── pipeline.py                  # Pipeline sekuensial end-to-end
-├── services/                        # Lapisan layanan aplikasi
-│   ├── analysis_service.py          # Layanan pemrosesan stasiun tunggal & rekomendasi filter
-│   ├── batch_service.py             # Layanan pemrosesan multi-stasiun (batch mode)
-│   └── export_service.py            # Layanan ekspor CSV, matriks spektrum, & arsip ZIP
-├── utils/                           # Utilitas pendukung
-│   ├── exceptions.py                # Penanganan eksepsi & kode kesalahan ilmiah terstruktur
-│   ├── exporter.py                  # Utilitas serialisasi data tabular
-│   ├── logger.py                    # Sistem pencatatan log jejak audit (provenance tracking)
-│   └── pdf_exporter.py              # Generator dokumen laporan teknis PDF komprehensif
-├── scripts/                         # Skrip utilitas & otomatisasi
-│   └── generate_guidebook.py        # Skrip penyusun Buku Panduan Pengguna (11 halaman)
-├── tests/                           # Pengujian unit & benchmark regresi otomatis (pytest)
-│   ├── test_analysis_service.py     # Pengujian integrasi service stasiun tunggal
-│   ├── test_integration.py          # Pengujian integrasi analitik sintetik (sinusoidal exact)
-│   ├── test_level4_real_data.py     # Pengujian validasi rekaman riil multi-stasiun BMKG
-│   ├── test_mmi.py                  # Pengujian formulasi GMICE Worden et al. (2012)
-│   ├── test_parameters.py           # Pengujian ekstraksi parameter kinematika & energi
-│   ├── test_qc.py                   # Pengujian sistem Quality Control 3-tingkat terharmonisasi
-│   ├── test_reference_benchmark.py  # Pengujian regresi dataset referensi end-to-end
-│   └── test_response_spectrum.py    # Pengujian solver SDOF & benchmark silang NJ vs Newmark
-├── outputs/                         # Direktori luaran dokumen & laporan
-│   └── BSMA_User_Guidebook.pdf      # Buku Panduan Pengguna & Referensi Teknis
-├── app.py                           # Titik masuk utama antarmuka pengguna Streamlit (GUI)
-├── requirements.txt                 # Daftar dependensi pustaka Python dengan batas versi
-├── Logo_Judul.png                   # Aset logo identitas instansi KP & universitas
-└── README.md                        # Dokumentasi komprehensif proyek
+├── .streamlit/                      # Visual theme configurations (light/dark) & Streamlit server settings
+├── core/                            # Pure scientific computational core (Standard Python + NumPy/SciPy)
+│   ├── interfaces/                  # Abstract preprocessor and solver interface contracts
+│   ├── io/                          # Waveform parsers (MiniSEED, SAC) & StationXML deconvolution
+│   ├── preprocessing/               # Detrending, cosine tapering, Butterworth filtering, QC screening
+│   ├── processing/                  # Numerical integration, kinematic parameters (PGA/PGV/PGD, Arias, MMI)
+│   ├── sdof/                        # SDOF elastic response solvers (Nigam-Jennings 1969 & Newmark-Beta 1959)
+│   ├── types/                       # Dataclass schemas for context, waveforms, and processing states
+│   ├── orchestrator.py              # Central signal processing pipeline orchestrator
+│   └── pipeline.py                  # End-to-end sequential processing pipeline
+├── services/                        # Application service layer
+│   ├── analysis_service.py          # Single-station processing and adaptive filter recommendation
+│   ├── batch_service.py             # Multi-station batch processing service
+│   └── export_service.py            # CSV tabular data, spectral matrix, and ZIP archive export service
+├── utils/                           # Supporting utility modules
+│   ├── exceptions.py                # Structured scientific error codes and custom exceptions
+│   ├── exporter.py                  # Tabular data serialization utilities
+│   ├── logger.py                    # Provenance tracking and execution audit logging system
+│   └── pdf_exporter.py              # Technical engineering PDF report generator
+├── scripts/                         # Automation & utility scripts
+│   └── generate_guidebook.py        # Automated generator for the official User Guidebook
+├── tests/                           # Comprehensive automated test suite (pytest)
+│   ├── test_analysis_service.py     # Single-station analysis service integration tests
+│   ├── test_integration.py          # Analytical synthetic integration verification (exact sine wave)
+│   ├── test_level4_real_data.py     # Real multi-station operational BMKG earthquake record validation
+│   ├── test_mmi.py                  # Worden et al. (2012) GMICE formulation tests
+│   ├── test_parameters.py           # Kinematics and energy parameter extraction tests
+│   ├── test_qc.py                   # Three-tier Quality Control system tests
+│   ├── test_reference_benchmark.py  # End-to-end reference dataset regression benchmarks
+│   └── test_response_spectrum.py    # SDOF solvers & Nigam-Jennings vs. Newmark-Beta benchmark tests
+├── outputs/                         # Documentation and export outputs
+│   └── BSMA_User_Guidebook.pdf      # Official User Guidebook & Technical Reference
+├── app.py                           # Streamlit graphical user interface entry point (GUI)
+├── requirements.txt                 # Python dependency specifications with version bounds
+├── Logo_Judul.png                   # Institutional identity logo asset
+├── README.md                        # Comprehensive project documentation (English)
+└── README.id.md                     # Comprehensive project documentation (Bahasa Indonesia)
 ```
 
 ---
 
-## 📚 Daftar Pustaka & Rujukan Ilmiah
+## References & Scientific Bibliography
 
-1. **Arias, A.** (1970). A measure of earthquake intensity. Dalam R. J. Hansen (Ed.), *Seismic design for nuclear power plants* (hlm. 438–483). MIT Press.
-2. **Badan Standardisasi Nasional.** (2019). *SNI 1726:2019: Tata cara perencanaan ketahanan gempa untuk struktur bangunan gedung dan non gedung*. BSN.
+1. **Arias, A.** (1970). A measure of earthquake intensity. In R. J. Hansen (Ed.), *Seismic design for nuclear power plants* (pp. 438–483). Cambridge: MIT Press.
+2. **Badan Standardisasi Nasional.** (2019). *SNI 1726:2019: Tata cara perencanaan ketahanan gempa untuk struktur bangunan gedung dan non gedung*. Jakarta: Badan Standardisasi Nasional.
 3. **Beyreuther, M., Barsch, R., Krischer, L., Megies, T., Behr, Y., & Wassermann, J.** (2010). ObsPy: A Python toolbox for seismology. *Seismological Research Letters*, 81(3), 530–533. [https://doi.org/10.1785/gssrl.81.3.530](https://doi.org/10.1785/gssrl.81.3.530)
-4. **Newmark, N. M.** (1959). A method of computation for structural dynamics. *Journal of the Engineering Mechanics Division, ASCE*, 85(3), 67–94. [https://doi.org/10.1061/JMCEA3.0000098](https://doi.org/10.1061/JMCEA3.0000098)
-5. **Nigam, N. C., & Jennings, P. C.** (1969). Calculation of response spectra from strong-motion earthquake records. *Bulletin of the Seismological Society of America*, 59(2), 909–922. [https://doi.org/10.1785/BSSA0590020909](https://doi.org/10.1785/BSSA0590020909)
-6. **Trifunac, M. D., & Brady, A. G.** (1975). A study on the duration of strong earthquake ground motion. *Bulletin of the Seismological Society of America*, 65(3), 581–626. [https://doi.org/10.1785/BSSA0650030581](https://doi.org/10.1785/BSSA0650030581)
-7. **Virtanen, P., Gommers, R., Oliphant, T. E., Haberland, M., Reddy, T., Cournapeau, D., & van der Walt, S. J.** (2020). SciPy 1.0: Fundamental algorithms for scientific computing in Python. *Nature Methods*, 17(3), 261–272. [https://doi.org/10.1038/s41592-019-0686-2](https://doi.org/10.1038/s41592-019-0686-2)
-8. **Worden, C. B., Gerstenberger, M. C., Rhoades, D. A., & Wald, D. J.** (2012). Probabilistic relationships between ground-motion parameters and MMI. *Bulletin of the Seismological Society of America*, 102(1), 204–221. [https://doi.org/10.1785/0120110156](https://doi.org/10.1785/0120110156)
+4. **Boore, D. M., & Bommer, J. J.** (2005). Processing of strong-motion accelerograms: Needs, options and consequences. *Soil Dynamics and Earthquake Engineering*, 25(2), 93–115. [https://doi.org/10.1016/j.soildyn.2004.10.007](https://doi.org/10.1016/j.soildyn.2004.10.007)
+5. **Harris, F. J.** (1978). On the use of windows for harmonic analysis with the discrete Fourier transform. *Proceedings of the IEEE*, 66(1), 51–83. [https://doi.org/10.1109/PROC.1978.10837](https://doi.org/10.1109/PROC.1978.10837)
+6. **Newmark, N. M.** (1959). A method of computation for structural dynamics. *Journal of the Engineering Mechanics Division, ASCE*, 85(3), 67–94. [https://doi.org/10.1061/JMCEA3.0000098](https://doi.org/10.1061/JMCEA3.0000098)
+7. **Nigam, N. C., & Jennings, P. C.** (1969). Calculation of response spectra from strong-motion earthquake records. *Bulletin of the Seismological Society of America*, 59(2), 909–922. [https://doi.org/10.1785/BSSA0590020909](https://doi.org/10.1785/BSSA0590020909)
+8. **Trifunac, M. D., & Brady, A. G.** (1975). A study on the duration of strong earthquake ground motion. *Bulletin of the Seismological Society of America*, 65(3), 581–626. [https://doi.org/10.1785/BSSA0650030581](https://doi.org/10.1785/BSSA0650030581)
+9. **Virtanen, P., Gommers, R., Oliphant, T. E., Haberland, M., Reddy, T., Cournapeau, D., & van der Walt, S. J.** (2020). SciPy 1.0: Fundamental algorithms for scientific computing in Python. *Nature Methods*, 17(3), 261–272. [https://doi.org/10.1038/s41592-019-0686-2](https://doi.org/10.1038/s41592-019-0686-2)
+10. **Worden, C. B., Gerstenberger, M. C., Rhoades, D. A., & Wald, D. J.** (2012). Probabilistic relationships between ground-motion parameters and MMI. *Bulletin of the Seismological Society of America*, 102(1), 204–221. [https://doi.org/10.1785/0120110156](https://doi.org/10.1785/0120110156)
 
 ---
 
-## 👨‍💻 Profil Pengembang & Lembaga Pelaksana
+## Developer & Institutional Affiliation
 
-* **Nama Pengembang**: Ahmad Didane Setyawan Putra
-* **NIM**: 123120094
-* **Program Studi / Fakultas**: Teknik Geofisika, Fakultas Teknik Industri
-* **Perguruan Tinggi**: Institut Teknologi Sumatera (ITERA)
-* **Surel Kontak**: [ahmad.123120094@student.itera.ac.id](mailto:ahmad.123120094@student.itera.ac.id)
-* **Repositori GitHub**: [https://github.com/ahmaddidan/BSMA-v.2](https://github.com/ahmaddidan/BSMA-v.2)
-* **Instansi Pelaksanaan KP**: Stasiun Geofisika Kelas I Sleman, Badan Meteorologi, Klimatologi, dan Geofisika (BMKG) D.I. Yogyakarta (Periode: 20 Juli 2026 – 20 Agustus 2026)
+* **Author**: Ahmad Didane Setyawan Putra
+* **Student ID (NIM)**: 123120094
+* **Department / Faculty**: Geophysical Engineering, Faculty of Industrial Technology
+* **University**: Institut Teknologi Sumatera (ITERA)
+* **Contact Email**: [ahmad.123120094@student.itera.ac.id](mailto:ahmad.123120094@student.itera.ac.id)
+* **GitHub Repository**: [https://github.com/ahmaddidan/BSMA-v.2](https://github.com/ahmaddidan/BSMA-v.2)
+* **Host Institution**: Sleman Geophysical Station Class I, Meteorology, Climatology, and Geophysical Agency (BMKG) D.I. Yogyakarta (Internship Period: July 20 – August 20, 2026)
 
 ---
 
 <div align="center">
-  <sub>Ahmad Didane Setyawan Putra © 2026 · Karya Kerja Praktik Mahasiswa Teknik Geofisika ITERA di Stasiun Geofisika Sleman BMKG</sub>
+  <sub>Ahmad Didane Setyawan Putra © 2026 · Academic Internship Project of Geophysical Engineering ITERA at Sleman Geophysical Station BMKG</sub>
 </div>

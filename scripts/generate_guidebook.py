@@ -32,6 +32,8 @@ PDF_OUTPUT_PATH = OUTPUT_DIR / "BSMA_User_Guidebook.pdf"
 LOGO_PATH = PROJECT_ROOT / "Logo_Judul.png"
 LOGO_ITERA_PATH = PROJECT_ROOT / "Logo_ITERA.png"
 LOGO_HEADER_PATH = PROJECT_ROOT / "Logo_Header.png"
+LOGO_BMKG_ICON_PATH = PROJECT_ROOT / "Logo_BMKG_Icon.png"
+LOGO_ITERA_ICON_PATH = PROJECT_ROOT / "Logo_ITERA_Icon.png"
 
 # Color Palette (RGB 0.0 - 1.0)
 COLOR_NAVY = (0.0, 0.176, 0.384)          # #002D62 (BMKG Navy)
@@ -51,7 +53,8 @@ PAGE_H = 841.9
 LEFT_X = 50.0
 RIGHT_X = 545.3
 CONTENT_W = RIGHT_X - LEFT_X
-TOTAL_PAGES = 11
+TOTAL_PAGES = 12
+
 
 FONT_ARIAL = r"C:\Windows\Fonts\arial.ttf"
 FONT_ARIAL_BD = r"C:\Windows\Fonts\arialbd.ttf"
@@ -357,6 +360,8 @@ def add_all_hyperlinks(doc: pymupdf.Document) -> int:
     ]
     doi_mappings = [
         ("https://doi.org/10.1785/gssrl.81.3.530", "https://doi.org/10.1785/gssrl.81.3.530"),
+        ("https://doi.org/10.1016/j.soildyn.2004.10.007", "https://doi.org/10.1016/j.soildyn.2004.10.007"),
+        ("https://doi.org/10.1109/PROC.1978.10837", "https://doi.org/10.1109/PROC.1978.10837"),
         ("https://doi.org/10.1061/JMCEA3.0000098", "https://doi.org/10.1061/JMCEA3.0000098"),
         ("https://doi.org/10.1785/BSSA0590020909", "https://doi.org/10.1785/BSSA0590020909"),
         ("https://doi.org/10.1785/BSSA0650030581", "https://doi.org/10.1785/BSSA0650030581"),
@@ -380,13 +385,12 @@ def add_all_hyperlinks(doc: pymupdf.Document) -> int:
             page.insert_link({"kind": pymupdf.LINK_URI, "from": pymupdf.Rect(398, 638, 520, 652), "uri": "https://github.com/ahmaddidan/BSMA-v.2"})
             total_links += 2
 
-        # 3. Page 11 DOIs in Bab X
-        if p_num == 10:
-            for full_doi, uri in doi_mappings:
-                rects = page.search_for(full_doi)
-                for r in rects:
-                    page.insert_link({"kind": pymupdf.LINK_URI, "from": pymupdf.Rect(r.x0 - 1.5, r.y0 - 1.5, r.x1 + 1.5, r.y1 + 1.5), "uri": uri})
-                    total_links += 1
+        # 3. DOIs across document (e.g. in Bab X)
+        for full_doi, uri in doi_mappings:
+            rects = page.search_for(full_doi)
+            for r in rects:
+                page.insert_link({"kind": pymupdf.LINK_URI, "from": pymupdf.Rect(r.x0 - 1.5, r.y0 - 1.5, r.x1 + 1.5, r.y1 + 1.5), "uri": uri})
+                total_links += 1
 
     return total_links
 
@@ -404,20 +408,33 @@ def build_guidebook_pdf() -> Path:
     p1.draw_rect(pymupdf.Rect(0, 0, PAGE_W, 215), color=COLOR_NAVY, fill=COLOR_NAVY)
     p1.draw_rect(pymupdf.Rect(0, 210, PAGE_W, 215), color=COLOR_SKY, fill=COLOR_SKY)
 
-    # Left logo: BMKG
-    if LOGO_PATH.is_file():
-        p1.draw_rect(pymupdf.Rect(LEFT_X - 4, 26, LEFT_X + 81, 130), color=(1, 1, 1), fill=(1, 1, 1))
-        p1.insert_image(pymupdf.Rect(LEFT_X, 30, LEFT_X + 76, 126), filename=str(LOGO_PATH))
 
-    # Right logo: ITERA — white card so logo is legible on navy background
-    if LOGO_ITERA_PATH.is_file():
-        p1.draw_rect(pymupdf.Rect(RIGHT_X - 82, 26, RIGHT_X + 4, 130), color=(1, 1, 1), fill=(1, 1, 1))
-        p1.insert_image(pymupdf.Rect(RIGHT_X - 76, 30, RIGHT_X - 2, 126), filename=str(LOGO_ITERA_PATH))
+    # ── Cover logos: seamless side-by-side icons directly on navy ──────────
+    font_bold_obj = pymupdf.Font(fontfile=FONT_ARIAL_BD)
 
+    # 1. BMKG Logo (Icon: 54x54 pt at x=50..104, y=28..82)
+    bmkg_icon = LOGO_BMKG_ICON_PATH if LOGO_BMKG_ICON_PATH.is_file() else LOGO_PATH
+    if bmkg_icon.is_file():
+        p1.insert_image(pymupdf.Rect(50, 28, 104, 82), filename=str(bmkg_icon))
+    bmkg_tw = font_bold_obj.text_length("BMKG", fontsize=10.0)
+    p1.insert_text((77 - bmkg_tw / 2, 96), "BMKG", fontsize=10.0, fontname="f_bold", color=COLOR_WHITE)
 
-    p1.insert_text((135, 52), "BUKU PANDUAN PENGGUNA & REFERENSI TEKNIS SOFTWARE", fontsize=9.2, fontname="f_bold", color=COLOR_WHITE)
-    p1.insert_text((135, 68), "Proyek Kerja Praktik Mahasiswa Program Studi Teknik Geofisika", fontsize=8.2, fontname="f_reg", color=(0.85, 0.92, 1.0))
-    p1.insert_text((135, 82), "Fakultas Teknik Industri, Institut Teknologi Sumatera · BMKG Stasiun Geofisika Sleman", fontsize=7.4, fontname="f_it", color=(0.75, 0.85, 0.95))
+    # Vertical divider line between logos
+    p1.draw_line(pymupdf.Point(118, 28), pymupdf.Point(118, 98), color=(0.35, 0.60, 0.85), width=1.0)
+
+    # 2. ITERA Logo (Icon: 54x54 pt at x=132..186, y=28..82)
+    itera_icon = LOGO_ITERA_ICON_PATH if LOGO_ITERA_ICON_PATH.is_file() else LOGO_ITERA_PATH
+    if itera_icon.is_file():
+        p1.insert_image(pymupdf.Rect(132, 28, 186, 82), filename=str(itera_icon))
+    itera_tw = font_bold_obj.text_length("ITERA", fontsize=10.0)
+    p1.insert_text((159 - itera_tw / 2, 96), "ITERA", fontsize=10.0, fontname="f_bold", color=COLOR_WHITE)
+
+    # Header text block positioned right beside the dual-logo lockup
+    TEXT_X = 206
+    p1.insert_text((TEXT_X, 48), "BUKU PANDUAN PENGGUNA & REFERENSI TEKNIS SOFTWARE", fontsize=9.2, fontname="f_bold", color=COLOR_WHITE)
+    p1.insert_text((TEXT_X, 65), "Proyek Kerja Praktik Mahasiswa Program Studi Teknik Geofisika", fontsize=8.2, fontname="f_reg", color=(0.85, 0.92, 1.0))
+    p1.insert_text((TEXT_X, 80), "Fakultas Teknik Industri, Institut Teknologi Sumatera · BMKG Stasiun Geofisika Sleman", fontsize=7.4, fontname="f_it", color=(0.75, 0.85, 0.95))
+
 
     p1.insert_text((LEFT_X, 150), "DOKUMEN PANDUAN PENGGUNA & REFERENSI TEKNIS (USER GUIDEBOOK)", fontsize=8.8, fontname="f_bold", color=(0.75, 0.9, 1.0))
     p1.insert_text((LEFT_X, 175), "BMKG Strong Motion Analyzer (BSMA v2.0.0)", fontsize=17.5, fontname="f_bold", color=COLOR_WHITE)
@@ -439,9 +456,9 @@ def build_guidebook_pdf() -> Path:
         guna mendukung kecepatan dan keandalan diseminasi informasi pascagempa bumi, yang mencakup fungsi-fungsi ilmiah utama berikut:
     </p>
     <p>
-        • <i>Parsing</i> berkas gelombang seismik dan koreksi respons instrumen melalui dekonvolusi fungsi transfer (<i>transfer function</i>) berbasis StationXML (PAZ & <i>stage gain</i>).<br>
-        • Pemrosesan sinyal digital (<i>digital signal processing</i> / DSP) mencakup penghilangan tren (<i>detrending</i>), <i>Tukey cosine tapering</i> 5%, dan penapisan <i>Butterworth</i> orde-4 fase nol (<i>zero-phase forward-backward filtering</i>).<br>
-        • Integrasi numerik riwayat percepatan menjadi kecepatan dan perpindahan dengan langkah mitigasi pergeseran garis dasar (<i>baseline drift mitigation</i>).<br>
+        • Parsing berkas gelombang seismik dan koreksi respons instrumen melalui dekonvolusi transfer function berbasis StationXML (PAZ & stage gain).<br>
+        • Digital Signal Processing (DSP) mencakup baseline polynomial detrending, Tukey cosine tapering 5%, dan zero-phase Butterworth filtering orde-4.<br>
+        • Integrasi numerik riwayat percepatan menjadi kecepatan dan perpindahan dengan mitigasi pergeseran baseline (baseline drift mitigation).<br>
         • Ekstraksi parameter kinematika puncak (<i>Peak Ground Acceleration</i> / PGA, <i>Peak Ground Velocity</i> / PGV, <i>Peak Ground Displacement</i> / PGD), Intensitas Arias kumulatif (<i>I<sub>a</sub></i>), Durasi Signifikan (<i>D</i><sub>5-95</sub>), dan rasio <i>V</i><sub>max</sub>/<i>A</i><sub>max</sub>.<br>
         • Estimasi intensitas instrumental Skala MMI berbasis perumusan empiris <i>Ground-Motion Intensity Conversion Equations</i> (GMICE) oleh Worden et al. (2012) yang terintegrasi konvensi USGS ShakeMap.<br>
         • Komputasi Spektrum Respons <i>Pseudo-Spectral Acceleration</i> (PSA) elastis redaman 5% dengan opsi solver analitik rekursif Nigam dan Jennings (1969) dan integrasi implisit Newmark (1959).<br>
@@ -500,9 +517,9 @@ def build_guidebook_pdf() -> Path:
         ("  2.2  Konvensi Kanal Triaksial Akselerograf (FDSN SEED)", "4", 15, False),
         ("  2.3  Dekonvolusi Respons Instrumen (StationXML Transfer Function)", "4", 15, False),
         ("  2.4  Kebutuhan Sistem & Batasan Masukan Data (System Requirements)", "4", 15, False),
-        ("BAB III  DIGITAL SIGNAL PROCESSING (DSP) & KONFIGURASI PENAPIS", "5", 0, True),
-        ("  3.1  Klasifikasi & Karakteristik Penapis Frekuensi (Filter Type)", "5", 15, False),
-        ("  3.2  Karakteristik Penapis Butterworth Orde-4 & Pemrosesan Fase Nol", "5", 15, False),
+        ("BAB III  DIGITAL SIGNAL PROCESSING (DSP) & FILTERING", "5", 0, True),
+        ("  3.1  Klasifikasi & Karakteristik Tipe Filter (Filter Type)", "5", 15, False),
+        ("  3.2  Karakteristik Filter Butterworth Orde-4 & Zero-Phase Filtering", "5", 15, False),
         ("  3.3  Seleksi Frekuensi Cutoff & Margin Numerik Nyquist 80%", "5", 15, False),
         ("  3.4  Tapering Jendela Cosine Tukey 5% & Mitigasi Baseline Drift", "5", 15, False),
         ("BAB IV   QUALITY CONTROL (QC) DIAGNOSTICS & PANDUAN VALIDITAS DATA", "6", 0, True),
@@ -535,7 +552,7 @@ def build_guidebook_pdf() -> Path:
         ("  9.2  Batasan Metodologis Perangkat Lunak (Known Limitations)", "11", 15, False),
         ("  9.3  Luaran Akses Software: Cloud Web App & Repositori GitHub", "11", 15, False),
         ("  9.4  Profil Pengembang & Informasi Proyek Kerja Praktik", "11", 15, False),
-        ("BAB X    DAFTAR PUSTAKA", "11", 0, True),
+        ("BAB X    DAFTAR PUSTAKA & RUJUKAN ILMIAH", "12", 0, True),
     ]
 
     cur_y = 100.0
@@ -710,9 +727,9 @@ def build_guidebook_pdf() -> Path:
         <p style="margin-bottom: 4px; font-size: 7.6pt; color: #002d62;"><b>SPESIFIKASI MINIMUM OPERASIONAL SOFTWARE:</b></p>
         <p style="margin: 0; font-size: 7.2pt; line-height: 1.35; color: #334155;">
             • <b>Akses Cloud Web</b>: Peramban web modern (<i>Google Chrome, Mozilla Firefox, Microsoft Edge, Safari</i>) tanpa instalasi dependensi lokal.<br>
-            • <b><i>Workstation</i> Lokal</b>: Lingkungan Python 3.9 – 3.11, RAM minimum 4 GB (direkomendasikan 8 GB), CPU <i>multi-core</i>, ruang disk 500 MB.<br>
-            • <b>Pustaka Dependensi</b>: Streamlit, ObsPy, SciPy, NumPy, Plotly, PyMuPDF, Matplotlib.<br>
-            • <b>Batasan Berkas Masukan</b>: Format MiniSEED / SAC triaksial standar, laju sampel rekaman antara 50 Hz hingga 200 Hz, durasi rekaman memuat jendela derau awal (<i>pre-event noise window</i>) sekurang-kurangnya 5 detik sebelum gelombang P tiba.
+            • <b><i>Workstation</i> Lokal</b>: Lingkungan Python 3.10 – 3.13, RAM minimum 4 GB (direkomendasikan 8 GB), CPU <i>multi-core</i>, ruang disk 500 MB.<br>
+            • <b>Pustaka Dependensi</b>: Streamlit, ObsPy, NumPy, SciPy, Pandas, Plotly, Matplotlib, FPDF, PyMuPDF.<br>
+            • <b>Batasan Berkas Masukan</b>: Format MiniSEED / SAC triaksial standar, laju sampel rekaman antara 50 Hz hingga 200 Hz, durasi rekaman memuat jendela pre-event noise sekurang-kurangnya 5 detik sebelum gelombang P tiba.
         </p>
     </div>
     """
@@ -726,42 +743,42 @@ def build_guidebook_pdf() -> Path:
     builder.add_page_header_footer(p5, "Digital Signal Processing", 5)
     y = 50.0
 
-    y = builder.draw_section_heading(p5, y, "III", "DIGITAL SIGNAL PROCESSING (DSP) & KONFIGURASI PENAPIS")
-    y = builder.draw_subsection_heading(p5, y, "3.1", "Klasifikasi & Karakteristik Penapis Frekuensi (Filter Type)")
+    y = builder.draw_section_heading(p5, y, "III", "DIGITAL SIGNAL PROCESSING (DSP) & FILTERING")
+    y = builder.draw_subsection_heading(p5, y, "3.1", "Klasifikasi & Karakteristik Tipe Filter (Filter Type)")
 
     filters_html = """
     <p style="margin-bottom: 8px;">
-        Penapisan sinyal digital (<i>digital filtering</i>) bertujuan mereduksi derau frekuensi tinggi (derau elektronik/telemetri) 
-        dan derau frekuensi sangat rendah (mikroseismik laut, fluktuasi termal). BSMA menyediakan tiga konfigurasi penapis:
+        Proses <i>digital filtering</i> pada sinyal seismik bertujuan mereduksi derau frekuensi tinggi (derau elektronik/telemetri) 
+        dan derau frekuensi sangat rendah (mikroseismik laut, fluktuasi termal). BSMA menyediakan tiga konfigurasi filter:
     </p>
     <div style="border-left: 3px solid #0284c7; background: #f8fafc; padding: 6px 10px; margin-bottom: 6px; border-radius: 2px;">
-        <b style="color: #0284c7; font-size: 7.8pt;">KONFIGURASI BANDPASS REKOMENDASI BSMA (DEFAULT)</b><br>
+        <b style="color: #0284c7; font-size: 7.8pt;">BANDPASS FILTER (DEFAULT REKOMENDASI BSMA)</b><br>
         <span style="font-size: 7.2pt; color: #334155;">Meneruskan komponen frekuensi di antara <i>f</i><sub>min</sub> dan <i>f</i><sub>max</sub> (setelan rekomendasi default: 0.075 – 25.0 Hz), efektif meredam derau periode panjang dan gangguan frekuensi tinggi pada analisis gempa tektonik lokal dan regional.</span>
     </div>
     <div style="border-left: 3px solid #0f4c81; background: #f8fafc; padding: 6px 10px; margin-bottom: 6px; border-radius: 2px;">
-        <b style="color: #0f4c81; font-size: 7.8pt;">LOWPASS FILTER (PENAPIS LOLOS RENDAH)</b><br>
+        <b style="color: #0f4c81; font-size: 7.8pt;">LOWPASS FILTER</b><br>
         <span style="font-size: 7.2pt; color: #334155;">Meneruskan seluruh spektrum di bawah <i>f</i><sub>max</sub> dan memangkas derau frekuensi tinggi. Bermanfaat untuk studi getaran periode panjang atau respons dinamis struktur bertingkat tinggi.</span>
     </div>
     <div style="border-left: 3px solid #d97706; background: #f8fafc; padding: 6px 10px; margin-bottom: 6px; border-radius: 2px;">
-        <b style="color: #d97706; font-size: 7.8pt;">HIGHPASS FILTER (PENAPIS LOLOS TINGGI)</b><br>
-        <span style="font-size: 7.2pt; color: #334155;">Meneruskan komponen di atas <i>f</i><sub>min</sub> guna memitigasi pergeseran garis dasar (<i>baseline drift</i>) frekuensi sangat rendah tanpa membatasi kandungan frekuensi tinggi sinyal.</span>
+        <b style="color: #d97706; font-size: 7.8pt;">HIGHPASS FILTER</b><br>
+        <span style="font-size: 7.2pt; color: #334155;">Meneruskan komponen di atas <i>f</i><sub>min</sub> guna memitigasi pergeseran baseline (<i>baseline drift</i>) frekuensi sangat rendah tanpa membatasi kandungan frekuensi tinggi sinyal.</span>
     </div>
     """
     builder.insert_html_safe(p5, pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 140), filters_html)
     y += 145
 
-    y = builder.draw_subsection_heading(p5, y, "3.2", "Karakteristik Penapis Butterworth Orde-4 & Pemrosesan Fase Nol")
+    y = builder.draw_subsection_heading(p5, y, "3.2", "Karakteristik Filter Butterworth Orde-4 & Zero-Phase Filtering")
     p5_html_butter = """
     <p>
-        BSMA mengimplementasikan penapis <i>Butterworth</i> berbasis <i>Second-Order Sections</i> (SOS) dengan koefisien orde ke-4 
+        BSMA mengimplementasikan filter <i>Butterworth</i> berbasis <i>Second-Order Sections</i> (SOS) dengan koefisien orde ke-4 
         per lintasan tunggal (<i>single-pass roll-off</i> 24 dB/oktaf). Butterworth dipilih karena memiliki respons magnitudo yang 
-        paling datar (<i>maximally flat</i>) pada pita lolos (<i>passband</i>), meminimalkan alterasi amplitudo spektrum gelombang gempa.
+        paling datar (<i>maximally flat</i>) pada <i>passband</i>, meminimalkan alterasi amplitudo spektrum gelombang gempa.
     </p>
     <p>
-        Guna meniadakan distorsi pergeseran waktu (<i>phase lag</i>), penapisan diaplikasikan dua arah maju-mundur (<i>zero-phase 
+        Guna meniadakan distorsi pergeseran waktu (<i>phase lag</i>), filtering diaplikasikan dua arah maju-mundur (<i>zero-phase 
         forward-backward filtering</i> via <code>scipy.signal.sosfiltfilt</code>). Pemrosesan dua arah ini mengalikan fungsi transfer kuadrat 
-        |<i>H</i>(<i>f</i>)|<sup>2</sup>, menghasilkan penapis efektif berorde-8 dengan <i>roll-off</i> asimtotik <b>48 dB/oktaf</b> 
-        pada pita henti (<i>stopband</i>) tanpa distorsi fase neto sehingga waktu tiba fase gelombang P dan S tidak bergeser.
+        |<i>H</i>(<i>f</i>)|<sup>2</sup>, menghasilkan filter efektif berorde-8 dengan <i>roll-off</i> asimtotik <b>48 dB/oktaf</b> 
+        pada <i>stopband</i> tanpa distorsi fase neto sehingga waktu tiba fase gelombang P dan S tidak bergeser.
     </p>
     """
     builder.insert_html_safe(p5, pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 78), p5_html_butter)
@@ -791,11 +808,11 @@ def build_guidebook_pdf() -> Path:
     y = builder.draw_subsection_heading(p5, y, "3.4", "Tapering Jendela Cosine Tukey 5% & Mitigasi Baseline Drift")
     p5_html_taper = """
     <p>
-        Sebelum penapisan frekuensi, kedua ujung rekaman dikenakan <i>Tukey cosine tapering</i> sebesar 5% guna menghaluskan diskontinuitas 
+        Sebelum proses filtering frekuensi, kedua ujung rekaman dikenakan <i>Tukey cosine tapering</i> sebesar 5% guna menghaluskan diskontinuitas 
         amplitudo dan mereduksi kebocoran spektral (<i>spectral leakage</i>). Selain itu, <i>detrending</i> polinomial diaplikasikan untuk mereduksi <i>offset</i> instrumen.
     </p>
     <p>
-        Penting dipahami bahwa integrasi numerik akselerogram tidak secara otomatis menghilangkan <i>baseline drift</i> seutuhnya. Penapisan 
+        Penting dipahami bahwa integrasi numerik akselerogram tidak secara otomatis menghilangkan <i>baseline drift</i> seutuhnya. Filtering 
         dan <i>detrending</i> bertindak sebagai langkah mitigasi pergeseran garis dasar (<i>baseline drift mitigation</i>) guna meningkatkan 
         kestabilan riwayat kecepatan dan perpindahan.
     </p>
@@ -807,7 +824,7 @@ def build_guidebook_pdf() -> Path:
         p5,
         pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 66),
         "Mitigasi Baseline Drift & Peringatan Metodologi Deformasi Permanen (Fling-Step)",
-        "Integrasi ganda akselerogram dengan penapisan highpass secara inheren menapis frekuensi nol (DC), sehingga nilai PGD yang "
+        "Integrasi ganda akselerogram dengan highpass filtering secara inheren memotong frekuensi nol (DC), sehingga nilai PGD yang "
         "dihasilkan BSMA merepresentasikan <b>perpindahan puncak dinamik transient</b> (<i>dynamic peak displacement</i>), bukan deformasi "
         "tektonik permanen medan dekat (<i>true static offset / fling-step</i>). Apabila kurva riwayat perpindahan melengkung tidak wajar, "
         "operator disarankan menaikkan frekuensi cutoff bawah <i>f</i><sub>min</sub> (misal dari 0.05 Hz ke 0.10 Hz) guna menekan drift sisa.",
@@ -982,12 +999,12 @@ def build_guidebook_pdf() -> Path:
         <span style="font-size: 7.2pt; color: #334155;">Pada panel bilah sisi (<i>sidebar</i>), klik menu <b>Upload Waveform</b> untuk mengunggah berkas MiniSEED/SAC triaksial. Jika data berstatus rekaman digital mentah (<i>digital counts</i>), unggah berkas StationXML (.xml) untuk koreksi respons instrumen. Apabila data telah terkalibrasi percepatan fisik (m/s² atau Gal), sistem otomatis mengaktifkan mode 'Physical Acceleration' (bypass fungsi transfer).</span>
     </div>
     <div style="border-left: 3px solid #0ea5e9; background: #f8fafc; padding: 6px 10px; margin-bottom: 6px;">
-        <b style="color: #0ea5e9; font-size: 7.8pt;">LANGKAH 2: KONFIGURASI PARAMETER PENAPISAN & SOLVER SDOF</b><br>
-        <span style="font-size: 7.2pt; color: #334155;">Pilih tipe penapis frekuensi (Bandpass default rekomendasi, Lowpass, atau Highpass). Tentukan frekuensi cutoff <i>f</i><sub>min</sub> dan <i>f</i><sub>max</sub> dengan mematuhi batas 80% Nyquist. Pilih algoritma SDOF (Nigam dan Jennings atau Newmark) dan nilai redaman kritis (default 5%).</span>
+        <b style="color: #0ea5e9; font-size: 7.8pt;">LANGKAH 2: KONFIGURASI PARAMETER FILTERING & SOLVER SDOF</b><br>
+        <span style="font-size: 7.2pt; color: #334155;">Pilih tipe filter frekuensi (Bandpass default rekomendasi, Lowpass, atau Highpass). Tentukan frekuensi cutoff <i>f</i><sub>min</sub> dan <i>f</i><sub>max</sub> dengan mematuhi batas 80% Nyquist. Pilih algoritma SDOF (Nigam dan Jennings atau Newmark) dan nilai redaman kritis (default 5%).</span>
     </div>
     <div style="border-left: 3px solid #10b981; background: #f8fafc; padding: 6px 10px; margin-bottom: 6px;">
         <b style="color: #10b981; font-size: 7.8pt;">LANGKAH 3: EKSEKUSI PEMROSESAN ANALISIS TERPADU</b><br>
-        <span style="font-size: 7.2pt; color: #334155;">Klik tombol <b>Run Analysis</b>. Pipeline BSMA secara berurutan mengeksekusi validasi format, <i>detrending</i> polinomial, <i>tapering</i> Tukey 5%, penapisan fase nol, integrasi numerik, ekstraksi kinematika, komputasi MMI, dan spektrum respons.</span>
+        <span style="font-size: 7.2pt; color: #334155;">Klik tombol <b>Run Analysis</b>. Pipeline BSMA secara berurutan mengeksekusi validasi format, <i>detrending</i> polinomial, <i>tapering</i> Tukey 5%, zero-phase filtering, integrasi numerik, ekstraksi kinematika, komputasi MMI, dan spektrum respons.</span>
     </div>
     <div style="border-left: 3px solid #6366f1; background: #f8fafc; padding: 6px 10px; margin-bottom: 6px;">
         <b style="color: #6366f1; font-size: 7.8pt;">LANGKAH 4: INTERPRETASI 7 TAB HASIL & EKSPOR LAPORAN TEKNIS</b><br>
@@ -1002,7 +1019,7 @@ def build_guidebook_pdf() -> Path:
         pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 55),
         "Pemeriksaan Provenance Logging & Audit Trail",
         "Setiap tahapan komputasi dicatat secara otomatis dalam audit log integritas data (<i>provenance logging</i>). "
-        "Parameter penapisan, waktu eksekusi, versi pustaka numerik, dan status validasi StationXML disertakan secara "
+        "Parameter filtering, waktu eksekusi, versi pustaka numerik, dan status validasi StationXML disertakan secara "
         "transparan pada laporan PDF akhir guna menjamin reproduksibilitas ilmiah (<i>scientific reproducibility</i>).",
         callout_type="info"
     )
@@ -1082,7 +1099,7 @@ def build_guidebook_pdf() -> Path:
     </p>
     <p style="font-size: 7.3pt; line-height: 1.25; color: #334155; margin-left: 8px;">
         1. Unggah seluruh berkas MiniSEED/SAC dari stasiun-stasiun yang merekam ke dalam bilah sisi.<br>
-        2. Tentukan setelan penapis seragam (cutoff <i>f</i><sub>min</sub> dan <i>f</i><sub>max</sub>) atau gunakan rekomendasi default.<br>
+        2. Tentukan setelan filter seragam (cutoff <i>f</i><sub>min</sub> dan <i>f</i><sub>max</sub>) atau gunakan rekomendasi default.<br>
         3. Klik tombol <b>Process All Stations</b>. Pipeline mengeksekusi analisis secara berurutan lintas stasiun.<br>
         4. Sistem menyajikan tabel komparatif regional terpadu yang dapat diurutkan berdasarkan nilai PGA tertinggi atau Skala MMI.
     </p>
@@ -1301,7 +1318,7 @@ def build_guidebook_pdf() -> Path:
     # -------------------------------------------------------------
     p11 = doc.new_page(width=PAGE_W, height=PAGE_H)
     builder.init_page_fonts(p11)
-    builder.add_page_header_footer(p11, "Troubleshooting & Daftar Pustaka", 11)
+    builder.add_page_header_footer(p11, "Troubleshooting & Profil", 11)
     y = 48.0
 
     y = builder.draw_section_heading(p11, y, "IX", "PEMECAHAN MASALAH, KETERBATASAN & PROFIL PENGEMBANG")
@@ -1309,26 +1326,34 @@ def build_guidebook_pdf() -> Path:
 
     p11_faq_html = """
     <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 3px; padding: 4px 8px; margin-bottom: 3px;">
-        <b style="font-size: 7.3pt; color: #002d62;">Q: Mengapa kurva perpindahan (Displacement) melengkung drastis ke atas atau ke bawah?</b><br>
-        <span style="font-size: 6.9pt; color: #334155;">A: Fenomena ini akibat residual <i>baseline drift</i> pada integrasi ganda numerik oleh derau frekuensi rendah. Solusi: Naikkan frekuensi cutoff bawah (<i>f</i><sub>min</sub>) di bilah sisi dari 0.05 Hz menjadi 0.10 Hz atau 0.15 Hz.</span>
+        <b style="font-size: 7.2pt; color: #002d62;">Q: Mengapa kurva perpindahan (Displacement) melengkung drastis ke atas atau ke bawah?</b><br>
+        <span style="font-size: 6.8pt; color: #334155; line-height: 1.25;">A: Terjadi akibat residual <i>baseline drift</i> pada integrasi ganda numerik oleh derau frekuensi rendah. Solusi: Naikkan frekuensi cutoff bawah (<i>f</i><sub>min</sub>) di bilah sisi dari 0.05 Hz menjadi 0.10 Hz atau 0.15 Hz.</span>
     </div>
     <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 3px; padding: 4px 8px; margin-bottom: 3px;">
-        <b style="font-size: 7.3pt; color: #002d62;">Q: Muncul peringatan 'StationXML Response Correction Bypassed'. Apa artinya?</b><br>
-        <span style="font-size: 6.9pt; color: #334155;">A: File StationXML tidak cocok dengan kode stasiun/kanal rekaman. Sistem otomatis beralih ke mode 'Physical Acceleration'. Solusi: Pastikan kode stasiun dan network pada berkas .xml dan .mseed identik.</span>
+        <b style="font-size: 7.2pt; color: #002d62;">Q: Muncul peringatan 'StationXML Response Correction Bypassed'. Apa artinya?</b><br>
+        <span style="font-size: 6.8pt; color: #334155; line-height: 1.25;">A: Berkas StationXML tidak cocok dengan metadata stasiun/kanal rekaman. Sistem otomatis beralih ke mode 'Physical Acceleration'. Solusi: Pastikan kode stasiun dan network pada berkas .xml dan .mseed identik.</span>
     </div>
     <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 3px; padding: 4px 8px; margin-bottom: 3px;">
-        <b style="font-size: 7.3pt; color: #002d62;">Q: Mengapa nilai PGA akselerograf berbeda dengan sensor broadband di stasiun yang sama?</b><br>
-        <span style="font-size: 6.9pt; color: #334155;">A: Akselerograf dioptimalkan merekam percepatan gempa kuat tanpa <i>clipping</i>, sedangkan sensor <i>broadband</i> dioptimalkan untuk kecepatan getaran lemah periode panjang. Untuk analisis rekayasa struktur, akselerograf merupakan acuan utama.</span>
+        <b style="font-size: 7.2pt; color: #002d62;">Q: Mengapa nilai PGA akselerograf berbeda dengan sensor broadband di stasiun yang sama?</b><br>
+        <span style="font-size: 6.8pt; color: #334155; line-height: 1.25;">A: Akselerograf dioptimalkan merekam percepatan gempa kuat tanpa <i>clipping</i>, sedangkan sensor <i>broadband</i> dioptimalkan untuk kecepatan getaran lemah periode panjang. Untuk rekayasa struktur, akselerograf merupakan acuan utama.</span>
+    </div>
+    <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 3px; padding: 4px 8px; margin-bottom: 3px;">
+        <b style="font-size: 7.2pt; color: #002d62;">Q: Mengapa status Quality Control (QC) menunjukkan WARNING atau FAIL meski sinyal tampak jelas?</b><br>
+        <span style="font-size: 6.8pt; color: #334155; line-height: 1.25;">A: Sistem QC mengevaluasi 6 kriteria diagnostik komprehensif (SNR, sensor clipping, spikes, flatline, pre-event noise, dan DC offset). Status WARNING umumnya dipicu jendela pre-event noise < 5 detik atau SNR < 10 dB. Periksa Tab 3 (Quality Control) untuk rincian penalti metrik.</span>
+    </div>
+    <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 3px; padding: 4px 8px; margin-bottom: 3px;">
+        <b style="font-size: 7.2pt; color: #002d62;">Q: Kapan sebaiknya memilih solver Nigam-Jennings dibandingkan Newmark-Beta?</b><br>
+        <span style="font-size: 6.8pt; color: #334155; line-height: 1.25;">A: Formulasi analitik rekursif Nigam-Jennings (1969) sangat direkomendasikan untuk spektrum periode pendek (<i>T</i> < 0.1 s) karena mengasumsikan eksitasi percepatan linear bagian-per-bagian. Newmark-Beta (1959) menggunakan integrasi implisit percepatan rata-rata. Keduanya memiliki deviasi rata-rata < 5% yang dapat diverifikasi pada Tab 6.</span>
     </div>
     """
-    builder.insert_html_safe(p11, pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 102), p11_faq_html)
-    y += 105
+    builder.insert_html_safe(p11, pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 160), p11_faq_html)
+    y += 164
 
     y = builder.draw_subsection_heading(p11, y, "9.2", "Batasan Metodologis Perangkat Lunak (Known Limitations)")
     p11_limit_html = """
-    <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 3px; padding: 5px 9px;">
-        <b style="font-size: 7.4pt; color: #92400e;">BATASAN PENGGUNAAN METODOLOGI BSMA v2.0.0:</b>
-        <p style="font-size: 7.0pt; line-height: 1.28; margin: 2px 0 0 0; color: #451a03; text-align: justify;">
+    <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 3px; padding: 6px 10px;">
+        <b style="font-size: 7.5pt; color: #92400e;">BATASAN PENGGUNAAN METODOLOGI BSMA v2.0.0:</b>
+        <p style="font-size: 7.1pt; line-height: 1.32; margin: 3px 0 0 0; color: #451a03; text-align: justify;">
             • <b>Sensitivitas PGD</b>: Integrasi ganda sangat rentan terhadap drift derau frekuensi rendah sisa.<br>
             • <b>Dependensi StationXML</b>: Akurasi dekonvolusi menuntut keabsahan <i>transfer function</i> PAZ &amp; <i>stage gain</i> sensor.<br>
             • <b>Rekaman Derau Tinggi</b>: Sinyal dengan estimasi SNR &lt; 3 dB tidak direkomendasikan untuk analisis kuantitatif.<br>
@@ -1336,33 +1361,33 @@ def build_guidebook_pdf() -> Path:
         </p>
     </div>
     """
-    builder.insert_html_safe(p11, pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 56), p11_limit_html)
-    y += 59
+    builder.insert_html_safe(p11, pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 62), p11_limit_html)
+    y += 66
 
     y = builder.draw_subsection_heading(p11, y, "9.3", "Luaran Akses Software: Cloud Web App & Repositori GitHub")
     p11_access_html = """
     <table>
         <tr>
-            <td style="width: 50%; background-color: #f8fafc; border: 1px solid #0284c7; border-radius: 3px; padding: 5px 8px; vertical-align: top;">
-                <b style="color: #0284c7; font-size: 7.6pt;">1. CLOUD WEB APPLICATION (ONLINE)</b><br>
-                <a href="https://strong-motion.streamlit.app/" style="font-size: 7.1pt; color: #002d62; font-weight: bold; text-decoration: underline;">https://strong-motion.streamlit.app/</a><br>
-                <span style="font-size: 6.8pt; color: #334155; line-height: 1.26;">Aplikasi daring publik siap pakai tanpa instalasi lokal. Mendukung pemrosesan interaktif, visualisasi Plotly 3-kanal, dan ekspor laporan teknis langsung.</span>
+            <td style="width: 50%; background-color: #f8fafc; border: 1px solid #0284c7; border-radius: 3px; padding: 6px 9px; vertical-align: top;">
+                <b style="color: #0284c7; font-size: 7.7pt;">1. CLOUD WEB APPLICATION (ONLINE)</b><br>
+                <a href="https://strong-motion.streamlit.app/" style="font-size: 7.2pt; color: #002d62; font-weight: bold; text-decoration: underline;">https://strong-motion.streamlit.app/</a><br>
+                <span style="font-size: 6.9pt; color: #334155; line-height: 1.28;">Aplikasi daring publik siap pakai tanpa instalasi lokal. Mendukung pemrosesan interaktif, visualisasi Plotly 3-kanal, dan ekspor laporan teknis langsung.</span>
             </td>
-            <td style="width: 50%; background-color: #f8fafc; border: 1px solid #002d62; border-radius: 3px; padding: 5px 8px; vertical-align: top;">
-                <b style="color: #002d62; font-size: 7.6pt;">2. REPOSITORI KODE SUMBER GITHUB</b><br>
-                <a href="https://github.com/ahmaddidan/BSMA-v.2" style="font-size: 7.1pt; color: #002d62; font-weight: bold; text-decoration: underline;">github.com/ahmaddidan/BSMA-v.2</a><br>
-                <span style="font-size: 6.8pt; color: #334155; line-height: 1.26;">Repositori terbuka memuat kode sumber modular, test suite otomatis (pytest), skrip generator panduan, data uji akselerogram, dan dokumentasi rilis.</span>
+            <td style="width: 50%; background-color: #f8fafc; border: 1px solid #002d62; border-radius: 3px; padding: 6px 9px; vertical-align: top;">
+                <b style="color: #002d62; font-size: 7.7pt;">2. REPOSITORI KODE SUMBER GITHUB</b><br>
+                <a href="https://github.com/ahmaddidan/BSMA-v.2" style="font-size: 7.2pt; color: #002d62; font-weight: bold; text-decoration: underline;">github.com/ahmaddidan/BSMA-v.2</a><br>
+                <span style="font-size: 6.9pt; color: #334155; line-height: 1.28;">Repositori terbuka memuat kode sumber modular, test suite otomatis (pytest), skrip generator panduan, data uji akselerogram, dan dokumentasi rilis.</span>
             </td>
         </tr>
     </table>
     """
-    builder.insert_html_safe(p11, pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 58), p11_access_html)
-    y += 61
+    builder.insert_html_safe(p11, pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 64), p11_access_html)
+    y += 68
 
     y = builder.draw_subsection_heading(p11, y, "9.4", "Profil Pengembang & Informasi Proyek Kerja Praktik")
     p11_profile_html = """
-    <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 3px; padding: 5px 9px;">
-        <p style="font-size: 7.0pt; line-height: 1.28; margin: 0; color: #0f172a;">
+    <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 3px; padding: 6px 10px;">
+        <p style="font-size: 7.2pt; line-height: 1.32; margin: 0; color: #0f172a;">
             • <b>Nama Pengembang</b>: Ahmad Didane Setyawan Putra (NIM: 123120094)<br>
             • <b>Program Studi / Fakultas</b>: Teknik Geofisika, Fakultas Teknik Industri<br>
             • <b>Perguruan Tinggi</b>: Institut Teknologi Sumatera<br>
@@ -1371,23 +1396,51 @@ def build_guidebook_pdf() -> Path:
         </p>
     </div>
     """
-    builder.insert_html_safe(p11, pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 54), p11_profile_html)
-    y += 58
+    builder.insert_html_safe(p11, pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 58), p11_profile_html)
+    y += 68
+
+    p11_closing_html = """
+    <div style="background-color: #f1f5f9; border-left: 3.5px solid #002d62; padding: 8px 12px; border-radius: 0 4px 4px 0;">
+        <b style="font-size: 7.5pt; color: #002d62;">PERNYATAAN INTEGRITAS AKADEMIK &amp; PENGESAHAN DOKUMEN:</b>
+        <p style="font-size: 7.1pt; line-height: 1.34; margin: 3px 0 0 0; color: #334155; text-align: justify;">
+            Buku panduan ini disusun sebagai dokumentasi teknis resmi luaran perangkat lunak <b>BMKG Strong Motion Analyzer (BSMA v2.0.0)</b> 
+            dalam pemenuhan kegiatan Kerja Praktik mahasiswa Program Studi Teknik Geofisika, Fakultas Teknik Industri, Institut Teknologi Sumatera 
+            di Stasiun Geofisika Kelas I Sleman, BMKG D.I. Yogyakarta. Seluruh formulasi, kode sumber, dan dokumentasi telah divalidasi dengan 
+            dataset rekaman akselerogram aktual operasional BMKG.
+        </p>
+    </div>
+    """
+    builder.insert_html_safe(p11, pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 68), p11_closing_html)
 
     # -------------------------------------------------------------
-    # BAB X: DAFTAR PUSTAKA (SEPARATE CHAPTER AT THE VERY END)
+    # PAGE 12: BAB X - DAFTAR PUSTAKA & RUJUKAN ILMIAH
     # -------------------------------------------------------------
-    y += 6
-    y = builder.draw_section_heading(p11, y, "X", "DAFTAR PUSTAKA")
-    
-    p11_ref_html = """
+    p12 = doc.new_page(width=PAGE_W, height=PAGE_H)
+    builder.init_page_fonts(p12)
+    builder.add_page_header_footer(p12, "Daftar Pustaka & Rujukan", 12)
+    y = 48.0
+
+    y = builder.draw_section_heading(p12, y, "X", "DAFTAR PUSTAKA & RUJUKAN ILMIAH")
+
+    p12_intro_html = """
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 8px 12px; margin-bottom: 14px;">
+        <p style="font-size: 7.5pt; line-height: 1.38; color: #334155; text-align: justify; margin: 0;">
+            Daftar pustaka di bawah ini memuat landasan teoretis, standar ketahanan gempa nasional (SNI), algoritma komputasi dinamika struktur, 
+            serta kerangka kerja saintifik yang diimplementasikan secara langsung pada arsitektur perangkat lunak <b>BMKG Strong Motion Analyzer (BSMA v2.0.0)</b>:
+        </p>
+    </div>
+    """
+    builder.insert_html_safe(p12, pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 46), p12_intro_html)
+    y += 50
+
+    p12_ref_html = """
     <style>
         .bib-entry {
-            padding-left: 18px;
-            text-indent: -18px;
-            font-size: 6.8pt;
-            line-height: 1.28;
-            margin-bottom: 5px;
+            padding-left: 20px;
+            text-indent: -20px;
+            font-size: 7.4pt;
+            line-height: 1.36;
+            margin-bottom: 11px;
             text-align: justify;
             text-justify: inter-word;
             color: #1e293b;
@@ -1398,31 +1451,38 @@ def build_guidebook_pdf() -> Path:
         }
     </style>
     <div class="bib-entry">
-        <b>Arias, A.</b> (1970). A measure of earthquake intensity. Dalam R. J. Hansen (Ed.), <i>Seismic design for nuclear power plants</i> (hlm. 438–483). MIT Press.
+        <b>1. Arias, A.</b> (1970). A measure of earthquake intensity. Dalam R. J. Hansen (Ed.), <i>Seismic design for nuclear power plants</i> (hlm. 438–483). Cambridge: MIT Press.
     </div>
     <div class="bib-entry">
-        <b>Badan Standardisasi Nasional.</b> (2019). <i>SNI 1726:2019: Tata cara perencanaan ketahanan gempa untuk struktur bangunan gedung dan non gedung</i>. BSN.
+        <b>2. Badan Standardisasi Nasional.</b> (2019). <i>SNI 1726:2019: Tata cara perencanaan ketahanan gempa untuk struktur bangunan gedung dan non gedung</i>. Jakarta: Badan Standardisasi Nasional.
     </div>
     <div class="bib-entry">
-        <b>Beyreuther, M., Barsch, R., Krischer, L., Megies, T., Behr, Y., &amp; Wassermann, J.</b> (2010). ObsPy: A Python toolbox for seismology. <i>Seismological Research Letters</i>, 81(3), 530–533.<br><a href="https://doi.org/10.1785/gssrl.81.3.530">https://doi.org/10.1785/gssrl.81.3.530</a>
+        <b>3. Beyreuther, M., Barsch, R., Krischer, L., Megies, T., Behr, Y., &amp; Wassermann, J.</b> (2010). ObsPy: A Python toolbox for seismology. <i>Seismological Research Letters</i>, 81(3), 530–533.<br><a href="https://doi.org/10.1785/gssrl.81.3.530">https://doi.org/10.1785/gssrl.81.3.530</a>
     </div>
     <div class="bib-entry">
-        <b>Newmark, N. M.</b> (1959). A method of computation for structural dynamics. <i>Journal of the Engineering Mechanics Division, ASCE</i>, 85(3), 67–94.<br><a href="https://doi.org/10.1061/JMCEA3.0000098">https://doi.org/10.1061/JMCEA3.0000098</a>
+        <b>4. Boore, D. M., &amp; Bommer, J. J.</b> (2005). Processing of strong-motion accelerograms: Needs, options and consequences. <i>Soil Dynamics and Earthquake Engineering</i>, 25(2), 93–115.<br><a href="https://doi.org/10.1016/j.soildyn.2004.10.007">https://doi.org/10.1016/j.soildyn.2004.10.007</a>
     </div>
     <div class="bib-entry">
-        <b>Nigam, N. C., &amp; Jennings, P. C.</b> (1969). Calculation of response spectra from strong-motion earthquake records. <i>Bulletin of the Seismological Society of America</i>, 59(2), 909–922.<br><a href="https://doi.org/10.1785/BSSA0590020909">https://doi.org/10.1785/BSSA0590020909</a>
+        <b>5. Harris, F. J.</b> (1978). On the use of windows for harmonic analysis with the discrete Fourier transform. <i>Proceedings of the IEEE</i>, 66(1), 51–83.<br><a href="https://doi.org/10.1109/PROC.1978.10837">https://doi.org/10.1109/PROC.1978.10837</a>
     </div>
     <div class="bib-entry">
-        <b>Trifunac, M. D., &amp; Brady, A. G.</b> (1975). A study on the duration of strong earthquake ground motion. <i>Bulletin of the Seismological Society of America</i>, 65(3), 581–626.<br><a href="https://doi.org/10.1785/BSSA0650030581">https://doi.org/10.1785/BSSA0650030581</a>
+        <b>6. Newmark, N. M.</b> (1959). A method of computation for structural dynamics. <i>Journal of the Engineering Mechanics Division, ASCE</i>, 85(3), 67–94.<br><a href="https://doi.org/10.1061/JMCEA3.0000098">https://doi.org/10.1061/JMCEA3.0000098</a>
     </div>
     <div class="bib-entry">
-        <b>Virtanen, P., Gommers, R., Oliphant, T. E., Haberland, M., Reddy, T., Cournapeau, D., &amp; van der Walt, S. J.</b> (2020). SciPy 1.0: Fundamental algorithms for scientific computing in Python. <i>Nature Methods</i>, 17(3), 261–272.<br><a href="https://doi.org/10.1038/s41592-019-0686-2">https://doi.org/10.1038/s41592-019-0686-2</a>
+        <b>7. Nigam, N. C., &amp; Jennings, P. C.</b> (1969). Calculation of response spectra from strong-motion earthquake records. <i>Bulletin of the Seismological Society of America</i>, 59(2), 909–922.<br><a href="https://doi.org/10.1785/BSSA0590020909">https://doi.org/10.1785/BSSA0590020909</a>
+    </div>
+    <div class="bib-entry">
+        <b>8. Trifunac, M. D., &amp; Brady, A. G.</b> (1975). A study on the duration of strong earthquake ground motion. <i>Bulletin of the Seismological Society of America</i>, 65(3), 581–626.<br><a href="https://doi.org/10.1785/BSSA0650030581">https://doi.org/10.1785/BSSA0650030581</a>
+    </div>
+    <div class="bib-entry">
+        <b>9. Virtanen, P., Gommers, R., Oliphant, T. E., Haberland, M., Reddy, T., Cournapeau, D., &amp; van der Walt, S. J.</b> (2020). SciPy 1.0: Fundamental algorithms for scientific computing in Python. <i>Nature Methods</i>, 17(3), 261–272.<br><a href="https://doi.org/10.1038/s41592-019-0686-2">https://doi.org/10.1038/s41592-019-0686-2</a>
     </div>
     <div class="bib-entry" style="margin-bottom: 0;">
-        <b>Worden, C. B., Gerstenberger, M. C., Rhoades, D. A., &amp; Wald, D. J.</b> (2012). Probabilistic relationships between ground-motion parameters and MMI. <i>Bulletin of the Seismological Society of America</i>, 102(1), 204–221.<br><a href="https://doi.org/10.1785/0120110156">https://doi.org/10.1785/0120110156</a>
+        <b>10. Worden, C. B., Gerstenberger, M. C., Rhoades, D. A., &amp; Wald, D. J.</b> (2012). Probabilistic relationships between ground-motion parameters and MMI. <i>Bulletin of the Seismological Society of America</i>, 102(1), 204–221.<br><a href="https://doi.org/10.1785/0120110156">https://doi.org/10.1785/0120110156</a>
     </div>
     """
-    builder.insert_html_safe(p11, pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 250), p11_ref_html)
+    builder.insert_html_safe(p12, pymupdf.Rect(LEFT_X, y, RIGHT_X, y + 420), p12_ref_html)
+
 
     # Injekt Hyperlink Aktif ke Seluruh Halaman Dokumen
     add_all_hyperlinks(doc)

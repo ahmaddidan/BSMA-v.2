@@ -22,6 +22,7 @@ Python
 from __future__ import annotations
 
 import math
+import re
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -1353,11 +1354,11 @@ def _add_parameter_table(
 
     headers = [
         "Channel",
-        "PGA\n(Gal)",
-        "PGV\n(cm/s)",
-        "PGD\n(cm)",
-        "Arias\n(m/s)",
-        "D5-95\n(s)",
+        "PGA (Gal)",
+        "PGV (cm/s)",
+        "PGD (cm)",
+        "Arias (m/s)",
+        "D5-95 (s)",
         "SIG",
     ]
 
@@ -1502,7 +1503,8 @@ def export_station_report(
     else:
         output_directory = Path(output_dir)
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        pdf_path = output_directory / f"BSMA_Report_{station_code}_{timestamp}.pdf"
+        safe_stn = re.sub(r'[<>:"/\\|?*]+', "_", str(station_code).split(" | ")[0].strip())
+        pdf_path = output_directory / f"BSMA_Report_{safe_stn}_{timestamp}.pdf"
 
     output_directory.mkdir(parents=True, exist_ok=True)
 
@@ -1530,7 +1532,7 @@ def export_station_report(
             strongest_channel = channel
 
     if strongest_channel is None:
-        strongest_channel = "-"
+        strongest_channel = next(iter(contexts.keys()), "-")
 
     if not math.isfinite(
         strongest_pga
