@@ -82,6 +82,24 @@ FONT_ARIAL_BI = "C:/Windows/Fonts/arialbi.ttf"
 # SCIENTIFIC LITERATURE FIGURE GENERATORS
 # =============================================================================
 
+def _fig_to_rgb_png(fig, pad=0.2, pad_inches=0.03, facecolor=None) -> bytes:
+    """Render matplotlib figure to pure 24-bit RGB PNG (no alpha/SMask) for universal PDF viewer compatibility."""
+    from PIL import Image
+    if facecolor is None:
+        facecolor = fig.get_facecolor()
+    buf_raw = io.BytesIO()
+    if pad is not None:
+        plt.tight_layout(pad=pad)
+    fig.savefig(buf_raw, format="png", bbox_inches="tight", pad_inches=pad_inches, facecolor=facecolor, edgecolor="none")
+    plt.close(fig)
+    buf_raw.seek(0)
+    with Image.open(buf_raw) as im:
+        rgb = im.convert("RGB")
+        buf_out = io.BytesIO()
+        rgb.save(buf_out, format="PNG", optimize=True)
+        return buf_out.getvalue()
+
+
 def create_pipeline_diagram(lang: str = "id") -> bytes:
     """Create 5-stage sequential processing pipeline diagram."""
     fig, ax = plt.subplots(figsize=(8.5, 2.2), dpi=220)
@@ -131,12 +149,7 @@ def create_pipeline_diagram(lang: str = "id") -> bytes:
                 arrowprops=dict(arrowstyle="->", color="#94A3B8", lw=1.8, mutation_scale=12)
             )
 
-    buf = io.BytesIO()
-    plt.tight_layout(pad=0.2)
-    plt.savefig(buf, format="png", bbox_inches="tight", facecolor=fig.get_facecolor(), edgecolor="none")
-    plt.close(fig)
-    buf.seek(0)
-    return buf.getvalue()
+    return _fig_to_rgb_png(fig, pad=0.2)
 
 
 def create_filter_diagram(lang: str = "id") -> bytes:
@@ -164,13 +177,7 @@ def create_filter_diagram(lang: str = "id") -> bytes:
     ax.tick_params(labelsize=6.2)
     ax.grid(True, which="both", linestyle=":", color="#E2E8F0", linewidth=0.7)
     ax.legend(loc="lower left", fontsize=5.6, frameon=True, facecolor="#F8FAFC", edgecolor="#CBD5E1")
-
-    buf = io.BytesIO()
-    plt.tight_layout(pad=0.25)
-    plt.savefig(buf, format="png", bbox_inches="tight", facecolor=fig.get_facecolor(), edgecolor="none")
-    plt.close(fig)
-    buf.seek(0)
-    return buf.getvalue()
+    return _fig_to_rgb_png(fig, pad=0.25)
 
 
 def create_boore_baseline_diagram(lang: str = "id") -> bytes:
@@ -207,12 +214,7 @@ def create_boore_baseline_diagram(lang: str = "id") -> bytes:
     ax3.set_ylabel(r"$d(t)$ [cm]", fontsize=6.2, color="#334155")
     ax3.set_xlabel("Waktu / Time (s)" if lang == "id" else "Time (s)", fontsize=6.2, color="#334155")
 
-    buf = io.BytesIO()
-    plt.tight_layout(pad=0.2)
-    plt.savefig(buf, format="png", bbox_inches="tight", facecolor=fig.get_facecolor(), edgecolor="none")
-    plt.close(fig)
-    buf.seek(0)
-    return buf.getvalue()
+    return _fig_to_rgb_png(fig, pad=0.2)
 
 
 def create_energy_diagram(lang: str = "id") -> bytes:
@@ -249,13 +251,7 @@ def create_energy_diagram(lang: str = "id") -> bytes:
     ax.tick_params(labelsize=6.0)
     ax.grid(True, linestyle=":", color="#E2E8F0", linewidth=0.7)
     ax.legend(loc="lower right", fontsize=5.2, frameon=True, facecolor="#F8FAFC", edgecolor="#CBD5E1")
-
-    buf = io.BytesIO()
-    plt.tight_layout(pad=0.25)
-    plt.savefig(buf, format="png", bbox_inches="tight", facecolor=fig.get_facecolor(), edgecolor="none")
-    plt.close(fig)
-    buf.seek(0)
-    return buf.getvalue()
+    return _fig_to_rgb_png(fig, pad=0.25)
 
 
 def create_gmice_diagram(lang: str = "id") -> bytes:
@@ -294,12 +290,7 @@ def create_gmice_diagram(lang: str = "id") -> bytes:
     ax2.grid(True, which="both", linestyle=":", color="#E2E8F0", linewidth=0.6)
     ax2.legend(loc="upper left", fontsize=5.2, frameon=True, facecolor="#F8FAFC", edgecolor="#CBD5E1")
 
-    buf = io.BytesIO()
-    plt.tight_layout(pad=0.25)
-    plt.savefig(buf, format="png", bbox_inches="tight", facecolor=fig.get_facecolor(), edgecolor="none")
-    plt.close(fig)
-    buf.seek(0)
-    return buf.getvalue()
+    return _fig_to_rgb_png(fig, pad=0.25)
 
 
 def create_spectrum_diagram(lang: str = "id") -> bytes:
@@ -339,12 +330,7 @@ def create_spectrum_diagram(lang: str = "id") -> bytes:
     ax.grid(color="#E2E8F0", linestyle=":", linewidth=0.7, which="both")
     ax.legend(loc="upper right", fontsize=5.6, frameon=True, facecolor="#F8FAFC", edgecolor="#CBD5E1")
 
-    buf = io.BytesIO()
-    plt.tight_layout(pad=0.25)
-    plt.savefig(buf, format="png", bbox_inches="tight", facecolor=fig.get_facecolor(), edgecolor="none")
-    plt.close(fig)
-    buf.seek(0)
-    return buf.getvalue()
+    return _fig_to_rgb_png(fig, pad=0.25)
 
 
 # =============================================================================
@@ -518,20 +504,20 @@ class GuidebookBuilder:
         lines = [l.strip() for l in formula_latex.strip().split("\n") if l.strip()]
         n = len(lines)
         fig_h = max(0.55, 0.40 * n)
+        card_bg_hex = "#F4F8FC"
         with plt.rc_context({"mathtext.fontset": "cm", "font.family": "serif"}):
             fig, ax = plt.subplots(figsize=(8.0, fig_h), dpi=300)
             ax.axis("off")
-            fig.patch.set_alpha(0)
+            fig.patch.set_facecolor(card_bg_hex)
+            ax.set_facecolor(card_bg_hex)
             for idx, l in enumerate(lines):
                 s = l if l.startswith("$") else f"${l}$"
                 y_pos = 0.5 if n == 1 else (1.0 - (idx + 0.5) / n)
                 ax.text(0.5, y_pos, s, ha="center", va="center", fontsize=fontsize, color=text_color)
 
-            buf = io.BytesIO()
-            plt.savefig(buf, format="png", bbox_inches="tight", pad_inches=0.03, transparent=True)
-            plt.close(fig)
+            img_bytes = _fig_to_rgb_png(fig, pad=None, pad_inches=0.03, facecolor=card_bg_hex)
 
-        page.insert_image(pymupdf.Rect(rect.x0 + 8, y_math_top, rect.x1 - 8, rect.y1 - 4), stream=buf.getvalue(), keep_proportion=True)
+        page.insert_image(pymupdf.Rect(rect.x0 + 8, y_math_top, rect.x1 - 8, rect.y1 - 4), stream=img_bytes, keep_proportion=True)
 
     def draw_academic_bibliography(self, page: pymupdf.Page, rect: pymupdf.Rect, refs: list[tuple[str, str, str]]) -> None:
         """Render formal academic bibliography with professional hanging indent (APA 7th standard)."""
@@ -602,7 +588,19 @@ def build_guidebook(lang: str = "id") -> Path:
     font_bold_obj = pymupdf.Font(fontfile=FONT_ARIAL_BD)
     bmkg_icon = LOGO_BMKG_ICON_PATH if LOGO_BMKG_ICON_PATH.is_file() else LOGO_JUDUL_PATH
     if bmkg_icon.is_file():
-        p1.insert_image(pymupdf.Rect(50, 48, 114, 112), filename=str(bmkg_icon))
+        try:
+            from PIL import Image
+            with Image.open(bmkg_icon) as pil_img:
+                bg = Image.new("RGB", pil_img.size, (0, 45, 98))
+                if pil_img.mode == "RGBA":
+                    bg.paste(pil_img, mask=pil_img.split()[3])
+                else:
+                    bg.paste(pil_img)
+                buf = io.BytesIO()
+                bg.save(buf, format="PNG")
+                p1.insert_image(pymupdf.Rect(50, 48, 114, 112), stream=buf.getvalue())
+        except Exception:
+            p1.insert_image(pymupdf.Rect(50, 48, 114, 112), filename=str(bmkg_icon))
     bmkg_tw = font_bold_obj.text_length("BMKG", fontsize=11.0)
     p1.insert_text((82 - bmkg_tw / 2, 128), "BMKG", fontsize=11.0, fontname="f_bold", color=COLOR_WHITE)
 
@@ -610,7 +608,19 @@ def build_guidebook(lang: str = "id") -> Path:
 
     itera_icon = LOGO_ITERA_ICON_PATH if LOGO_ITERA_ICON_PATH.is_file() else LOGO_ITERA_PATH
     if itera_icon.is_file():
-        p1.insert_image(pymupdf.Rect(146, 48, 210, 112), filename=str(itera_icon))
+        try:
+            from PIL import Image
+            with Image.open(itera_icon) as pil_img:
+                bg = Image.new("RGB", pil_img.size, (0, 45, 98))
+                if pil_img.mode == "RGBA":
+                    bg.paste(pil_img, mask=pil_img.split()[3])
+                else:
+                    bg.paste(pil_img)
+                buf = io.BytesIO()
+                bg.save(buf, format="PNG")
+                p1.insert_image(pymupdf.Rect(146, 48, 210, 112), stream=buf.getvalue())
+        except Exception:
+            p1.insert_image(pymupdf.Rect(146, 48, 210, 112), filename=str(itera_icon))
     itera_tw = font_bold_obj.text_length("ITERA", fontsize=11.0)
     p1.insert_text((178 - itera_tw / 2, 128), "ITERA", fontsize=11.0, fontname="f_bold", color=COLOR_WHITE)
 

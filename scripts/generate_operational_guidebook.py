@@ -251,7 +251,23 @@ class OperationalGuidebookBuilder:
 
         img_rect = pymupdf.Rect(x0 + pad, y0 + pad, x0 + w - pad, y0 + pad + inner_h)
         if img_path.is_file():
-            page.insert_image(img_rect, filename=str(img_path), keep_proportion=True)
+            try:
+                from PIL import Image
+                with Image.open(img_path) as pil_img:
+                    if pil_img.mode in ("RGBA", "LA") or (pil_img.mode == "P" and "transparency" in pil_img.info):
+                        bg = Image.new("RGB", pil_img.size, (255, 255, 255))
+                        if pil_img.mode != "RGBA":
+                            pil_img = pil_img.convert("RGBA")
+                        bg.paste(pil_img, mask=pil_img.split()[3])
+                        rgb_img = bg
+                    else:
+                        rgb_img = pil_img.convert("RGB")
+
+                    buf = io.BytesIO()
+                    rgb_img.save(buf, format="PNG", optimize=True)
+                    page.insert_image(img_rect, stream=buf.getvalue(), keep_proportion=True)
+            except Exception:
+                page.insert_image(img_rect, filename=str(img_path), keep_proportion=True)
         else:
             page.insert_text((x0 + 10, y0 + 20), f"[Screenshot: {img_name} not found]",
                              fontsize=8.0, fontname=FONT_IT, color=COLOR_RED)
@@ -315,7 +331,19 @@ def build_operational_guidebook(lang: str = "id") -> Path:
 
     bmkg_icon = LOGO_BMKG_ICON_PATH if LOGO_BMKG_ICON_PATH.is_file() else LOGO_JUDUL_PATH
     if bmkg_icon.is_file():
-        p1.insert_image(pymupdf.Rect(50, 42, 114, 106), filename=str(bmkg_icon))
+        try:
+            from PIL import Image
+            with Image.open(bmkg_icon) as pil_img:
+                bg = Image.new("RGB", pil_img.size, (0, 45, 98))
+                if pil_img.mode == "RGBA":
+                    bg.paste(pil_img, mask=pil_img.split()[3])
+                else:
+                    bg.paste(pil_img)
+                buf = io.BytesIO()
+                bg.save(buf, format="PNG")
+                p1.insert_image(pymupdf.Rect(50, 42, 114, 106), stream=buf.getvalue())
+        except Exception:
+            p1.insert_image(pymupdf.Rect(50, 42, 114, 106), filename=str(bmkg_icon))
     bmkg_tw = font_bold_obj.text_length("BMKG", fontsize=11.0)
     p1.insert_text((82 - bmkg_tw / 2, 122), "BMKG", fontsize=11.0, fontname=FONT_BOLD, color=COLOR_WHITE)
 
@@ -323,7 +351,19 @@ def build_operational_guidebook(lang: str = "id") -> Path:
 
     itera_icon = LOGO_ITERA_ICON_PATH if LOGO_ITERA_ICON_PATH.is_file() else LOGO_ITERA_PATH
     if itera_icon.is_file():
-        p1.insert_image(pymupdf.Rect(146, 42, 210, 106), filename=str(itera_icon))
+        try:
+            from PIL import Image
+            with Image.open(itera_icon) as pil_img:
+                bg = Image.new("RGB", pil_img.size, (0, 45, 98))
+                if pil_img.mode == "RGBA":
+                    bg.paste(pil_img, mask=pil_img.split()[3])
+                else:
+                    bg.paste(pil_img)
+                buf = io.BytesIO()
+                bg.save(buf, format="PNG")
+                p1.insert_image(pymupdf.Rect(146, 42, 210, 106), stream=buf.getvalue())
+        except Exception:
+            p1.insert_image(pymupdf.Rect(146, 42, 210, 106), filename=str(itera_icon))
     itera_tw = font_bold_obj.text_length("ITERA", fontsize=11.0)
     p1.insert_text((178 - itera_tw / 2, 122), "ITERA", fontsize=11.0, fontname=FONT_BOLD, color=COLOR_WHITE)
 
