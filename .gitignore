@@ -13,21 +13,41 @@ env/
 logs/
 *.log
 
+# Runtime outputs and temporary directories
+outputs/reports/
+outputs/temp/
+outputs/*.png
+outputs/*.jpg
+outputs/*.jpeg
+
+# Academic Internship Thesis / Report Drafts (Private deliverables)
+outputs/Laporan_Kerja_Praktik_*
+outputs/*.docx
+outputs/BSMA_Panduan_Penggunaan_Software.pdf
+outputs/BSMA_User_Guidebook*.pdf
+assets/report_figures/
+
+# Internal document inspection and report building scripts
+scripts/audit_*.py
+scripts/build_total_revision_*.py
+scripts/export_*.py
+scripts/export_*.ps1
+scripts/generate_academic_flowchart.py
+scripts/generate_report_figures.py
+scripts/inspect_*.py
+scripts/make_script.py
+scripts/revise_report_*.py
+scripts/test_export.ps1
+scripts/verify_*.py
+
 # Scratch and temporary testing files
 scratch/
 .tempmediaStorage/
-
-# IDE settings
-.vscode/
-.devcontainer/
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Runtime outputs
-outputs/reports/
-outputs/temp/
+scratch*.txt
+prompt*.txt
+*.tmp
+*.bak
+~$*
 
 # Local seismic waveform and metadata files (do not commit to git)
 Data/
@@ -35,3 +55,9 @@ Data/
 *.miniseed
 *.SAC
 *.sac
+
+# IDE and OS settings
+.vscode/
+.devcontainer/
+.DS_Store
+Thumbs.db

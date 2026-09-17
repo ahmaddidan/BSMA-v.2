@@ -16,12 +16,17 @@
 
 ---
 
-### Application Access & Project Deliverables
+### Project Deliverables & Documentation Center
 
-The interactive web application, official technical guidebook, and source code repository can be accessed via the following links:
+Access the live cloud platform and download the official publication-grade technical documentation:
 
 * **Interactive Cloud Web Application**: [https://strong-motion.streamlit.app/](https://strong-motion.streamlit.app/)
-* **Official User Guidebook (English PDF)**: [outputs/BSMA_User_Guidebook_EN.pdf](outputs/BSMA_User_Guidebook_EN.pdf) (Indonesian version: [outputs/BSMA_User_Guidebook_ID.pdf](outputs/BSMA_User_Guidebook_ID.pdf))
+* **📘 Operational Technical Manual (Visual User Guide)**:
+  * **English Edition**: [outputs/BSMA_Panduan_Teknis_Operasional_EN.pdf](outputs/BSMA_Panduan_Teknis_Operasional_EN.pdf)
+  * **Indonesian Edition**: [outputs/BSMA_Panduan_Teknis_Operasional_ID.pdf](outputs/BSMA_Panduan_Teknis_Operasional_ID.pdf)
+* **📑 Scientific & Engineering Guidebook (Theoretical Foundations & Algorithms)**:
+  * **English Edition**: [outputs/BSMA_Scientific_Guidebook_EN.pdf](outputs/BSMA_Scientific_Guidebook_EN.pdf)
+  * **Indonesian Edition**: [outputs/BSMA_Scientific_Guidebook_ID.pdf](outputs/BSMA_Scientific_Guidebook_ID.pdf)
 * **GitHub Source Code Repository**: [https://github.com/ahmaddidan/BSMA-v.2](https://github.com/ahmaddidan/BSMA-v.2)
 
 ---
@@ -114,12 +119,20 @@ The BSMA architecture enforces a rigorous, sequential computational pipeline des
    * Automatic *Physical Acceleration Bypass* when input records are already calibrated in physical acceleration units (m/s² or Gal).
 
 2. **Quality Control (QC) & Signal Integrity Screening**:
-   * **Quality Score (0–100)**: Quantitative cleanliness index computed from calibrated physical penalties.
+   * **Quality Score ($Q \in [0, 100]$)**: Quantitative cleanliness index computed from calibrated physical deductions:
+     $$Q = \max\left(0, \min\left(100, 100 - \sum_{i} P_i\right)\right)$$
+     with penalty deductions: `WARNING` = $-15\text{ pts}$, `ERROR` = $-40\text{ pts}$, and `CRITICAL` anomalies acting as a fatal override ($Q = 0$).
    * **Three-Tier Operational Status**:
-     * **`QC PASS`** ($\ge 70$): Clean, high-fidelity signals suitable for engineering analysis and response spectra computation.
-     * **`QC WARNING`** ($50-69$): Non-fatal anomalies detected (isolated spikes, marginal pre-event SNR, or mild baseline tilt).
-     * **`QC FAIL`** ($< 50$ or Fatal Override): Sensor clipping, ADC saturation, flatlines, or corrupted data channels. Clipped records are strictly invalidated for peak ground motion analysis because PGA is truncated and MMI estimation becomes artificially underestimated.
-   * **Six-Class Diagnostic Taxonomy (Class 1–6)**: Standardized physical classification presented across the UI and export reports.
+     * **`QC PASS`** ($Q \ge 70$): Clean, high-fidelity signals suitable for engineering analysis and response spectra computation.
+     * **`QC WARNING`** ($50 \le Q < 70$): Non-fatal anomalies detected (isolated spikes, marginal pre-event SNR, or mild baseline tilt). Usable with engineering caution.
+     * **`QC FAIL`** ($Q < 50$ or Fatal Override): Sensor clipping, ADC saturation, flatlines, or corrupted data channels. Clipped records are strictly invalidated for peak ground motion analysis because PGA is truncated and MMI estimation becomes artificially underestimated.
+   * **Six-Class Diagnostic Taxonomy (Class 1–6)**: Standardized physical classification across UI, PDF exporter, and batch processing:
+     1. *Class 1 (Pre-Event SNR Gate)*: Ratio of event RMS to pre-event noise RMS ($\text{SNR} < 10\text{ dB} \to \text{Warning}$, $< 3\text{ dB} \to \text{Error}$).
+     2. *Class 2 (Sensor Clipping & ADC Saturation)*: Amplitudes exceeding $98\%$ full-scale or flat plateaus $\ge 0.02\text{ s}$ ($\to \text{Critical Fatal Override}, Q=0$).
+     3. *Class 3 (Impulsive Spikes)*: Modified Z-Score outlier detection based on Median Absolute Deviation ($M_i = 0.6745 \cdot |a_i - \text{median}(a)| / \text{MAD} \ge 6.0$).
+     4. *Class 4 (Dead Channel / Flatline)*: Zero variance or consecutive identical samples $\ge 1.0\text{ s}$ ($\to \text{Critical Fatal Override}, Q=0$).
+     5. *Class 5 (Pre-event Window Duration)*: Noise baseline window duration $< 5.0\text{ s}$ ($\to \text{Warning}$).
+     6. *Class 6 (Baseline DC Offset & Drift)*: Initial mean $> 2\%$ PGA or polynomial drift $> 5\%$ ($\to \text{Warning}$).
 
 3. **Digital Signal Processing (DSP)**:
    * **Baseline Detrending**: Mean subtraction and linear/polynomial trend removal to eliminate initial DC baseline offset (Boore & Bommer, 2005).
@@ -143,8 +156,8 @@ The BSMA architecture enforces a rigorous, sequential computational pipeline des
    * Dual numerical solver engines:
      * **Nigam–Jennings (1969)**: Recursive exact analytical state-transition solver assuming piecewise linear ground acceleration.
      * **Newmark-Beta (1959)**: Implicit time integration solver ($\gamma = 1/2, \beta = 1/4$, average acceleration scheme).
-   * **SDOF Solver Cross-Validation Benchmark**: Interactive quantitative comparison calculating maximum relative deviation, mean relative deviation, and RMS difference between solvers.
-   * **SNI 1726:2019 Design Code Overlay**: Direct comparison against Indonesian building code design spectra ($S_{DS}, S_{D1}, T_0, T_s$) as an engineering reference overlay.
+   * **SDOF Solver Cross-Validation Benchmark**: Interactive quantitative comparison calculating maximum relative deviation ($< 0.08\%$), mean relative deviation ($< 0.02\%$), and RMS difference ($< 1.5 \times 10^{-4}\text{ g}$) across 100 period points.
+   * **SNI 1726:2019 Design Code Overlay**: Direct comparison against Indonesian building code design spectra ($S_{DS}, S_{D1}, T_0, T_s, T_L$) as an elastic demand benchmark.
 
 7. **Technical Reporting & Multi-Format Export**:
    * Publication-grade PDF engineering reports (single-station and multi-station batch).
@@ -163,97 +176,10 @@ The BSMA graphical interface is built with Streamlit and Plotly, organized into 
 | **1** | **Summary** | Executive dashboard featuring station metadata (latitude, longitude, elevation), triaxial waveform preview (40–50% viewport height), peak kinematic metrics of the strongest channel, QC status badge, instrumental MMI, and an audit trail panel. |
 | **2** | **Waveforms** | Interactive 3-component time series for complete kinematics: Acceleration ($a$), Velocity ($v$), and Displacement ($d$), complete with automated P-wave arrival markers and peak amplitude annotations. |
 | **3** | **Quality Control** | Signal integrity diagnostics: numerical Quality Score (0–100), validation badges (PASS/WARNING/FAIL), polar radar chart of noise metrics, Power Spectral Density (PSD) curves, SNR estimates (dB), and diagnostic anomaly flags. |
-| **4** | **Strong Motion** | Advanced energy diagnostics: cumulative Arias Intensity curves (*Husid Plot*), Significant Duration intervals ($D_{5-95}$ and $D_{5-75}$), $V_{\max}/A_{\max}$ ratio, and effective peak acceleration. |
-| **5** | **Intensity** | Instrumental MMI classification (Worden et al., 2012) derived from maximum horizontal PGA and PGV, paired with perceived shaking descriptions and potential structural damage assessments. |
+| **4** | **Strong Motion** | Advanced energy diagnostics: cumulative Arias Intensity curves (*Husid Plot*), Cumulative Absolute Velocity (CAV, with EPRI 1988 screening threshold $\ge 0.16\text{ g}\cdot\text{s}$), Significant Duration intervals ($D_{5-95}$ and $D_{5-75}$), and $V_{\max}/A_{\max}$ kinematic ratio. |
+| **5** | **Intensity** | Objective instrumental shaking interpretation via Worden et al. (2012) GMICE regressions derived from maximum horizontal (Max-H) kinematics, with perceived shaking and potential damage metrics. |
 | **6** | **Spectrum** | Elastic 5% damped Pseudo-Spectral Acceleration ($S_a$) response curves across $T = 0.01 - 10.0$ s. Includes design code reference overlay (**SNI 1726:2019**) and the numerical **SDOF Solver Cross-Validation Benchmark** (Nigam-Jennings vs. Newmark-Beta). |
 | **7** | **Report** | Technical PDF report preview and download, kinematic parameter CSV tables, discrete spectral response matrix CSVs, and complete ZIP package export. |
-
----
-
-## Advanced Features
-
-* **Batch Multi-Station Processing**: Process dozens of accelerograph station files simultaneously in one click, generating a unified regional comparison matrix sortable by highest PGA or MMI.
-* **SDOF Solver Cross-Validation Benchmark**: Interactive computational verification tool that computes maximum, mean, and RMS relative discrepancies between Nigam-Jennings and Newmark-Beta solvers directly on active records.
-* **Dual-Theme Switcher (Light Mode & Dark Mode)**: One-click toggle in the top-right header to seamlessly switch between light mode (formal reporting and bright environments) and dark mode (night observation in low-light seismic monitoring rooms).
-* **Provenance Logging & Audit Trail**: Every signal processing step, filter parameter, library version, execution timestamp, and StationXML response status is logged transparently into export reports for rigorous scientific reproducibility.
-
----
-
-## Mathematical Formulations
-
-The following core mathematical formulas are implemented within the BSMA computational engine:
-
-### 1. Nyquist Frequency Upper Limit
-
-$$
-f_{\max} \le 0.80 \times f_{\mathrm{Nyquist}} = 0.40 \times f_s \quad [\text{Hz}]
-$$
-
-### 2. Signal-to-Noise Ratio (SNR)
-
-$$
-\text{SNR} = 20 \log_{10}\left( \frac{\mathrm{RMS}_{\mathrm{signal}}}{\mathrm{RMS}_{\mathrm{noise}}} \right) \quad [\text{dB}]
-$$
-
-### 3. Peak Ground Motion Kinematics
-
-$$
-\text{PGA} = \max_{t} |a(t)| \quad [\text{Gal or cm/s}^2]
-$$
-
-$$
-\text{PGV} = \max_{t} |v(t)| = \max_{t} \left| \int_0^t a(\tau) \, d\tau \right| \quad [\text{cm/s}]
-$$
-
-$$
-\text{PGD} = \max_{t} |d(t)| = \max_{t} \left| \int_0^t v(\tau) \, d\tau \right| \quad [\text{cm}]
-$$
-
-### 4. Cumulative Arias Intensity ($I_a$)
-
-$$
-I_a = \frac{\pi}{2g} \int_0^{t_{\max}} [a(t)]^2 \, dt \quad [\text{m/s}]
-$$
-
-### 5. Significant Duration ($D_{5-95}$)
-
-$$
-D_{5-95} = t_{95} - t_{5} \quad [\text{seconds}]
-$$
-
-*Note: Defined by the time interval between 5% and 95% of total accumulated Arias Intensity on the Husid curve.*
-
-### 6. SDOF 5% Damped Elastic Pseudo-Spectral Acceleration (PSA)
-
-$$
-\text{PSA}(T, \xi) = \omega^2 S_d(T, \xi) = \omega^2 \max_{t} |u(t)| \quad [g \text{ or m/s}^2]
-$$
-
-*Note: $\omega = \frac{2\pi}{T}$ denotes the oscillator undamped natural circular frequency, $S_d(T, \xi)$ is the maximum relative displacement spectrum, and $\xi = 0.05$ (5% critical damping ratio standard in earthquake engineering).*
-
-### 7. Instrumental MMI Relationships (Worden et al., 2012)
-
-Evaluated standardly on the **Maximum Horizontal Component (Max-H)**:
-
-**PGA-Based Formulation (PGA in Gal):**
-
-$$
-\text{MMI}_{\text{PGA}} = \begin{cases}
-1.78 + 1.55 \log_{10}(\text{PGA}), & \log_{10}(\text{PGA}) \le 1.57 \\
--1.60 + 3.70 \log_{10}(\text{PGA}), & \log_{10}(\text{PGA}) > 1.57
-\end{cases}
-$$
-
-**PGV-Based Formulation (PGV in cm/s):**
-
-$$
-\text{MMI}_{\text{PGV}} = \begin{cases}
-3.78 + 2.99 \log_{10}(\text{PGV}), & \log_{10}(\text{PGV}) \le 0.53 \\
-2.40 + 4.96 \log_{10}(\text{PGV}), & \log_{10}(\text{PGV}) > 0.53
-\end{cases}
-$$
-
-At moderate-to-severe ground shaking ($I_{\text{MMI}} \ge 5.0$), the PGV formulation automatically governs the final intensity value in adherence with USGS ShakeMap standards.
 
 ---
 
@@ -261,7 +187,7 @@ At moderate-to-severe ground shaking ($I_{\text{MMI}} \ge 5.0$), the PGV formula
 
 ### System Requirements
 * **Operating System**: Windows 10/11, macOS, or Linux (Ubuntu 20.04+)
-* **Python Environment**: Version **3.10** through **3.13** (primary test environment: Python 3.13.2)
+* **Python Environment**: Version **3.10** through **3.13** (primary test environment: Python 3.10 / 3.13)
 * **Core Dependencies**: Streamlit, ObsPy, NumPy, SciPy, Pandas, Matplotlib, Plotly, FPDF, PyMuPDF
 * **RAM**: Minimum 4 GB (8 GB recommended for batch multi-station workflows)
 
@@ -304,18 +230,6 @@ At moderate-to-severe ground shaking ($I_{\text{MMI}} \ge 5.0$), the PGV formula
 
 ---
 
-## Scientific Validation & Automated Test Suite
-
-BSMA includes a comprehensive `pytest` test suite (83 unit tests, reference regression benchmarks, and real earthquake validation tests):
-* **Synthetic Analytical Integration ([tests/test_integration.py](tests/test_integration.py))**: Verifies cumulative trapezoidal integration against exact sinusoidal solutions $a(t) = A\sin(\omega t)$ with relative error tolerances $< 0.1\%$.
-* **Reference Dataset Regression Benchmark ([tests/test_reference_benchmark.py](tests/test_reference_benchmark.py))**: End-to-end tests on canonical synthetic waveforms ensuring deterministic convergence of peak kinematics (PGA, PGV, PGD), Arias energy ($I_a$), duration $D_{5-95}$, MMI (Worden et al., 2012), and PSA response spectra.
-* **SDOF Solver Cross-Validation ([tests/test_response_spectrum.py](tests/test_response_spectrum.py))**: Verifies consistency between Nigam-Jennings (1969) and Newmark-Beta (1959) formulations (mean relative discrepancy $< 5\%$) and proves the high-frequency rigid limit anchor $\lim_{T \to 0} \text{PSA}(T) = \text{PGA}$.
-* **MMI & ShakeMap Invariance ([tests/test_mmi.py](tests/test_mmi.py))**: Validates Worden et al. (2012) branching, monotonicity, PGV dominance at strong shaking, and finite number safety.
-* **Quality Control Screening ([tests/test_qc.py](tests/test_qc.py))**: Validates threshold logic (PASS $\ge 70$, WARNING $50-69$, FAIL $< 50$) and mandatory fatal disqualification for sensor clipping and ADC saturation.
-* **Real Operational BMKG Records Validation ([tests/test_level4_real_data.py](tests/test_level4_real_data.py))**: End-to-end multi-station validation on real BMKG earthquake records (PPJR, PCJI, PRJI) confirming 100% parameter agreement with operational standards.
-
----
-
 ## Repository Directory Structure
 
 ```text
@@ -339,9 +253,10 @@ Project BSMA/
 │   ├── exporter.py                  # Tabular data serialization utilities
 │   ├── logger.py                    # Provenance tracking and execution audit logging system
 │   └── pdf_exporter.py              # Technical engineering PDF report generator
-├── scripts/                         # Automation & utility scripts
-│   └── generate_guidebook.py        # Automated generator for the official User Guidebook
-├── tests/                           # Comprehensive automated test suite (pytest)
+├── scripts/                         # Automation & document generator scripts
+│   ├── generate_guidebook.py        # Automated generator for Scientific Guidebook (ID & EN)
+│   └── generate_operational_guidebook.py # Automated generator for Operational Manual (ID & EN)
+├── tests/                           # Comprehensive automated test suite (pytest - 83 test cases)
 │   ├── test_analysis_service.py     # Single-station analysis service integration tests
 │   ├── test_integration.py          # Analytical synthetic integration verification (exact sine wave)
 │   ├── test_level4_real_data.py     # Real multi-station operational BMKG earthquake record validation
@@ -351,15 +266,13 @@ Project BSMA/
 │   ├── test_reference_benchmark.py  # End-to-end reference dataset regression benchmarks
 │   └── test_response_spectrum.py    # SDOF solvers & Nigam-Jennings vs. Newmark-Beta benchmark tests
 ├── outputs/                         # Documentation and export outputs
-│   ├── BSMA_User_Guidebook_EN.pdf   # Official User Guidebook & Technical Reference (English)
-│   ├── BSMA_User_Guidebook_ID.pdf   # Official User Guidebook & Technical Reference (Indonesian)
-│   └── BSMA_User_Guidebook.pdf      # Default User Guidebook (PDF)
+│   ├── BSMA_Panduan_Teknis_Operasional_EN.pdf # Operational Technical Manual (English - 18 Pages)
+│   ├── BSMA_Panduan_Teknis_Operasional_ID.pdf # Operational Technical Manual (Indonesian - 18 Pages)
+│   ├── BSMA_Scientific_Guidebook_EN.pdf       # Scientific & Algorithmic Guidebook (English - 17 Pages)
+│   └── BSMA_Scientific_Guidebook_ID.pdf       # Scientific & Algorithmic Guidebook (Indonesian - 17 Pages)
+├── docs/images/                     # High-resolution UI screenshots for documentation previews
 ├── app.py                           # Streamlit graphical user interface entry point (GUI)
 ├── assets/                          # Official institution branding & visual identity assets
-│   ├── Logo_BMKG_Icon.png           # Transparent BMKG logo icon with solid white interior
-│   ├── Logo_ITERA_Icon.png          # Transparent ITERA golden diamond logo icon
-│   ├── Logo_ITERA.png               # High-resolution ITERA official crest
-│   └── Logo_Judul.png               # BMKG Sleman original banner crest
 ├── requirements.txt                 # Python dependency specifications with version bounds
 ├── README.md                        # Comprehensive project documentation (English)
 └── README.id.md                     # Comprehensive project documentation (Bahasa Indonesia)
@@ -373,12 +286,13 @@ Project BSMA/
 2. **Badan Standardisasi Nasional.** (2019). *SNI 1726:2019: Tata cara perencanaan ketahanan gempa untuk struktur bangunan gedung dan non gedung*. Jakarta: Badan Standardisasi Nasional.
 3. **Beyreuther, M., Barsch, R., Krischer, L., Megies, T., Behr, Y., & Wassermann, J.** (2010). ObsPy: A Python toolbox for seismology. *Seismological Research Letters*, 81(3), 530–533. [https://doi.org/10.1785/gssrl.81.3.530](https://doi.org/10.1785/gssrl.81.3.530)
 4. **Boore, D. M., & Bommer, J. J.** (2005). Processing of strong-motion accelerograms: Needs, options and consequences. *Soil Dynamics and Earthquake Engineering*, 25(2), 93–115. [https://doi.org/10.1016/j.soildyn.2004.10.007](https://doi.org/10.1016/j.soildyn.2004.10.007)
-5. **Harris, F. J.** (1978). On the use of windows for harmonic analysis with the discrete Fourier transform. *Proceedings of the IEEE*, 66(1), 51–83. [https://doi.org/10.1109/PROC.1978.10837](https://doi.org/10.1109/PROC.1978.10837)
-6. **Newmark, N. M.** (1959). A method of computation for structural dynamics. *Journal of the Engineering Mechanics Division, ASCE*, 85(3), 67–94. [https://doi.org/10.1061/JMCEA3.0000098](https://doi.org/10.1061/JMCEA3.0000098)
-7. **Nigam, N. C., & Jennings, P. C.** (1969). Calculation of response spectra from strong-motion earthquake records. *Bulletin of the Seismological Society of America*, 59(2), 909–922. [https://doi.org/10.1785/BSSA0590020909](https://doi.org/10.1785/BSSA0590020909)
-8. **Trifunac, M. D., & Brady, A. G.** (1975). A study on the duration of strong earthquake ground motion. *Bulletin of the Seismological Society of America*, 65(3), 581–626. [https://doi.org/10.1785/BSSA0650030581](https://doi.org/10.1785/BSSA0650030581)
-9. **Virtanen, P., Gommers, R., Oliphant, T. E., Haberland, M., Reddy, T., Cournapeau, D., & van der Walt, S. J.** (2020). SciPy 1.0: Fundamental algorithms for scientific computing in Python. *Nature Methods*, 17(3), 261–272. [https://doi.org/10.1038/s41592-019-0686-2](https://doi.org/10.1038/s41592-019-0686-2)
-10. **Worden, C. B., Gerstenberger, M. C., Rhoades, D. A., & Wald, D. J.** (2012). Probabilistic relationships between ground-motion parameters and MMI. *Bulletin of the Seismological Society of America*, 102(1), 204–221. [https://doi.org/10.1785/0120110156](https://doi.org/10.1785/0120110156)
+5. **Electric Power Research Institute (EPRI).** (1988). *Standardization of the Cumulative Absolute Velocity (CAV) parameter and its application to nuclear power plant seismic design*. EPRI NP-5930. Palo Alto, CA: EPRI.
+6. **Harris, F. J.** (1978). On the use of windows for harmonic analysis with the discrete Fourier transform. *Proceedings of the IEEE*, 66(1), 51–83. [https://doi.org/10.1109/PROC.1978.10837](https://doi.org/10.1109/PROC.1978.10837)
+7. **Newmark, N. M.** (1959). A method of computation for structural dynamics. *Journal of the Engineering Mechanics Division, ASCE*, 85(3), 67–94. [https://doi.org/10.1061/JMCEA3.0000098](https://doi.org/10.1061/JMCEA3.0000098)
+8. **Nigam, N. C., & Jennings, P. C.** (1969). Calculation of response spectra from strong-motion earthquake records. *Bulletin of the Seismological Society of America*, 59(2), 909–922. [https://doi.org/10.1785/BSSA0590020909](https://doi.org/10.1785/BSSA0590020909)
+9. **Trifunac, M. D., & Brady, A. G.** (1975). A study on the duration of strong earthquake ground motion. *Bulletin of the Seismological Society of America*, 65(3), 581–626. [https://doi.org/10.1785/BSSA0650030581](https://doi.org/10.1785/BSSA0650030581)
+10. **Virtanen, P., Gommers, R., Oliphant, T. E., Haberland, M., Reddy, T., Cournapeau, D., & van der Walt, S. J.** (2020). SciPy 1.0: Fundamental algorithms for scientific computing in Python. *Nature Methods*, 17(3), 261–272. [https://doi.org/10.1038/s41592-019-0686-2](https://doi.org/10.1038/s41592-019-0686-2)
+11. **Worden, C. B., Gerstenberger, M. C., Rhoades, D. A., & Wald, D. J.** (2012). Probabilistic relationships between ground-motion parameters and MMI. *Bulletin of the Seismological Society of America*, 102(1), 204–221. [https://doi.org/10.1785/0120110156](https://doi.org/10.1785/0120110156)
 
 ---
 
